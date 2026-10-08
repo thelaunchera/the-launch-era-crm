@@ -52,8 +52,15 @@
 <label>Hero headline / Título principal<input name="headline" maxlength="115" placeholder="A little more clean. A lot more calm."></label>
 <label style="grid-column:1/-1">Business description / Descripción<textarea name="description" maxlength="480" rows="3" style="min-height:90px"></textarea></label>
 <label>Service area / Zona de servicio<input name="service_area" maxlength="240" placeholder="Miami, FL"></label>
-<label>Hero photo URL / Foto principal (HTTPS JPG, PNG or WEBP)<input name="hero_image" type="url" placeholder="https://example.com/hero.jpg"></label>
-<label>Logo image URL / Logo (HTTPS JPG, PNG or WEBP)<input name="logo_image" type="url" placeholder="https://example.com/logo.png"></label>
+<div style="grid-column:1/-1;border:1px solid #dfebf3;border-radius:20px;padding:17px;background:#f6fafc">
+<strong style="display:block;margin-bottom:6px">Photos received / Fotos recibidas</strong>
+<p style="font-size:13px;color:#5c7380;line-height:1.6">Choose the logo and main photo from the files uploaded in the intake. No URLs needed. / Elige el logo y la foto principal de las imágenes recibidas. No necesitas enlaces.</p>
+<div id="buildIntakePhotos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,145px),1fr));gap:11px;margin:12px 0"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">
+<label>Hero photo / Foto principal<select name="hero_photo_path" id="buildHeroPhotoSelect"><option value="">No photo / Sin foto</option></select></label>
+<label>Logo / Logo<select name="logo_photo_path" id="buildLogoPhotoSelect"><option value="">No logo / Sin logo</option></select></label>
+</div>
+<p class="muted" style="font-size:12px;margin-top:10px">HEIC photos can be received and stored, but JPG, PNG or WebP is required for a website image. / Puedes recibir fotos HEIC, pero para publicarlas necesitarás JPG, PNG o WebP.</p></div>
 <label>Background color / Fondo azul<input name="primary_color" type="color" value="#dceffa"></label>
 <label>Accent color / Azul de acento<input name="accent_color" type="color" value="#3a7399"></label>
 <label style="grid-column:1/-1">Verified client reviews / Reseñas reales<textarea name="reviews" rows="3" placeholder="Client name | Exact testimonial" style="min-height:105px"></textarea><span class="muted" style="font-size:12px">Only real reviews with permission. One per line, separate name and review with |. / Solo reseñas reales con permiso.</span></label>
@@ -428,6 +435,36 @@ function buildRenderStatus(){
   order.workspace_ready?buildLabel('Workspace linked. Perform final QA in Settings before delivering.','Espacio privado conectado. Haz las pruebas finales antes de entregar.'):
   buildLabel('Design approved. Prepare access, then invite the buyer to activate the private account.','Diseño aprobado. Prepara el acceso e invita a la compradora.');
 }
+function renderBuildPhotos(photos,brand){
+ const root=$('buildIntakePhotos'),hero=$('buildHeroPhotoSelect'),logo=$('buildLogoPhotoSelect');
+ root.replaceChildren();
+ for(const select of [hero,logo])select.replaceChildren(new Option(select===hero?'No main photo / Sin foto':'No logo / Sin logo',''));
+ const all=Array.isArray(photos)?photos:[];
+ if(!all.length){
+  root.appendChild(ownerPageElem('p',buildLabel('No photos have been uploaded yet. The buyer can submit up to 10 photos from their phone.','Todavía no hay fotos. La compradora puede subir hasta 10 desde su teléfono.'),'grid-column:1/-1;font-size:13px;color:#5b7080'));
+  return;
+ }
+ for(const file of all){
+  const path=String(file.path||''),label=String(file.name||'Photo');
+  if(!file.preview_url)continue;
+  const isWeb=/\.(jpe?g|png|webp)$/i.test(path);
+  if(isWeb){hero.add(new Option(label,path));logo.add(new Option(label,path))}
+  const tile=ownerPageElem('div',undefined,'min-width:0;background:#fff;border:1px solid #dfebf2;border-radius:14px;padding:8px;overflow:hidden');
+  const img=document.createElement('img');img.alt=label;img.loading='lazy';img.referrerPolicy='no-referrer';
+  img.style.cssText='width:100%;height:112px;object-fit:cover;display:block;border-radius:9px;background:#f0f7fb';
+  img.src=file.preview_url;
+  const title=ownerPageElem('div',label,'font-size:11px;line-height:1.4;overflow-wrap:anywhere;margin:7px 0;color:#495c6b');
+  tile.append(img,title);
+  if(isWeb)for(const [select,text] of [[hero,buildLabel('Use as hero','Usar como foto')],[logo,buildLabel('Use as logo','Usar como logo')]]){
+   const btn=ownerPageElem('button',text);btn.type='button';btn.className='secondary';
+   btn.style.cssText='font-size:11px;width:100%;padding:7px 6px;margin:3px 0';
+   btn.onclick=()=>{select.value=path;select.dispatchEvent(new Event('change'))};tile.appendChild(btn)
+  }else{tile.appendChild(ownerPageElem('p',buildLabel('HEIC: convert to JPG for the website','HEIC: convertir a JPG para la web'),'font-size:11px;color:#9b5c29'))}
+  root.appendChild(tile);
+ }
+ hero.value=brand?.hero_photo_path||'';
+ logo.value=brand?.logo_photo_path||'';
+}
 async function loadOwnerBuilder(){
  if(!workspace?.is_internal||!ownerReviewAccount)return premiumNavigate('owner-pages');
  const status=$('buildStatus');status.textContent=buildLabel('Loading personalized buyer setup…','Cargando configuración…');
@@ -436,11 +473,9 @@ async function loadOwnerBuilder(){
   const order=data.order;ownerReviewAccount={...ownerReviewAccount,business_name:order.business_name,intake_done:order.intake_received};
   buildIntakeRows(order.intake||{});
   const brand=data.branding||{},form=$('buildBrandForm');
-  for(const key of ['business_name','headline','description','service_area','hero_image','logo_image','primary_color','accent_color']){
-   const raw=brand[key]||'';
-   const safe=(key==='hero_image'||key==='logo_image')?!raw||/^https:\/\/[^\s?#]+\.(jpg|jpeg|png|webp)(\?[^\s]*)?$/i.test(raw):true;
-   buildField(form,key,safe?raw:'');
-  }
+  for(const key of ['business_name','headline','description','service_area','primary_color','accent_color'])
+   buildField(form,key,brand[key]||'');
+  renderBuildPhotos(data.uploaded_photos||[],brand);
   buildField(form,'reviews',Array.isArray(brand.reviews)?brand.reviews.map(r=>r.name+' | '+r.text).join('\n'):'');
   buildRenderStatus();
  }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
@@ -474,7 +509,9 @@ async function loadBuilderRealPreview(){
   builderPreviewData={business_name:b.business_name||ov.business_name,language:ov.language||'en',
    timezone:availability.settings?.timezone||ov.intake?.timezone||'America/New_York',
    branding:{description:b.description,headline:b.headline,service_area:b.service_area,
-    hero_image:b.hero_image,logo_image:b.logo_image,primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[]},
+    hero_image:(studio.uploaded_photos||[]).find(x=>x.path===b.hero_photo_path)?.preview_url||b.hero_image,
+    logo_image:(studio.uploaded_photos||[]).find(x=>x.path===b.logo_photo_path)?.preview_url||b.logo_image,
+    primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[]},
    currency:price.settings?.currency||'USD',services:svc,addons:price.settings?.addons||[],
    quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true,
    availability:availability.settings||{}};
