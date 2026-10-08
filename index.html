@@ -16,6 +16,7 @@
 <div id="avWeekly"></div>
 <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center"><h3 style="margin:0">Days off / Días cerrados</h3><input id="avBlockDate" type="date" style="width:min(215px,100%)"><button id="avAddClosed" type="button" class="secondary">Block date / Bloquear</button></div>
 <div id="avBlocked" style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0"></div>
+<div class="panel" style="padding:16px;margin-top:18px"><h3>Preview available slots / Ver horarios disponibles</h3><div style="display:flex;gap:11px;flex-wrap:wrap;align-items:end"><label style="flex:1;min-width:190px">Date / Fecha<input type="date" id="avPreviewDate"></label><button type="button" class="secondary" id="avPreviewBtn">Show available times / Ver horarios</button></div><p id="avPreviewResults" class="muted" role="status" aria-live="polite">Save your schedule, then check any date. / Guarda tus horarios y comprueba una fecha.</p></div>
 <p class="muted">Pending requests temporarily hold a slot for up to 48 hours. Confirmed appointments stay unavailable. / Las solicitudes pendientes retienen el horario hasta 48 h; las confirmadas lo mantienen ocupado.</p>
 <div style="display:flex;gap:12px;flex-wrap:wrap"><button id="avSave" type="button">Save availability / Guardar disponibilidad</button><button id="avReload" type="button" class="secondary">Reload / Recargar</button></div>
 </div></article>
@@ -149,6 +150,16 @@ async function loadAvailability(){
   $('avStatus').textContent=d.configured?'Your availability is saved / Horarios guardados':'Choose your open days and save / Elige tus días y guarda';
  }catch(e){if(current!==avLoadVersion)return;availabilityDraft=null;$('avStatus').textContent=e.message;}
 }
+$('avPreviewBtn').onclick=async()=>{
+ const status=$('avPreviewResults'),date=$('avPreviewDate').value;
+ if(!date){status.textContent='Choose a date / Elige una fecha';return}
+ status.textContent='Checking… / Consultando…';
+ try{
+  const result=await availabilityCall('preview',{date});
+  const times=(result.slots||[]).map(t=>{const [hh,mm]=t.split(':').map(Number);return (hh%12||12)+':'+String(mm).padStart(2,'0')+(hh<12?' AM':' PM')});
+  status.textContent=times.length?times.join('   ·   ')+'  ('+result.timezone+')':'No available slots for this date / No hay horarios libres para esa fecha';
+ }catch(e){status.textContent=e.message}
+};
 $('avReload').onclick=loadAvailability;
 $('avAddClosed').onclick=()=>{
  if(!availabilityDraft)return;const day=$('avBlockDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return;
