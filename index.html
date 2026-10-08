@@ -631,6 +631,213 @@ const buyerPageLabel=()=>localStorage.getItem('tle_crm_language')==='es';
 function ownerPageElem(tag,textValue,style){const e=document.createElement(tag);if(textValue!==undefined)e.textContent=String(textValue);if(style)e.style.cssText=style;return e}
 function chooseOwnerBuyer(a,tab){ownerReviewAccount={id:a.id,business_name:a.business_name||'Cleaning Business',intake_done:!!a.intake_done,booking_page_url:a.booking_page_url};if(tab==='builder'){setView('owner-build');loadOwnerBuilder()}else if(tab==='preview'){setView('owner-build');loadOwnerBuilder().then(()=>loadBuilderRealPreview())}else premiumNavigate(tab)}
 
+
+let ownerCalendarRecords=[];
+let ownerCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let ownerCalendarSelectedDay='';
+let ownerCalendarBuyerPref='';
+let ownerCalendarLoadGeneration=0;
+const ownerCalendarKinds={
+ payment:{en:'Purchase confirmed',es:'Compra confirmada',color:'#34749B'},
+ intake_sent:{en:'Intake email sent',es:'Correo de intake enviado',color:'#84A8BC'},
+ intake:{en:'Intake completed',es:'Intake completado',color:'#7599B3'},
+ build:{en:'Production started',es:'Personalización iniciada',color:'#3A7399'},
+ access:{en:'Booking setup prepared',es:'Sistema preparado',color:'#557E9B'},
+ qa:{en:'Final tests approved',es:'Pruebas finales aprobadas',color:'#467885'},
+ delivered:{en:'Final delivery queued',es:'Entrega en cola',color:'#498976'},
+ checkin:{en:'48-hour check-in scheduled',es:'Seguimiento a las 48 h previsto',color:'#A68A47'},
+ plan_design:{en:'Design & prices target',es:'Objetivo: diseño y precios',color:'#AD7B37'},
+ plan_qa:{en:'Final QA target',es:'Objetivo: pruebas finales',color:'#AD7B37'},
+ plan_delivery:{en:'Target delivery date',es:'Fecha prevista de entrega',color:'#AD7B37'}
+};
+function ownerCalendarToday(){
+ const parts=Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const map=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+ return map.year+'-'+map.month+'-'+map.day;
+}
+function ownerCalendarDisplayDate(iso){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return '';
+ return new Date(iso+'T12:00:00').toLocaleDateString(buyerPageLabel()?'es-US':'en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+}
+function ownerCalendarEvents(){
+ const keys=[
+  ['payment_date','payment'],['intake_sent_date','intake_sent'],['intake_date','intake'],
+  ['build_started_date','build'],['access_ready_date','access'],['qa_approved_date','qa'],
+  ['delivery_date','delivered'],['checkin_date','checkin'],
+  ['design_due_date','plan_design'],['qa_due_date','plan_qa'],['delivery_target_date','plan_delivery']
+ ];
+ const events=[];
+ for(const a of ownerCalendarRecords){
+  for(const [column,kind] of keys){
+   const day=a[column];if(!day||!/^\d{4}-\d{2}-\d{2}$/.test(day))continue;
+   events.push({day,kind,account:a,planned:kind.startsWith('plan_')||kind==='checkin'});
+  }
+ }
+ return events.sort((a,b)=>a.day.localeCompare(b.day)||a.account.business_name.localeCompare(b.account.business_name));
+}
+function renderOwnerCalendarSelection(){
+ const select=$('ownerCalBuyer');
+ const current=ownerCalendarBuyerPref||select.value||'';
+ select.replaceChildren(new Option(buyerPageLabel()?'Selecciona una compradora':'Choose a purchased client',''));
+ for(const a of ownerCalendarRecords){
+  const option=new Option(a.business_name||'Cleaning Business',a.id);
+  select.add(option);
+ }
+ if(current&&ownerCalendarRecords.some(a=>a.id===current))select.value=current;
+ if(select.value!==current&&ownerCalendarBuyerPref)ownerCalendarBuyerPref='';
+ const a=ownerCalendarRecords.find(x=>x.id===select.value);
+ const active=document.activeElement;
+ const editing=!!(active&&active.closest&&active.closest('#ownerCalForm'));
+ if(!editing){
+  $('ownerCalDesign').value=a?.design_due_date||'';
+  $('ownerCalQA').value=a?.qa_due_date||'';
+  $('ownerCalDelivery').value=a?.delivery_target_date||'';
+  $('ownerCalNotes').value=a?.owner_notes||'';
+ }
+ $('ownerCalSave').disabled=!a;
+}
+function ownerCalendarEventCard(e){
+ const cfg=ownerCalendarKinds[e.kind]||{en:e.kind,es:e.kind,color:'#7f8f99'};
+ const es=buyerPageLabel();
+ const card=ownerPageElem('div',undefined,'display:flex;align-items:flex-start;gap:12px;border:1px solid #e8edf0;background:#fff;padding:13px 15px;border-radius:14px;min-width:0');
+ card.appendChild(ownerPageElem('span','●','font-size:18px;color:'+cfg.color+';line-height:1.1'));
+ const body=ownerPageElem('div',undefined,'min-width:0;flex:1');
+ body.appendChild(ownerPageElem('strong',es?cfg.es:cfg.en,'display:block;font-size:13px;line-height:1.35'));
+ body.appendChild(ownerPageElem('div',e.account.business_name,'font-size:12px;color:#5d7382;overflow-wrap:anywhere;margin:4px 0'));
+ body.appendChild(ownerPageElem('div',ownerCalendarDisplayDate(e.day),'font-size:11px;color:#758895'));
+ const button=ownerPageElem('button',es?'Abrir':'Open');button.type='button';button.className='secondary';
+ button.style.cssText='flex:0 0 auto;padding:9px 12px;font-size:11px;border-radius:25px';
+ button.onclick=()=>{
+  ownerReviewAccount={id:e.account.id,business_name:e.account.business_name,intake_done:e.account.intake_done,booking_page_url:e.account.booking_ready?true:null};
+  setView('owner-build');loadOwnerBuilder();$('ownerBuilderHub').scrollIntoView({behavior:'smooth'});
+ };
+ card.append(body,button);
+ return card;
+}
+function renderOwnerCalendar(){
+ if(!workspace?.is_internal)return;
+ const es=buyerPageLabel();
+ const summary=$('ownerCalSummary');summary.replaceChildren();
+ const events=ownerCalendarEvents(),today=ownerCalendarToday();
+ const tasks=events.filter(e=>e.kind.startsWith('plan_')&&e.day>=today);
+ const overdue=events.filter(e=>e.kind.startsWith('plan_')&&e.day<today&&!e.account.delivered);
+ for(const [label,value] of [
+  [es?'Compradoras':'Purchased clients',ownerCalendarRecords.length],
+  [es?'Sin intake':'Waiting for intake',ownerCalendarRecords.filter(a=>!a.intake_done).length],
+  [es?'Fechas previstas':'Upcoming work dates',tasks.length],
+  [es?'Pendientes vencidos':'Overdue targets',overdue.length]
+ ]){
+  const cell=ownerPageElem('div',undefined,'background:#fff;border:1px solid #e4edf3;border-radius:19px;padding:18px');
+  cell.append(ownerPageElem('strong',String(value),'display:block;font-size:30px;line-height:1.1'),ownerPageElem('span',label,'display:block;font-size:12px;color:#5d7182;margin-top:8px'));summary.append(cell);
+ }
+ const month=ownerCalendarMonth,y=month.getFullYear(),m=month.getMonth();
+ $('ownerCalMonth').textContent=new Date(y,m,1).toLocaleDateString(es?'es-US':'en-US',{month:'long',year:'numeric'});
+ const grid=$('ownerCalGrid');grid.replaceChildren();
+ const weekday=es?['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ for(const day of weekday){const head=ownerPageElem('div',day,'font-size:11px;color:#668091;text-align:center;padding:7px 0;font-weight:800');grid.append(head)}
+ const offset=new Date(y,m,1).getDay();
+ const start=new Date(y,m,1-offset);
+ const counts=new Map();
+ for(const event of events)counts.set(event.day,[...(counts.get(event.day)||[]),event]);
+ for(let i=0;i<42;i++){
+  const date=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+  const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  const list=counts.get(key)||[],inside=date.getMonth()===m,chosen=ownerCalendarSelectedDay===key,isToday=key===today;
+  const bg=chosen?'#daedf9':inside?'#fff':'#f8fafb';
+  const b=ownerPageElem('button');b.type='button';b.setAttribute('aria-label',ownerCalendarDisplayDate(key)+': '+list.length+' events');b.setAttribute('aria-pressed',String(chosen));
+  b.style.cssText='display:flex;flex-direction:column;align-items:stretch;min-height:76px;border:1px solid '+(chosen?'#588eb0':isToday?'#96bcda':'#e7edf2')+';border-radius:12px;text-align:left;background:'+bg+';color:'+(inside?'#233c4b':'#a1b1ba')+';padding:8px 6px;gap:4px;font-size:12px;box-shadow:none;';
+  const number=ownerPageElem('strong',String(date.getDate()),'font-size:12px;color:'+(isToday?'#326e97':'inherit'));b.append(number);
+  for(const event of list.slice(0,2)){
+   const cfg=ownerCalendarKinds[event.kind]||{en:event.kind,es:event.kind,color:'#7999aa'};
+   const pill=ownerPageElem('div',(es?cfg.es:cfg.en).slice(0,11),'font-size:9px;font-weight:700;color:#263f4e;border-radius:5px;padding:3px 4px;background:'+(event.planned?'#fff1d6':'#e3eff7')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%');
+   b.append(pill);
+  }
+  if(list.length>2)b.append(ownerPageElem('span','+'+(list.length-2),'font-size:9px;color:#688095'));
+  b.onclick=()=>{ownerCalendarSelectedDay=key;renderOwnerCalendar();};
+  grid.append(b);
+ }
+ const panel=$('ownerCalDayPanel');panel.replaceChildren();
+ const focus=ownerCalendarSelectedDay,dayItems=focus?events.filter(e=>e.day===focus):[];
+ const title=ownerPageElem('h3',focus?ownerCalendarDisplayDate(focus):(es?'Próximas fechas y actividad reciente':'Upcoming work & recent activity'),'font-size:18px;margin:0 0 13px;letter-spacing:-.02em');
+ panel.append(title);
+ const selectedItems=focus?dayItems:[
+  ...events.filter(e=>e.day>=today).slice(0,12),
+  ...events.filter(e=>e.day<today).slice(-5).reverse()
+ ];
+ if(!selectedItems.length){
+  panel.append(ownerPageElem('p',focus?(es?'No hay actividades registradas para este día.':'No recorded activity on this date.'):(es?'Sin fechas todavía. Las compras aparecerán aquí automáticamente.':'No dates yet. Purchases will appear automatically.'),'font-size:13px;color:#66818e'));
+ }else{
+  const list=ownerPageElem('div',undefined,'display:grid;gap:8px');
+  for(const event of selectedItems)list.append(ownerCalendarEventCard(event));
+  panel.append(list);
+ }
+ renderOwnerCalendarSelection();
+}
+async function loadOwnerCalendar(silent=false){
+ if(!workspace?.is_internal)return;
+ const loadId=++ownerCalendarLoadGeneration;
+ if(!silent)$('ownerCalStatus').textContent=buyerPageLabel()?'Sincronizando pedidos…':'Syncing purchases…';
+ try{
+  const {data,error}=await db.rpc('tle_booking_owner_calendar_read');
+  if(error)throw error;
+  if(loadId!==ownerCalendarLoadGeneration||!workspace?.is_internal)return;
+  ownerCalendarRecords=Array.isArray(data)?data:[];
+  renderOwnerCalendar();
+  $('ownerCalStatus').textContent=(buyerPageLabel()?'Actualizado con los pedidos guardados · ':'Synced with recorded purchases · ')+new Date().toLocaleTimeString(buyerPageLabel()?'es-US':'en-US',{hour:'numeric',minute:'2-digit'});
+ }catch(err){
+  if(!silent)$('ownerCalStatus').textContent=(buyerPageLabel()?'No se pudo actualizar el calendario: ':'Calendar could not refresh: ')+err.message;
+ }
+}
+function openBuyerWorkCalendar(accountId){
+ ownerCalendarBuyerPref=accountId;
+ premiumNavigate('owner-calendar');
+}
+$('ownerCalBuyer').onchange=()=>{
+ ownerCalendarBuyerPref=$('ownerCalBuyer').value;
+ const a=ownerCalendarRecords.find(x=>x.id===ownerCalendarBuyerPref);
+ $('ownerCalDesign').value=a?.design_due_date||'';
+ $('ownerCalQA').value=a?.qa_due_date||'';
+ $('ownerCalDelivery').value=a?.delivery_target_date||'';
+ $('ownerCalNotes').value=a?.owner_notes||'';
+ $('ownerCalFormStatus').textContent='';
+ $('ownerCalSave').disabled=!a;
+};
+$('ownerCalForm').onsubmit=async e=>{
+ e.preventDefault();
+ const id=$('ownerCalBuyer').value,save=$('ownerCalSave'),msg=$('ownerCalFormStatus');
+ if(!id||!workspace?.is_internal)return;
+ save.disabled=true;msg.textContent=buyerPageLabel()?'Guardando fechas…':'Saving work dates…';
+ try{
+  const {data,error}=await db.rpc('tle_booking_owner_calendar_save',{
+   p_account_id:id,
+   p_design_due_date:$('ownerCalDesign').value||null,
+   p_qa_due_date:$('ownerCalQA').value||null,
+   p_delivery_target_date:$('ownerCalDelivery').value||null,
+   p_notes:$('ownerCalNotes').value
+  });
+  if(error||!data?.ok)throw error||new Error('Save not confirmed');
+  ownerCalendarBuyerPref=id;
+  await loadOwnerCalendar(true);
+  msg.textContent=buyerPageLabel()?'✓ Fechas guardadas. Calendario actualizado.':'✓ Work dates saved. Calendar updated.';
+ }catch(error){
+  msg.textContent=(buyerPageLabel()?'No se guardaron las fechas: ':'Dates could not be saved: ')+error.message;
+ }finally{save.disabled=false}
+};
+$('ownerCalPrev').onclick=()=>{ownerCalendarMonth=new Date(ownerCalendarMonth.getFullYear(),ownerCalendarMonth.getMonth()-1,1);ownerCalendarSelectedDay='';renderOwnerCalendar()};
+$('ownerCalNext').onclick=()=>{ownerCalendarMonth=new Date(ownerCalendarMonth.getFullYear(),ownerCalendarMonth.getMonth()+1,1);ownerCalendarSelectedDay='';renderOwnerCalendar()};
+$('ownerCalToday').onclick=()=>{const today=ownerCalendarToday();ownerCalendarMonth=new Date(Number(today.slice(0,4)),Number(today.slice(5,7))-1,1);ownerCalendarSelectedDay=today;renderOwnerCalendar()};
+$('ownerCalRefresh').onclick=()=>loadOwnerCalendar();
+setInterval(()=>{
+ if(!workspace?.is_internal||document.hidden)return;
+ if(view==='owner-pages')void loadOwnerPages();
+ else if(view==='owner-calendar')void loadOwnerCalendar(true);
+},60000);
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden||!workspace?.is_internal)return;
+ if(view==='owner-calendar')void loadOwnerCalendar(true);
+ if(view==='owner-pages')void loadOwnerPages();
+});
+
 let ownerPurchases=[];
 function ownerPurchaseStage(a){
  if(a.already_queued)return 'delivered';
