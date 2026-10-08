@@ -330,6 +330,10 @@ function clearAdminClientState(){
  pricingDraft=null;availabilityDraft=null;
  ownerCalendarLoadGeneration++;pricingLoadGeneration++;loadGeneration++;
  const frame=$('buildLiveFrame');if(frame){frame.onload=null;frame.removeAttribute('src');}
+ const buyerMailForm=$('buyerEmailForm');if(buyerMailForm)buyerMailForm.reset();
+ for(const id of ['settingsAccountEmail','settingsBusinessName','settingsFollowupStatus','ownerCalNotes','notificationList']){
+  const node=$(id);if(node){if('value' in node)node.value='';else node.textContent='';}
+ }
  for(const id of [
   'ownerPagesList','ownerDeliveryList','ownerCalDayPanel','ownerCalGrid','buildIntake',
   'buildIntakePhotos','ownerCalSummary','ownerPagePreviewBody','ownerPurchaseStats',
