@@ -476,7 +476,8 @@ async function loadBuilderRealPreview(){
    branding:{description:b.description,headline:b.headline,service_area:b.service_area,
     hero_image:b.hero_image,logo_image:b.logo_image,primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[]},
    currency:price.settings?.currency||'USD',services:svc,addons:price.settings?.addons||[],
-   quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true};
+   quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true,
+   availability:availability.settings||{}};
   const frame=$('buildLiveFrame');
   const send=()=>{if(frame.contentWindow&&builderPreviewData)frame.contentWindow.postMessage({type:'TLE_OWNER_BOOKING_PREVIEW',config:builderPreviewData},'*')};
   frame.onload=send;
