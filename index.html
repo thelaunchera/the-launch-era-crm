@@ -17,6 +17,58 @@ const db=createClient('https://bowacxhmjvrqixtwaikv.supabase.co','sb_publishable
 const $=id=>document.getElementById(id);if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(new URL('sw.js',location.href).pathname).catch(err=>console.warn('Push service worker unavailable',err.message)))}function hideTleLoading(){const el=$('tleLoading');if(!el)return;el.classList.add('tle-loading-hide');setTimeout(()=>el.remove(),280)}let workspace=null,leads=[],editing=null,emailSentByLead=new Map(),emailBouncedByLead=new Map(),accountEmail='';
 const say=s=>{$('message').textContent=s;if($('editor')?.open){const status=$('followupStatus');if(status)status.textContent=s}};
 async function check(result){if(result.error)throw result.error;return result.data}
+
+const pricingEndpoint='https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-booking-flow-pricing';
+let pricingDraft=null,pricingLoadGeneration=0;
+function priceElement(tag,attrs={},label){const el=document.createElement(tag);for(const [key,value] of Object.entries(attrs)){if(key==='class')el.className=value;else if(key==='value')el.value=value;else el.setAttribute(key,String(value))}if(label!==undefined)el.textContent=String(label);return el}
+async function pricingCall(action,data={}){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw Error('Sign in to continue / Inicia sesión');
+ const result=await fetch(pricingEndpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:'sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB'},body:JSON.stringify({action,workspace_id:workspace?.id,...data})});
+ const body=await result.json().catch(()=>({}));if(!result.ok)throw Error(body.error||'Request failed');return body;
+}
+function pricingFormRow(group,item){
+ const el=priceElement('div',{class:'panel'});el.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:9px;align-items:end;padding:13px;margin:9px 0';
+ const input=priceElement('input',{type:'text',maxlength:90});input.value=item.name||'';input.placeholder='Name / Nombre';input.oninput=()=>item.name=input.value;
+ const label=priceElement('label',{},'Name / Nombre');label.append(input);el.append(label);
+ let amount=priceElement('input',{type:'number',min:group==='service'?0.01:0,max:50000,step:0.01});amount.value=item.price??'';amount.oninput=()=>item.price=amount.value;
+ if(group==='service'){
+  const mode=priceElement('select');for(const [val,name] of [['flat','Flat / Fijo'],['estimate','Estimate / Estimado'],['quote','Quote / Cotización']])mode.append(priceElement('option',{value:val},name));
+  mode.value=item.mode||'quote';amount.disabled=mode.value!=='flat';
+  mode.onchange=()=>{item.mode=mode.value;amount.disabled=mode.value!=='flat';if(amount.disabled){amount.value='';item.price=null}};
+  const wrap=priceElement('label',{},'Type / Tipo');wrap.append(mode);el.append(wrap);
+ }
+ const amountLabel=priceElement('label',{},'Price / Precio');amountLabel.append(amount);el.append(amountLabel);
+ const tools=priceElement('div');tools.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap';
+ const active=priceElement('input',{type:'checkbox'});active.checked=item.active!==false;active.style.width='auto';active.onchange=()=>item.active=active.checked;
+ const activeLabel=priceElement('label',{},'Active / Activo');activeLabel.style.margin='0';activeLabel.prepend(active);tools.append(activeLabel);
+ const remove=priceElement('button',{type:'button',class:'secondary'},'Remove / Quitar');remove.onclick=()=>{const key=group==='service'?'services':'addons';pricingDraft[key]=pricingDraft[key].filter(x=>x!==item);renderPricing()};tools.append(remove);el.append(tools);return el;
+}
+function renderPricing(){
+ if(!pricingDraft)return;
+ $('pricingServiceRows').replaceChildren(...pricingDraft.services.map(x=>pricingFormRow('service',x)));
+ $('pricingAddonRows').replaceChildren(...pricingDraft.addons.map(x=>pricingFormRow('addon',x)));
+ $('pricingCurrency').value=pricingDraft.currency||'USD';$('pricingQuotePolicy').value=pricingDraft.quote_policy||'review_unpriced_jobs';
+}
+async function loadPricing(){
+ const version=++pricingLoadGeneration;$('pricingEditor').classList.add('hidden');$('pricingStatus').textContent='Checking access… / Verificando acceso…';
+ if(!workspace){$('pricingStatus').textContent='Create a workspace first / Crea tu espacio primero';return;}
+ try{
+  const d=await pricingCall('get');if(version!==pricingLoadGeneration)return;
+  pricingDraft={services:d.settings.services||[],addons:d.settings.addons||[],currency:d.settings.currency||'USD',quote_policy:d.settings.quote_policy||'review_unpriced_jobs'};
+  $('pricingStatus').textContent=d.saved?'Prices loaded / Precios cargados':'Review your initial prices / Revisa tus precios iniciales';
+  $('pricingPublicUrl').href=d.booking_url;$('pricingEditor').classList.remove('hidden');renderPricing();
+ }catch(e){if(version!==pricingLoadGeneration)return;pricingDraft=null;$('pricingStatus').textContent=e.message;}
+}
+$('pricingAddService').onclick=()=>{if(!pricingDraft||pricingDraft.services.length>=40)return;pricingDraft.services.push({id:crypto.randomUUID(),name:'',mode:'flat',price:'',active:true});renderPricing()};
+$('pricingAddAddon').onclick=()=>{if(!pricingDraft||pricingDraft.addons.length>=40)return;pricingDraft.addons.push({id:crypto.randomUUID(),name:'',price:0,active:true});renderPricing()};
+$('pricingReload').onclick=loadPricing;
+$('pricingSave').onclick=async()=>{
+ if(!pricingDraft)return;const button=$('pricingSave');button.disabled=true;$('pricingStatus').textContent='Saving… / Guardando…';
+ try{const v=await pricingCall('save',{services:pricingDraft.services,addons:pricingDraft.addons,currency:$('pricingCurrency').value,quote_policy:$('pricingQuotePolicy').value});$('pricingStatus').textContent='Published / Publicado · '+new Date(v.updated_at).toLocaleString();await loadPricing();}
+ catch(e){$('pricingStatus').textContent='Not saved / No se guardó: '+e.message}finally{button.disabled=false}
+};
+
 async function boot(){try{let {data:{user}}=await db.auth.getUser();$('auth').classList.toggle('hidden',!!user);$('app').classList.toggle('hidden',!user);$('logout').classList.toggle('hidden',!user);if(!user){hideTleLoading();loadGeneration++;delete document.body.dataset.leadsLoaded;workspace=null;leads=[];accountEmail='';emailSentByLead=new Map();return}accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));workspace=ws[0]||null;if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){$('workspaceName').textContent=workspace.name;await load();await loadStoredNotifications()}hideTleLoading()}catch(e){say(e.message);hideTleLoading()}}
 $('authForm').onsubmit=async e=>{e.preventDefault();try{let x=Object.fromEntries(new FormData(e.target));await check(await db.auth.signInWithPassword(x));$('authMessage').textContent='';await boot()}catch(e){$('authMessage').textContent=e.message}};
 $('forgotPassword').onclick=async()=>{const email=$('authForm').elements.namedItem('email').value.trim();if(!email){$('authMessage').textContent='Enter your email address first.';return}try{await check(await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname}));$('authMessage').textContent='If an account exists, a password reset email will arrive shortly.'}catch(e){$('authMessage').textContent=e.message}};db.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setTimeout(()=>{if(!$('passwordResetDialog').open)$('passwordResetDialog').showModal()},0)}});$('cancelPasswordReset').onclick=()=>$('passwordResetDialog').close();$('passwordResetForm').onsubmit=async e=>{e.preventDefault();const data=new FormData(e.target),password=String(data.get('newPassword')||''),confirm=String(data.get('confirmPassword')||'');if(password.length<8||password!==confirm){$('passwordResetError').textContent='Passwords must match and contain at least 8 characters.';return}const submit=e.target.querySelector('[type=submit]');submit.disabled=true;const {error}=await db.auth.updateUser({password});submit.disabled=false;if(error){$('passwordResetError').textContent=error.message;return}$('passwordResetDialog').close();e.target.reset();say('Password updated successfully.');await boot()};$('signup').onclick=async()=>{try{let x=Object.fromEntries(new FormData($('authForm')));await check(await db.auth.signUp({email:x.email,password:x.password,options:{emailRedirectTo:location.origin+location.pathname}}));$('authMessage').textContent='Account request received. Check your inbox for the confirmation email. If you already registered, use Sign in instead.'}catch(e){const msg=String(e.message||'');$('authMessage').textContent=/rate limit|too many requests/i.test(msg)?'Email confirmation limit reached. If you already have an account, tap Sign in instead. Otherwise, wait before trying again. Check your email spelling (gmail.com).':msg}};
