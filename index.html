@@ -90,6 +90,82 @@ $('pricingSave').onclick=async()=>{
  catch(e){$('pricingStatus').textContent='Not saved / No se guardó: '+e.message}finally{button.disabled=false}
 };
 
+
+const availabilityEndpoint='https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-booking-flow-availability';
+let availabilityDraft=null,avLoadVersion=0;
+async function availabilityCall(action,data={}){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw Error('Sign in first / Inicia sesión');
+ const response=await fetch(availabilityEndpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:'sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB'},body:JSON.stringify({action,workspace_id:workspace?.id,...data})});
+ const payload=await response.json().catch(()=>({}));if(!response.ok)throw Error(payload.error||'Availability failed');return payload;
+}
+function renderAvailability(){
+ if(!availabilityDraft)return;
+ const root=$('avWeekly');root.replaceChildren();
+ const days=[['Sunday','Domingo'],['Monday','Lunes'],['Tuesday','Martes'],['Wednesday','Miércoles'],['Thursday','Jueves'],['Friday','Viernes'],['Saturday','Sábado']];
+ for(let d=0;d<7;d++){
+  const item=availabilityDraft.weekly[String(d)]||(availabilityDraft.weekly[String(d)]={enabled:false,start:'09:00',end:'17:00'});
+  const row=document.createElement('div');row.className='panel';row.style.cssText='display:grid;grid-template-columns:minmax(130px,1.2fr) repeat(2,minmax(110px,1fr));gap:11px;align-items:center;margin:8px 0;padding:12px 16px;border-radius:18px';
+  const box=document.createElement('label');box.style.cssText='display:flex;gap:9px;align-items:center;margin:0';
+  const check=document.createElement('input');check.type='checkbox';check.checked=item.enabled===true;check.style.width='auto';box.append(check,document.createTextNode(days[d].join(' / ')));row.append(box);
+  const inputs=[];
+  for(const [title,key] of [['Opens / Abre','start'],['Closes / Cierra','end']]){
+   const label=document.createElement('label');label.textContent=title;label.style.margin='0';
+   const input=document.createElement('input');input.type='time';input.step=1800;input.value=item[key]|| (key==='start'?'09:00':'17:00');input.disabled=!item.enabled;input.onchange=()=>{item[key]=input.value};
+   label.append(input);row.append(label);inputs.push(input);
+  }
+  check.onchange=()=>{item.enabled=check.checked;inputs.forEach(input=>input.disabled=!check.checked)};
+  root.append(row);
+ }
+ $('avTimezone').value=availabilityDraft.timezone||'America/New_York';
+ $('avSlotMinutes').value=String(availabilityDraft.slot_minutes||60);
+ $('avJobMinutes').value=String(availabilityDraft.job_minutes||120);
+ $('avNoticeHours').value=String(availabilityDraft.min_notice_hours??24);
+ $('avWindowDays').value=String(availabilityDraft.booking_window_days||60);
+ const blocked=$('avBlocked');blocked.replaceChildren();
+ for(const date of availabilityDraft.blocked_dates||[]){
+  const tag=document.createElement('button');tag.type='button';tag.className='secondary';tag.textContent=date+' ×';tag.setAttribute('aria-label','Unblock '+date);
+  tag.onclick=()=>{availabilityDraft.blocked_dates=availabilityDraft.blocked_dates.filter(x=>x!==date);renderBlockedAvailability()};
+  blocked.append(tag);
+ }
+}
+function renderBlockedAvailability(){
+ const root=$('avBlocked');root.replaceChildren();
+ for(const date of availabilityDraft.blocked_dates||[]){
+  const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=date+' ×';b.setAttribute('aria-label','Remove '+date);
+  b.onclick=()=>{availabilityDraft.blocked_dates=availabilityDraft.blocked_dates.filter(x=>x!==date);renderBlockedAvailability()};
+  root.append(b);
+ }
+ if(!root.children.length){const info=document.createElement('span');info.className='muted';info.textContent='No blocked dates / Ningún día bloqueado';root.append(info)}
+}
+async function loadAvailability(){
+ const current=++avLoadVersion;
+ $('avEditor').classList.add('hidden');$('avStatus').textContent='Loading your schedule… / Cargando horarios…';
+ if(!workspace){$('avStatus').textContent='Create your workspace first / Crea tu espacio primero';return}
+ try{
+  const d=await availabilityCall('get');if(current!==avLoadVersion)return;
+  availabilityDraft=d.settings;
+  $('avEditor').classList.remove('hidden');renderAvailability();renderBlockedAvailability();
+  $('avStatus').textContent=d.configured?'Your availability is saved / Horarios guardados':'Choose your open days and save / Elige tus días y guarda';
+ }catch(e){if(current!==avLoadVersion)return;availabilityDraft=null;$('avStatus').textContent=e.message;}
+}
+$('avReload').onclick=loadAvailability;
+$('avAddClosed').onclick=()=>{
+ if(!availabilityDraft)return;const day=$('avBlockDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return;
+ availabilityDraft.blocked_dates=[...new Set([...(availabilityDraft.blocked_dates||[]),day])].sort();$('avBlockDate').value='';renderBlockedAvailability();
+};
+$('avSave').onclick=async()=>{
+ if(!availabilityDraft)return;const button=$('avSave');button.disabled=true;$('avStatus').textContent='Saving availability… / Guardando…';
+ try{
+  const data={...availabilityDraft,timezone:$('avTimezone').value.trim(),slot_minutes:Number($('avSlotMinutes').value),job_minutes:Number($('avJobMinutes').value),min_notice_hours:Number($('avNoticeHours').value),booking_window_days:Number($('avWindowDays').value)};
+  if(!Object.values(data.weekly).some(x=>x.enabled===true))throw Error('Open at least one day / Abre al menos un día');
+  const result=await availabilityCall('save',data);
+  $('avStatus').textContent='Published! Available booking slots updated / ¡Guardado! Los horarios disponibles se actualizaron · '+new Date(result.updated_at).toLocaleString();
+  availabilityDraft=data;renderAvailability();renderBlockedAvailability();
+ }catch(e){$('avStatus').textContent='Not saved / No se guardó: '+e.message}
+ finally{button.disabled=false}
+};
+
 async function boot(){try{let {data:{user}}=await db.auth.getUser();$('auth').classList.toggle('hidden',!!user);$('app').classList.toggle('hidden',!user);$('logout').classList.toggle('hidden',!user);if(!user){hideTleLoading();loadGeneration++;delete document.body.dataset.leadsLoaded;workspace=null;leads=[];accountEmail='';emailSentByLead=new Map();return}accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));workspace=ws[0]||null;if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){$('workspaceName').textContent=workspace.name;await load();await loadStoredNotifications()}hideTleLoading()}catch(e){say(e.message);hideTleLoading()}}
 $('authForm').onsubmit=async e=>{e.preventDefault();try{let x=Object.fromEntries(new FormData(e.target));await check(await db.auth.signInWithPassword(x));$('authMessage').textContent='';await boot()}catch(e){$('authMessage').textContent=e.message}};
 $('forgotPassword').onclick=async()=>{const email=$('authForm').elements.namedItem('email').value.trim();if(!email){$('authMessage').textContent='Enter your email address first.';return}try{await check(await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname}));$('authMessage').textContent='If an account exists, a password reset email will arrive shortly.'}catch(e){$('authMessage').textContent=e.message}};db.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setTimeout(()=>{if(!$('passwordResetDialog').open)$('passwordResetDialog').showModal()},0)}});$('cancelPasswordReset').onclick=()=>$('passwordResetDialog').close();$('passwordResetForm').onsubmit=async e=>{e.preventDefault();const data=new FormData(e.target),password=String(data.get('newPassword')||''),confirm=String(data.get('confirmPassword')||'');if(password.length<8||password!==confirm){$('passwordResetError').textContent='Passwords must match and contain at least 8 characters.';return}const submit=e.target.querySelector('[type=submit]');submit.disabled=true;const {error}=await db.auth.updateUser({password});submit.disabled=false;if(error){$('passwordResetError').textContent=error.message;return}$('passwordResetDialog').close();e.target.reset();say('Password updated successfully.');await boot()};$('signup').onclick=async()=>{try{let x=Object.fromEntries(new FormData($('authForm')));await check(await db.auth.signUp({email:x.email,password:x.password,options:{emailRedirectTo:location.origin+location.pathname}}));$('authMessage').textContent='Account request received. Check your inbox for the confirmation email. If you already registered, use Sign in instead.'}catch(e){const msg=String(e.message||'');$('authMessage').textContent=/rate limit|too many requests/i.test(msg)?'Email confirmation limit reached. If you already have an account, tap Sign in instead. Otherwise, wait before trying again. Check your email spelling (gmail.com).':msg}};
