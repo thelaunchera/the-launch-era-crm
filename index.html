@@ -372,6 +372,143 @@ async function loadOwnerDeliveries(){
  }catch(e){status.textContent='Delivery status unavailable: '+e.message}
 }
 
+
+const ownerStudioEndpoint='https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-booking-owner-studio';
+let builderState=null,builderPreviewData=null;
+async function ownerStudioCall(action,extra={}){
+ if(!workspace?.is_internal||!ownerReviewAccount?.id)throw Error('Select a paid buyer order first');
+ const {data:{session},error:e}=await db.auth.getSession();
+ if(e||!session?.access_token)throw Error('Please sign in again');
+ const response=await fetch(ownerStudioEndpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+  body:JSON.stringify({account_id:ownerReviewAccount.id,action,...extra})});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(result.error||'Could not complete this step');
+ return result;
+}
+function buildLabel(en,es){return buyerPageLabel()?es:en}
+function buildField(form,name,value){if(form.elements[name])form.elements[name].value=String(value||'')}
+function buildIntakeRows(intake){
+ const box=$('buildIntake');box.replaceChildren();
+ const wanted=[['business_name','Business name / Nombre'],['owner_name','Owner / Dueña'],['email','Email / Correo'],['phone','Phone / Teléfono'],
+ ['service_areas','Service area / Zona'],['services','Services / Servicios'],['pricing_style','Price approach / Precio'],['add_ons','Add-ons / Extras'],
+ ['availability','Hours / Horarios'],['brand_colors','Brand colors / Colores'],['logo_assets_link','Logo reference / Referencia del logo'],['hero_photo_url','Hero photo / Foto'],
+ ['photos_link','More photos / Fotos'],['about_business','About / Acerca de'],['reviews','Customer reviews / Reseñas'],
+ ['quote_estimate_rules','Estimate rules / Cotizaciones']];
+ for(const [key,label] of wanted){const value=intake[key];if(value===undefined||value===null||String(value).trim()==='')continue;
+  const cell=ownerPageElem('div',undefined,'background:#fff;border:1px solid #e5ebef;border-radius:16px;padding:14px;min-width:0');
+  const head=ownerPageElem('strong',label,'display:block;color:#536a79;font-size:12px;margin-bottom:6px');
+  const content=ownerPageElem('p',typeof value==='string'?value:JSON.stringify(value),'font-size:13px;white-space:pre-wrap;word-break:break-word;line-height:1.55;margin:0');
+  cell.append(head,content);box.append(cell);
+ }
+ if(!box.children.length)box.append(ownerPageElem('p',buildLabel('Waiting for intake details.','Esperando el formulario de la compradora.')));
+}
+function buildRenderStatus(){
+ if(!builderState)return;
+ const order=builderState.order,reviewed=builderState.reviewed;
+ const panel=$('buildSteps');panel.replaceChildren();
+ const statuses=[
+  ['1. Intake',order.intake_received],
+  ['2. Customize',builderState.saved],
+  ['3. Preview',reviewed],
+  ['4. Access',order.workspace_ready],
+  ['5. Test',false],
+  ['6. Deliver',order.delivered]];
+ for(const [label,done] of statuses){
+  const cell=ownerPageElem('div',undefined,'background:'+(done?'#e9f7f2':'#fff')+';border:1px solid #e2e9ed;padding:12px 15px;border-radius:15px;min-width:0');
+  cell.append(ownerPageElem('strong',(done?'✓ ':'○ ')+label,'font-size:12px'));panel.append(cell);
+ }
+ $('buildPrepare').disabled=!reviewed||!order.intake_received;
+ $('buildInvite').disabled=!order.has_booking_link||order.workspace_ready||!order.intake_received;
+ $('buildMarkReviewed').disabled=!builderState.saved;
+ $('buildBuyerTitle').textContent=order.business_name||ownerReviewAccount.business_name;
+ $('buildStatus').textContent=order.delivered?buildLabel('System delivered. Updates to pricing and design remain available.','Sistema entregado. Puedes seguir editando el diseño y los precios.'):
+  !order.intake_received?buildLabel('Waiting for the buyer to complete the intake. No delivery or invitation will be sent.','Esperando el intake. No se enviará ningún acceso.'):
+  !builderState.saved?buildLabel('Start by customizing the buyer’s design and services.','Personaliza primero el diseño y los servicios.'):
+  !reviewed?buildLabel('Save the design, review the true preview, then approve the design.','Guarda, revisa la vista real y aprueba el diseño.'):
+  order.workspace_ready?buildLabel('Workspace linked. Perform final QA in Settings before delivering.','Espacio privado conectado. Haz las pruebas finales antes de entregar.'):
+  buildLabel('Design approved. Prepare access, then invite the buyer to activate the private account.','Diseño aprobado. Prepara el acceso e invita a la compradora.');
+}
+async function loadOwnerBuilder(){
+ if(!workspace?.is_internal||!ownerReviewAccount)return premiumNavigate('owner-pages');
+ const status=$('buildStatus');status.textContent=buildLabel('Loading personalized buyer setup…','Cargando configuración…');
+ try{
+  const data=await ownerStudioCall('get');builderState=data;
+  const order=data.order;ownerReviewAccount={...ownerReviewAccount,business_name:order.business_name,intake_done:order.intake_received};
+  buildIntakeRows(order.intake||{});
+  const brand=data.branding||{},form=$('buildBrandForm');
+  for(const key of ['business_name','headline','description','service_area','hero_image','logo_image','primary_color','accent_color']){
+   const raw=brand[key]||'';
+   const safe=(key==='hero_image'||key==='logo_image')?!raw||/^https:\/\/[^\s?#]+\.(jpg|jpeg|png|webp)(\?[^\s]*)?$/i.test(raw):true;
+   buildField(form,key,safe?raw:'');
+  }
+  buildField(form,'reviews',Array.isArray(brand.reviews)?brand.reviews.map(r=>r.name+' | '+r.text).join('\n'):'');
+  buildRenderStatus();
+ }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
+}
+$('buildBack').onclick=()=>premiumNavigate('owner-pages');
+$('buildEditPricing').onclick=()=>premiumNavigate('pricing');
+$('buildEditAvailability').onclick=()=>premiumNavigate('availability');
+$('buildBrandForm').onsubmit=async e=>{
+ e.preventDefault();const button=$('buildSave');button.disabled=true;$('buildStatus').textContent=buildLabel('Saving personalized design…','Guardando diseño…');
+ try{
+  const formData=Object.fromEntries(new FormData(e.target));
+  const reviews=String(formData.reviews||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(row=>{
+   const at=row.indexOf('|');if(at<1)throw Error('Use Name | Review for each genuine review');
+   return{name:row.slice(0,at).trim(),text:row.slice(at+1).trim()}
+  });
+  delete formData.reviews;
+  await ownerStudioCall('save',{branding:{...formData,reviews}});
+  await loadOwnerBuilder();
+  $('buildStatus').textContent=buildLabel('Design saved. Open the real preview and approve it.','Diseño guardado. Revisa la vista real y apruébala.');
+ }catch(error){$('buildStatus').textContent='Not saved / No se guardó: '+error.message}
+ finally{button.disabled=false}
+};
+async function loadBuilderRealPreview(){
+ const status=$('buildStatus');status.textContent=buildLabel('Loading the actual Booking Page…','Cargando la página real…');
+ try{
+  const [studio,price,availability]=await Promise.all([ownerStudioCall('get'),pricingCall('get'),availabilityCall('get')]);
+  builderState=studio;buildRenderStatus();
+  const svc=Array.isArray(price.settings?.services)?price.settings.services.filter(v=>v.active!==false):[];
+  if(!svc.length){status.textContent=buildLabel('Add and save at least one service in Pricing & Services first.','Añade y guarda al menos un servicio en Pricing & Services.');return}
+  const b=studio.branding||{},ov=studio.order;
+  builderPreviewData={business_name:b.business_name||ov.business_name,language:ov.language||'en',
+   timezone:availability.settings?.timezone||ov.intake?.timezone||'America/New_York',
+   branding:{description:b.description,headline:b.headline,service_area:b.service_area,
+    hero_image:b.hero_image,logo_image:b.logo_image,primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[]},
+   currency:price.settings?.currency||'USD',services:svc,addons:price.settings?.addons||[],
+   quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true};
+  const frame=$('buildLiveFrame');
+  const send=()=>{if(frame.contentWindow&&builderPreviewData)frame.contentWindow.postMessage({type:'TLE_OWNER_BOOKING_PREVIEW',config:builderPreviewData},'*')};
+  frame.onload=send;
+  frame.src='https://thelaunchera.com/booking/?owner_preview=1';
+  status.textContent=buildLabel('Private real-template preview loaded. Test services, prices and screens; submissions are disabled.','Vista real privada. Revisa servicios, precios y diseño; no se enviarán reservas.');
+ }catch(e){status.textContent='Preview unavailable / Vista no disponible: '+e.message}
+}
+$('buildPreviewReload').onclick=loadBuilderRealPreview;
+$('buildPreviewMobile').onclick=()=>{$('buildFrameShell').style.width='min(100%,390px)';$('buildLiveFrame').style.height='980px'};
+$('buildPreviewDesktop').onclick=()=>{$('buildFrameShell').style.width='100%';$('buildLiveFrame').style.height='1020px'};
+$('buildMarkReviewed').onclick=async()=>{
+ if(!builderPreviewData){$('buildStatus').textContent=buildLabel('Open and inspect the real preview before approving it.','Abre y revisa primero la vista real.');return}
+ if(!confirm(buildLabel('Did you check the images, prices, services and schedule? Mark the design reviewed?','¿Ya revisaste fotos, precios, servicios y horarios? ¿Aprobar el diseño?')))return;
+ try{await ownerStudioCall('review');await loadOwnerBuilder();$('buildStatus').textContent=buildLabel('Design approved. Continue with private account preparation.','Diseño aprobado. Continúa con el acceso privado.')}catch(e){$('buildStatus').textContent=e.message}
+};
+$('buildPrepare').onclick=async()=>{
+ const btn=$('buildPrepare');btn.disabled=true;
+ try{const result=await ownerStudioCall('prepare');await loadOwnerBuilder();
+  $('buildStatus').textContent=result.prepared?buildLabel('Private booking settings prepared. Public bookings remain closed until final delivery.','Configuración preparada. La página pública sigue cerrada hasta la entrega.'):buildLabel('Not ready.','Aún no está listo.');
+ }catch(e){$('buildStatus').textContent=e.message}finally{btn.disabled=false}
+};
+$('buildInvite').onclick=async()=>{
+ if(!builderState?.order?.has_booking_link)return;
+ const email=builderState.order.intake?.email||'the buyer’s purchase email';
+ if(!confirm(buildLabel('Send an account activation invitation to '+email+'? This is not the final product delivery email.','¿Enviar invitación de acceso a '+email+'? No es el correo final de entrega.')))return;
+ const btn=$('buildInvite');btn.disabled=true;
+ try{const result=await ownerStudioCall('invite');await loadOwnerBuilder();
+  $('buildInviteStatus').textContent=result.note||buildLabel('Buyer workspace ready.','Espacio de la compradora preparado.');
+ }catch(e){$('buildInviteStatus').textContent=e.message}finally{btn.disabled=false}
+};
+$('buildFinalChecks').onclick=()=>{premiumNavigate('settings');$('ownerDeliveryPanel').scrollIntoView({behavior:'smooth'})};
+
 const buyerPageLabel=()=>localStorage.getItem('tle_crm_language')==='es';
 function ownerPageElem(tag,textValue,style){const e=document.createElement(tag);if(textValue!==undefined)e.textContent=String(textValue);if(style)e.style.cssText=style;return e}
 function chooseOwnerBuyer(a,tab){ownerReviewAccount={id:a.id,business_name:a.business_name||'Cleaning Business',intake_done:!!a.intake_done,booking_page_url:a.booking_page_url};if(tab==='builder'){setView('owner-build');loadOwnerBuilder()}else if(tab==='preview'){setView('owner-preview');renderOwnerPagePreview()}else premiumNavigate(tab)}
