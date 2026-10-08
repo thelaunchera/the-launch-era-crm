@@ -595,36 +595,98 @@ $('buildFinalChecks').onclick=()=>{premiumNavigate('settings');$('ownerDeliveryP
 const buyerPageLabel=()=>localStorage.getItem('tle_crm_language')==='es';
 function ownerPageElem(tag,textValue,style){const e=document.createElement(tag);if(textValue!==undefined)e.textContent=String(textValue);if(style)e.style.cssText=style;return e}
 function chooseOwnerBuyer(a,tab){ownerReviewAccount={id:a.id,business_name:a.business_name||'Cleaning Business',intake_done:!!a.intake_done,booking_page_url:a.booking_page_url};if(tab==='builder'){setView('owner-build');loadOwnerBuilder()}else if(tab==='preview'){setView('owner-build');loadOwnerBuilder().then(()=>loadBuilderRealPreview())}else premiumNavigate(tab)}
+
+let ownerPurchases=[];
+function ownerPurchaseStage(a){
+ if(a.already_queued)return 'delivered';
+ if(!a.intake_done)return 'intake';
+ if(a.booking_page_url&&a.crm_ready&&a.status==='active')return 'review';
+ return 'production';
+}
+function renderOwnerPurchases(){
+ if(!workspace?.is_internal)return;
+ const root=$('ownerPagesList'),status=$('ownerPagesStatus'),stats=$('ownerPurchaseStats');
+ const es=buyerPageLabel(),all=ownerPurchases;
+ const labels={
+  all:es?'Compras pagadas':'Paid purchases',
+  intake:es?'Esperando intake':'Waiting for intake',
+  production:es?'En preparación':'In preparation',
+  review:es?'Pruebas finales':'Final review',
+  delivered:es?'Entrega en cola':'Delivery queued'
+ };
+ stats.replaceChildren();
+ for(const key of ['all','intake','production','review','delivered']){
+  const count=key==='all'?all.length:all.filter(a=>ownerPurchaseStage(a)===key).length;
+  const tile=ownerPageElem('div',undefined);tile.className='order-summary-metric';
+  const number=ownerPageElem('strong',count),caption=ownerPageElem('span',labels[key]);
+  tile.append(number,caption);stats.append(tile);
+ }
+ const filter=$('ownerPurchaseFilter').value||'all';
+ const visible=filter==='all'?all:all.filter(a=>ownerPurchaseStage(a)===filter);
+ root.replaceChildren();
+ status.textContent=es?(visible.length+' de '+all.length+' compra(s) pagadas'):(visible.length+' of '+all.length+' paid purchases');
+ if(!all.length){
+  root.appendChild(ownerPageElem('div',es?'Todavía no hay compras pagadas. Cuando llegue una nueva compra aparecerá aquí, separada de los prospectos.':'No paid purchases yet. New buyers will appear here, separate from sales leads.','background:#fff;border:1px solid #e4edf3;border-radius:21px;padding:30px;color:#506b7c;line-height:1.7;grid-column:1/-1'));
+  return;
+ }
+ if(!visible.length){
+  root.appendChild(ownerPageElem('p',es?'No hay pedidos con este estado.':'No purchases in this status.','grid-column:1/-1;color:#597280'));
+  return;
+ }
+ for(const a of visible){
+  const stage=ownerPurchaseStage(a);
+  const box=ownerPageElem('article',undefined,'border:1px solid #e2eaf0;background:#fff;border-radius:23px;padding:23px;box-shadow:0 11px 28px #162e3c0d;min-width:0;display:flex;flex-direction:column;gap:7px');
+  const stageLabel=labels[stage];
+  box.appendChild(ownerPageElem('span',stageLabel,'align-self:flex-start;font-size:11px;font-weight:700;border-radius:25px;padding:8px 12px;background:'+(stage==='delivered'?'#eaf5ee':stage==='intake'?'#fff4da':'#e5f2fb')+';color:#253e4c'));
+  box.appendChild(ownerPageElem('h3',a.business_name||'Cleaning Business','font-size:22px;margin:10px 0 0;letter-spacing:-.03em;overflow-wrap:anywhere'));
+  if(a.owner_name)box.appendChild(ownerPageElem('div',a.owner_name,'font-size:13px;font-weight:600;color:#405969'));
+  if(a.owner_email)box.appendChild(ownerPageElem('div',a.owner_email,'font-size:12px;color:#667d8c;overflow-wrap:anywhere'));
+  const progress=(a.intake_done?1:0)+(a.booking_page_url?1:0)+(a.crm_ready?1:0)+(a.already_queued?1:0);
+  const step=ownerPageElem('div',undefined,'border-top:1px solid #e9eff3;padding-top:13px;margin-top:8px;display:grid;gap:5px');
+  step.appendChild(ownerPageElem('div',(es?'Preparación: ':'Setup: ')+progress+'/4','font-size:12px;color:#537080;font-weight:700'));
+  for(const [ok,title] of [
+   [a.intake_done,es?'Datos del intake recibidos':'Intake received'],
+   [!!a.booking_page_url,es?'Booking Page preparado':'Booking Page prepared'],
+   [a.crm_ready,es?'Command Center privado conectado':'Private Command Center linked'],
+   [a.already_queued,es?'Correo de entrega en cola':'Final delivery queued']
+  ])step.appendChild(ownerPageElem('div',(ok?'✓ ':'○ ')+title,'font-size:12px;line-height:1.5;color:'+(ok?'#3b695e':'#6b7d88')));
+  box.appendChild(step);
+  const buttons=ownerPageElem('div',undefined,'display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:15px');
+  for(const [mode,label] of [
+   ['builder',es?'Personalizar y entregar':'Customize & deliver'],
+   ['preview',es?'Ver vista previa':'Preview Booking Page'],
+   ['pricing',es?'Editar precios':'Edit prices'],
+   ['availability',es?'Editar horarios':'Edit hours']
+  ]){
+   const button=ownerPageElem('button',label);button.type='button';button.className=mode==='builder'?'':'secondary';
+   button.style.cssText='font-size:12px;padding:11px 13px;border-radius:35px;flex:1 1 120px';
+   button.onclick=()=>chooseOwnerBuyer(a,mode);buttons.appendChild(button)
+  }
+  box.appendChild(buttons);
+  if(a.booking_page_url&&a.already_queued&&/^https:\/\//.test(a.booking_page_url)){
+   const link=ownerPageElem('a',es?'Abrir página entregada ↗':'Open delivered Booking Page ↗');
+   link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';
+   link.style.cssText='font-size:12px;font-weight:650;margin-top:8px';box.appendChild(link);
+  }
+  root.appendChild(box);
+ }
+}
 async function loadOwnerPages(){
  if(!workspace?.is_internal)return;
- const root=$('ownerPagesList'),status=$('ownerPagesStatus');
- root.replaceChildren();status.textContent=buyerPageLabel()?'Buscando páginas de compradoras…':'Checking buyer Booking Pages…';
+ $('ownerPagesStatus').textContent=buyerPageLabel()?'Cargando compradoras y pedidos…':'Loading clients and purchases…';
  try{
   const {data,error}=await db.rpc('tle_booking_flow_owner_pending');
   if(error)throw error;
-  const accounts=Array.isArray(data)?data:[];
-  status.textContent=accounts.length?(buyerPageLabel()?accounts.length+' pedido(s) encontrado(s). Elige uno para revisar.':accounts.length+' buyer order(s). Choose one to review.'):
-  (buyerPageLabel()?'Aún no hay pedidos pagados.':'No paid buyer orders yet.');
-  for(const a of accounts){
-   const box=ownerPageElem('article',undefined,'border:1px solid #e6eaee;background:#fff;border-radius:23px;padding:22px;box-shadow:0 11px 28px #162e3c0d;min-width:0');
-   const pill=ownerPageElem('span',a.already_queued?'✓ Delivered / Entregado':a.intake_done?'In setup / En preparación':'Waiting for intake / Esperando formulario',
-    'display:inline-block;font-size:11px;font-weight:700;border-radius:30px;padding:8px 12px;background:#e6f3fb;color:#223a48');
-   box.appendChild(pill);
-   const h=ownerPageElem('h3',a.business_name||'Cleaning Business','font-size:22px;margin:17px 0 6px;letter-spacing:-.03em');box.appendChild(h);
-   box.appendChild(ownerPageElem('p',a.intake_done?'Buyer details received / Datos recibidos':'The buyer setup form is still pending / Falta el formulario','font-size:13px;line-height:1.6;color:#5c707d;margin:0 0 15px'));
-   const buttons=ownerPageElem('div',undefined,'display:flex;gap:9px;flex-wrap:wrap');
-   for(const [mode,label] of [['builder','Customize & deliver / Personalizar'],['preview','View preview / Vista previa'],['pricing','Edit prices / Precios'],['availability','Hours / Horarios']]){
-    const b=ownerPageElem('button',label);b.type='button';b.className=mode==='preview'?'':'secondary';b.style.cssText='border-radius:40px;font-size:12px;padding:10px 13px;flex:1 1 125px';
-    b.onclick=()=>chooseOwnerBuyer(a,mode);buttons.appendChild(b);
-   }
-   box.appendChild(buttons);
-   if(a.booking_page_url&&a.already_queued&&/^https:\/\//.test(a.booking_page_url)){
-    const link=ownerPageElem('a','Open live Booking Page ↗ / Abrir página publicada');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='display:inline-block;margin-top:14px;font-weight:600;font-size:13px';box.appendChild(link);
-   }
-   root.appendChild(box);
-  }
- }catch(e){status.textContent='Could not load Booking Pages / No se pudieron cargar: '+e.message}
+  ownerPurchases=Array.isArray(data)?data:[];
+  renderOwnerPurchases();
+ }catch(e){
+  $('ownerPagesStatus').textContent='Could not load purchases / No se pudieron cargar: '+e.message;
+  $('ownerPagesList').replaceChildren();
+  $('ownerPurchaseStats').replaceChildren();
+ }
 }
+$('ownerPurchaseFilter').onchange=renderOwnerPurchases;
+
 function ownerPageStat(label,value){
  const card=ownerPageElem('div',undefined,'padding:17px;border:1px solid #e5ebee;border-radius:18px;background:#fff');
  card.appendChild(ownerPageElem('strong',label,'display:block;font-size:12px;color:#63737b;margin-bottom:8px'));
