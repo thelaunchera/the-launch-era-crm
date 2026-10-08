@@ -341,6 +341,96 @@ async function loadOwnerDeliveries(){
   }
  }catch(e){status.textContent='Delivery status unavailable: '+e.message}
 }
+
+const buyerPageLabel=()=>localStorage.getItem('tle_crm_language')==='es';
+function ownerPageElem(tag,textValue,style){const e=document.createElement(tag);if(textValue!==undefined)e.textContent=String(textValue);if(style)e.style.cssText=style;return e}
+function chooseOwnerBuyer(a,tab){ownerReviewAccount={id:a.id,business_name:a.business_name||'Cleaning Business',intake_done:!!a.intake_done,booking_page_url:a.booking_page_url};if(tab==='preview'){setView('owner-preview');renderOwnerPagePreview()}else premiumNavigate(tab)}
+async function loadOwnerPages(){
+ if(!workspace?.is_internal)return;
+ const root=$('ownerPagesList'),status=$('ownerPagesStatus');
+ root.replaceChildren();status.textContent=buyerPageLabel()?'Buscando páginas de compradoras…':'Checking buyer Booking Pages…';
+ try{
+  const {data,error}=await db.rpc('tle_booking_flow_owner_pending');
+  if(error)throw error;
+  const accounts=Array.isArray(data)?data:[];
+  status.textContent=accounts.length?(buyerPageLabel()?accounts.length+' pedido(s) encontrado(s). Elige uno para revisar.':accounts.length+' buyer order(s). Choose one to review.'):
+  (buyerPageLabel()?'Aún no hay pedidos pagados.':'No paid buyer orders yet.');
+  for(const a of accounts){
+   const box=ownerPageElem('article',undefined,'border:1px solid #e6eaee;background:#fff;border-radius:23px;padding:22px;box-shadow:0 11px 28px #162e3c0d;min-width:0');
+   const pill=ownerPageElem('span',a.already_queued?'✓ Delivered / Entregado':a.intake_done?'In setup / En preparación':'Waiting for intake / Esperando formulario',
+    'display:inline-block;font-size:11px;font-weight:700;border-radius:30px;padding:8px 12px;background:#e6f3fb;color:#223a48');
+   box.appendChild(pill);
+   const h=ownerPageElem('h3',a.business_name||'Cleaning Business','font-size:22px;margin:17px 0 6px;letter-spacing:-.03em');box.appendChild(h);
+   box.appendChild(ownerPageElem('p',a.intake_done?'Buyer details received / Datos recibidos':'The buyer setup form is still pending / Falta el formulario','font-size:13px;line-height:1.6;color:#5c707d;margin:0 0 15px'));
+   const buttons=ownerPageElem('div',undefined,'display:flex;gap:9px;flex-wrap:wrap');
+   for(const [mode,label] of [['preview','View landing preview / Ver landing'],['pricing','Edit prices / Editar precios'],['availability','Edit availability / Editar horarios']]){
+    const b=ownerPageElem('button',label);b.type='button';b.className=mode==='preview'?'':'secondary';b.style.cssText='border-radius:40px;font-size:12px;padding:10px 13px;flex:1 1 125px';
+    b.onclick=()=>chooseOwnerBuyer(a,mode);buttons.appendChild(b);
+   }
+   box.appendChild(buttons);
+   if(a.booking_page_url&&a.already_queued&&/^https:\/\//.test(a.booking_page_url)){
+    const link=ownerPageElem('a','Open live Booking Page ↗ / Abrir página publicada');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='display:inline-block;margin-top:14px;font-weight:600;font-size:13px';box.appendChild(link);
+   }
+   root.appendChild(box);
+  }
+ }catch(e){status.textContent='Could not load Booking Pages / No se pudieron cargar: '+e.message}
+}
+function ownerPageStat(label,value){
+ const card=ownerPageElem('div',undefined,'padding:17px;border:1px solid #e5ebee;border-radius:18px;background:#fff');
+ card.appendChild(ownerPageElem('strong',label,'display:block;font-size:12px;color:#63737b;margin-bottom:8px'));
+ card.appendChild(ownerPageElem('div',value,'font-size:16px;font-weight:700;word-break:break-word'));
+ return card;
+}
+async function renderOwnerPagePreview(){
+ if(!ownerReviewAccount||!workspace?.is_internal)return premiumNavigate('owner-pages');
+ const status=$('ownerPagePreviewStatus'),root=$('ownerPagePreviewBody');root.replaceChildren();status.textContent='Preparing private preview… / Preparando vista privada…';
+ try{
+  const [pr,av]=await Promise.all([pricingCall('get'),availabilityCall('get')]);
+  const es=buyerPageLabel();const name=ownerReviewAccount.business_name||'Cleaning Business';
+  status.textContent=es?'Vista privada. Todavía no es un enlace público ni confirma reservas.':'Private preview. This does not create a public booking link or accept reservations.';
+  const hero=ownerPageElem('section',undefined,'padding:clamp(22px,5vw,50px);border-radius:27px;background:linear-gradient(120deg,#DCEFFA,#FAF8F3 65%,#fff9dc);box-shadow:0 16px 44px #172a3916;margin:14px 0 20px');
+  hero.appendChild(ownerPageElem('span',es?'VISTA PREVIA · NO PUBLICADA':'PRIVATE PREVIEW · NOT PUBLISHED','font-size:11px;letter-spacing:.13em;font-weight:800;color:#476c85'));
+  hero.appendChild(ownerPageElem('h2',name,'font-size:clamp(30px,5vw,49px);line-height:1.07;letter-spacing:-.05em;margin:20px 0 10px;max-width:680px'));
+  hero.appendChild(ownerPageElem('p',es?'Reservar un servicio de limpieza, de forma sencilla.':'A simpler way to request your cleaning service.','font-size:17px;color:#475e6d;line-height:1.6'));
+  const indicator=ownerPageElem('button',es?'Reservar (disponible después de entregar)':'Book now (available after delivery)');indicator.type='button';indicator.disabled=true;indicator.style.cssText='border-radius:28px;opacity:.7;cursor:not-allowed';hero.appendChild(indicator);root.appendChild(hero);
+  const stats=ownerPageElem('div',undefined,'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px');
+  const services=Array.isArray(pr.settings?.services)?pr.settings.services.filter(x=>x.active!==false):[];
+  const currency=pr.settings?.currency||'USD';
+  if(!services.length)stats.appendChild(ownerPageStat(es?'Servicios pendientes':'Services not configured',es?'Añade al menos un servicio y su precio':'Add at least one service and price'));
+  for(const service of services){
+   const label=service.mode==='flat'&&service.price!==null&&Number(service.price)>0?
+     new Intl.NumberFormat('en-US',{style:'currency',currency}).format(Number(service.price)):
+     service.mode==='estimate'?(es?'Precio estimado':'Estimate provided'):(es?'Cotización personalizada':'Request a quote');
+   stats.appendChild(ownerPageStat(service.name||'Cleaning service',label));
+  }
+  root.appendChild(ownerPageElem('h3',es?'Servicios y precios':'Services & pricing','margin:23px 0 13px;font-size:22px'));
+  root.appendChild(stats);
+  const extras=Array.isArray(pr.settings?.addons)?pr.settings.addons.filter(x=>x.active!==false):[];
+  if(extras.length){
+   root.appendChild(ownerPageElem('h3',es?'Servicios adicionales':'Available add-ons','margin:25px 0 13px;font-size:20px'));
+   const extraContainer=ownerPageElem('div',undefined,'display:flex;flex-wrap:wrap;gap:10px');
+   for(const extra of extras){
+    const amount=new Intl.NumberFormat('en-US',{style:'currency',currency}).format(Number(extra.price||0));
+    extraContainer.appendChild(ownerPageElem('span',(extra.name||'Extra')+' · '+amount,'border-radius:35px;padding:11px 16px;background:#e9f4fb;font-size:13px;font-weight:700'));
+   }
+   root.appendChild(extraContainer);
+  }
+  const dayLabels=es?['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const available=av.settings?.weekly||{};
+  const days=dayLabels.map((day,i)=>available[String(i)]?.enabled?day+' · '+available[String(i)].start+'–'+available[String(i)].end:null).filter(Boolean);
+  root.appendChild(ownerPageElem('h3',es?'Disponibilidad configurada':'Business availability','margin:27px 0 12px;font-size:20px'));
+  root.appendChild(ownerPageStat(es?'Horario que verá la clienta al reservar':'Booking hours',days.length?days.join('  |  '):(es?'Sin horarios activos. Edita Availability.':'No open days yet. Set availability first.')));
+  const note=ownerPageElem('p',es?'Vista privada de servicios y horarios guardados. Las reservas públicas solo se habilitan cuando todo está preparado, probado y entregado.':'Private preview of saved services and hours. Public booking opens only after the system has been fully configured, tested and delivered.','font-size:13px;color:#5c707d;line-height:1.6;margin-top:18px');
+  root.appendChild(note);
+  if(pr.booking_url&&pr.delivery_ready){const link=ownerPageElem('a',es?'Abrir la Booking Page publicada ↗':'Open published Booking Page ↗');link.href=pr.booking_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='display:inline-block;margin-top:14px';root.appendChild(link)}
+ }catch(e){status.textContent='Preview unavailable / Vista previa no disponible: '+e.message}
+}
+$('ownerPagesRefresh').onclick=loadOwnerPages;
+$('ownerBackPages').onclick=()=>premiumNavigate('owner-pages');
+$('ownerPriceBack').onclick=()=>premiumNavigate('owner-pages');
+$('ownerAvBack').onclick=()=>premiumNavigate('owner-pages');
+$('ownerPreviewEditPrices').onclick=()=>premiumNavigate('pricing');
+$('ownerPreviewEditHours').onclick=()=>premiumNavigate('availability');
 $('ownerDeliveryRefresh').onclick=loadOwnerDeliveries;
 $('settingsSignOut').onclick=()=>$('logout').click();$('settingsPasswordReset').onclick=async()=>{const out=$('settingsSecurityStatus');try{const {data:{user},error}=await db.auth.getUser();if(error)throw error;if(!user?.email)throw Error('Please sign in first.');await check(await db.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+location.pathname}));out.textContent='If the email is registered, reset instructions have been sent.'}catch(e){out.textContent='Unable to request reset: '+e.message}};$('navAdd').onclick=()=>edit(null);$('mobileNew').onclick=()=>edit(null);$('headerNew').onclick=()=>edit(null);$('globalSearch').onclick=()=>{$('search').focus();$('search').scrollIntoView({behavior:'smooth',block:'center'})};function showLeadTab(tab){document.querySelectorAll('[data-leadtab]').forEach(t=>{const active=t.dataset.leadtab===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});$('leadOverviewSection').classList.toggle('hidden',tab!=='overview');$('leadEmailSection').classList.toggle('hidden',tab!=='emails');$('leadNotesSection').classList.toggle('hidden',tab!=='notes');$('leadEmailSection').open=tab==='emails';$('leadNotesSection').open=tab==='notes';$('editor').scrollTop=0}document.querySelectorAll('[data-leadtab]').forEach(b=>b.onclick=()=>showLeadTab(b.dataset.leadtab));function renderEmailHub(){const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});let view='pipeline';function setView(v){view=v;$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'){loadBuyerMail();loadOwnerDeliveries();}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='lead-command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
 async function showFollowupHistory(leadId){
