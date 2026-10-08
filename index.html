@@ -102,7 +102,7 @@ body.tle-owner-purchases #bellButton {display:none!important}
 <section id="ownerBuilderHub" class="hidden premium-emailhub">
 <div class="section-title">Personalize & deliver / Personalizar y entregar</div>
 <p class="muted">One guided setup for each purchased Booking Page + private Lead Command Center. / Configura cada sistema sin duplicar los demos.</p>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0"><button id="buildBack" type="button" class="secondary">← Buyer orders / Pedidos</button><strong id="buildBuyerTitle" style="align-self:center"></strong></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0"><button id="buildBack" type="button" class="secondary">← Buyer orders / Pedidos</button><button id="buildOpenCal" type="button" class="secondary">▣ Plan dates / Planificar fechas</button><strong id="buildBuyerTitle" style="align-self:center"></strong></div>
 <div id="buildSteps" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:18px 0"></div>
 <p id="buildStatus" role="status" class="muted"></p>
 <article class="panel" style="padding:22px;margin:16px 0"><h3>1. Intake / Datos de la compradora</h3><p class="muted">These are the original answers. They remain unchanged while you personalize the design. / No se modifican las respuestas originales.</p><div id="buildIntake" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px"></div></article>
@@ -561,6 +561,7 @@ async function loadOwnerBuilder(){
  }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
 }
 $('buildBack').onclick=()=>premiumNavigate('owner-pages');
+$('buildOpenCal').onclick=()=>{if(ownerReviewAccount?.id)openBuyerWorkCalendar(ownerReviewAccount.id)};
 $('buildEditPricing').onclick=()=>premiumNavigate('pricing');
 $('buildEditAvailability').onclick=()=>premiumNavigate('availability');
 $('buildBrandForm').onsubmit=async e=>{
@@ -670,7 +671,9 @@ function ownerCalendarEvents(){
  for(const a of ownerCalendarRecords){
   for(const [column,kind] of keys){
    const day=a[column];if(!day||!/^\d{4}-\d{2}-\d{2}$/.test(day))continue;
-   events.push({day,kind,account:a,planned:kind.startsWith('plan_')||kind==='checkin'});
+   const complete=(kind==='plan_design'&&a.design_reviewed)||
+    (kind==='plan_qa'&&a.qa_approved)||(kind==='plan_delivery'&&a.delivered);
+   events.push({day,kind,account:a,planned:kind.startsWith('plan_')||kind==='checkin',complete});
   }
  }
  return events.sort((a,b)=>a.day.localeCompare(b.day)||a.account.business_name.localeCompare(b.account.business_name));
@@ -704,11 +707,11 @@ function ownerCalendarEventCard(e){
  const body=ownerPageElem('div',undefined,'min-width:0;flex:1');
  body.appendChild(ownerPageElem('strong',es?cfg.es:cfg.en,'display:block;font-size:13px;line-height:1.35'));
  body.appendChild(ownerPageElem('div',e.account.business_name,'font-size:12px;color:#5d7382;overflow-wrap:anywhere;margin:4px 0'));
- body.appendChild(ownerPageElem('div',ownerCalendarDisplayDate(e.day),'font-size:11px;color:#758895'));
+ body.appendChild(ownerPageElem('div',ownerCalendarDisplayDate(e.day)+(e.complete?(es?' · ✓ Hecho':' · ✓ Completed'):''),'font-size:11px;color:#758895'));
  const button=ownerPageElem('button',es?'Abrir':'Open');button.type='button';button.className='secondary';
  button.style.cssText='flex:0 0 auto;padding:9px 12px;font-size:11px;border-radius:25px';
  button.onclick=()=>{
-  ownerReviewAccount={id:e.account.id,business_name:e.account.business_name,intake_done:e.account.intake_done,booking_page_url:e.account.booking_ready?true:null};
+  ownerReviewAccount={id:e.account.id,business_name:e.account.business_name,intake_done:e.account.intake_done,booking_page_url:null};
   setView('owner-build');loadOwnerBuilder();$('ownerBuilderHub').scrollIntoView({behavior:'smooth'});
  };
  card.append(body,button);
@@ -719,8 +722,8 @@ function renderOwnerCalendar(){
  const es=buyerPageLabel();
  const summary=$('ownerCalSummary');summary.replaceChildren();
  const events=ownerCalendarEvents(),today=ownerCalendarToday();
- const tasks=events.filter(e=>e.kind.startsWith('plan_')&&e.day>=today);
- const overdue=events.filter(e=>e.kind.startsWith('plan_')&&e.day<today&&!e.account.delivered);
+ const tasks=events.filter(e=>e.kind.startsWith('plan_')&&!e.complete&&e.day>=today);
+ const overdue=events.filter(e=>e.kind.startsWith('plan_')&&e.day<today&&!e.complete);
  for(const [label,value] of [
   [es?'Compradoras':'Purchased clients',ownerCalendarRecords.length],
   [es?'Sin intake':'Waiting for intake',ownerCalendarRecords.filter(a=>!a.intake_done).length],
