@@ -1404,16 +1404,46 @@ function ownerDailyDraft(lead){
  const spanish=lead.language==='es';
  const sent=emailSentByLead.has(lead.id);
  const name=String(lead.contact||'').split(/[\/&,]/)[0].trim().split(/\s+/)[0].replace(/[<>]/g,'');
- const hi=(spanish?'Hola':'Hi')+(name?' '+name:'')+',';
+ const greeting=(spanish?'Hola':'Hi')+(name?' '+name:'')+',';
  if(!sent){
   return {type:'initial',subject:String(lead.personalized_email_subject||'').trim(),
    body:String(lead.personalized_email_body||'').trim()};
  }
  const company=String(lead.business||'your cleaning business').trim();
- return spanish?{type:'followup',subject:'Una pregunta sobre tus solicitudes de limpieza',
-  body:hi+'\n\nQuería retomar mi correo anterior sobre '+company+'.\n\nCuando alguien pide un estimado y todavía no reserva, ¿cómo llevas el control de quién necesita una respuesta?\n\nEso es lo que ayudamos a simplificar con Booking Automation + Lead Tracker Automation. Si te interesa, puedo mostrarte un ejemplo sencillo.\n\nDailin\nThe Launch Era'}:
- {type:'followup',subject:'Quick question about your cleaning inquiries',
-  body:hi+'\n\nI wanted to follow up on my earlier note about '+company+'.\n\nWhen someone requests a cleaning estimate but does not book right away, how do you keep track of who still needs a response?\n\nThat is something we help cleaning business owners simplify with Booking Automation + Lead Tracker Automation. If it is relevant, I can show you a simple example.\n\nDailin\nThe Launch Era'};
+ const friction=String(lead.primary_friction||'').toLowerCase();
+ const fit=String(lead.service_fit||'').toLowerCase();
+ const appOnly=fit.includes('cleaning app')&&!fit.includes('booking automation');
+ let topic=spanish?'las solicitudes y cotizaciones de limpieza':'cleaning inquiries and estimates';
+ if(/whatsapp|calls|texts|social|messages|canales|mensaje/.test(friction))
+  topic=spanish?'los mensajes y solicitudes que llegan por distintos canales':'inquiries that come in through calls, texts or messages';
+ else if(/form|intake|submission|details|formulario/.test(friction))
+  topic=spanish?'los detalles que llegan con una solicitud de cotización':'the details customers share when they request an estimate';
+ else if(/schedule|availability|calendar|booking|dates|citas/.test(friction))
+  topic=spanish?'el seguimiento entre la cotización y la fecha de limpieza':'the steps between an estimate request and a confirmed cleaning date';
+ else if(/client|job|team|equipo/.test(friction))
+  topic=spanish?'la organización de clientes, trabajos y fechas':'keeping customers, jobs and appointments organized';
+ const subject=spanish?'Quería retomar mi mensaje sobre '+company:'Following up on my note about '+company;
+ const product=appOnly
+  ? (spanish?'Nuestra Cleaning App ayuda a tener juntos los datos de clientes, los trabajos y las próximas fechas.':'Our Cleaning App helps keep customer details, jobs and upcoming appointments in one place.')
+  : (spanish?'Con Booking Automation + Lead Tracker Automation ayudamos a reunir las solicitudes, los próximos pasos y los seguimientos en un mismo lugar.':'With Booking Automation + Lead Tracker Automation, we help keep inquiries, next steps and follow-ups together in one place.');
+ const text=spanish?[
+  greeting,
+  'Quería retomar el correo que te envié sobre '+topic+' en '+company+'. También quería explicarte un poco mejor por qué te escribí.',
+  'En The Launch Era trabajamos en sistemas para negocios de limpieza. Una cosa en la que siempre me fijo es lo que pasa después de que alguien pide información: quedan detalles por confirmar, preguntas sobre el precio, fechas que coordinar y personas a las que hay que responder. Cuando estás atendiendo trabajos, mantener todo eso al día puede tomar más tiempo del que parece.',
+  'No sé si en '+company+' ya tienen esa parte completamente resuelta, y no quiero dar por hecho que necesitan cambiar nada. Justamente por eso te había preguntado cómo lo manejan.',
+  product+' Si algo de eso les está quitando tiempo, quizá valga la pena ver otra forma de organizarlo.',
+  '¿Te gustaría que te enviara un ejemplo sencillo de cómo podría funcionar para '+company+'? Y si ya tienen un sistema que les funciona bien, también me encantaría saberlo.',
+  'Saludos,\nDailin\nThe Launch Era'
+ ].join('\n\n'):[
+  greeting,
+  'I wanted to follow up on the note I sent about '+topic+' at '+company+'. I also wanted to explain a little more about why I reached out.',
+  'At The Launch Era, I work on systems for cleaning business owners. One thing I keep coming back to is what happens after someone asks about a cleaning: there may be details to confirm, pricing questions to answer, a date to work out, and people who still need a reply. When you are busy with actual jobs, keeping those conversations moving can take more time than it seems.',
+  'I do not know whether '+company+' already has that part running smoothly, and I do not want to assume you need to change anything. That is why I was curious about your process in the first place.',
+  product+' If any of that is taking extra time, I thought a simpler way to handle it might be worth showing you.',
+  'Would you be open to seeing a quick example of what that could look like for '+company+'? And if your current system is working well, I would be glad to hear that too.',
+  'Best,\nDailin\nThe Launch Era'
+ ].join('\n\n');
+ return {type:'followup',subject,body:text};
 }
 function ownerDailyBlockReason(x,draft){
  if(x.contact_decision!=='yes')return ownerDailyLabel('Not approved','Sin aprobación');
