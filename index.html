@@ -371,6 +371,18 @@ body.crm-isolated-view #reminderBanner {display:none!important}
   <p class="muted">Inbox shows when you need to prepare a price or review a special request. The Cleaning App is separate for running your daily jobs and teams.</p>
  </div>
 </section>
+<section id="buyerCustomersHub" class="hidden premium-emailhub" aria-label="Customers of your business">
+ <div class="section-title">Customers</div>
+ <p class="muted">Contacts from your Booking Page, estimates, quotes and inquiries — plus people you entered manually. Your customer list is private to your business.</p>
+ <div class="panel" style="padding:17px;margin:17px 0">
+  <div style="display:flex;gap:13px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+   <strong id="buyerCustomersCount">Checking customers…</strong>
+   <button type="button" class="secondary" id="buyerCustomersRefresh">↻ Refresh</button>
+  </div>
+  <p class="muted" style="font-size:12px">Open a contact to see their request in Inbox or edit a manually added customer.</p>
+ </div>
+ <div id="buyerCustomersList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px"></div>
+</section>
 <section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
   <div class="section-title">Inbox</div>
   <p class="muted">Your customer inquiries, estimates, quotes and confirmed bookings — all in one place. The Cleaning App is separate for managing jobs and teams.</p>
@@ -738,7 +750,7 @@ $('search').oninput=render;$('stageFilter').onchange=render;$('dueFilter').oncha
  document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target===target));closePremiumSidebar();if(target==='home'){
  if(workspace&&!workspace.is_internal){setView('buyer-dashboard');void loadBuyerRequests();$('buyerDashboardHub').scrollIntoView({behavior:'smooth'});return}
  setView('pipeline');$('search').value='';$('stageFilter').value='';$('dueFilter').value='';render();$('quickhome').scrollIntoView({behavior:'smooth'});return}if(target==='owner-help'){if(!workspace?.is_internal)return;setView('owner-help');$('ownerHelpHub').scrollIntoView({behavior:'smooth'});return}if(target==='help'){setView('help');$('helpHub').scrollIntoView({behavior:'smooth'});return}if(target==='availability'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='availability'){setView('availability');loadAvailability();$('availabilityHub').scrollIntoView({behavior:'smooth'});return}if(target==='pricing'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='pricing'){setView('pricing');loadPricing();$('pricingHub').scrollIntoView({behavior:'smooth'});return}if(target==='owner-pages'){setView('owner-pages');loadOwnerPages();$('ownerPagesHub').scrollIntoView({behavior:'smooth'});return}
-if(target==='owner-calendar'){if(!workspace?.is_internal)return;setView('owner-calendar');loadOwnerCalendar();$('ownerCalendarHub').scrollIntoView({behavior:'smooth'});return}if(target==='request-center'){if(!workspace||workspace.is_internal)return;setView('request-center');void loadBuyerRequests();$('buyerRequestsHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-followups'){if(!workspace||workspace.is_internal)return;setView('buyer-followups');$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='settings'){setView('settings');$('settingsAccountEmail').textContent=accountEmail||'—';$('settingsBusinessName').textContent=workspace?.name||'—';$('settingsLanguage').value=localStorage.getItem('tle_crm_language')==='es'?'es':'en';$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='inbox'){setView('inbox');$('inboundHub').scrollIntoView({behavior:'smooth'});return}if(target==='emails'){setView('emails');$('emailHub').scrollIntoView({behavior:'smooth'});return}if(target==='calendar'){$('dueFilter').value='';$('stageFilter').value='';render();setView('calendar')}else if(target==='clients'){$('stageFilter').value='';$('dueFilter').value='';render();setView('clients')}else{$('stageFilter').value='';$('dueFilter').value='';render();setView('pipeline')}document.getElementById('premiumViews').scrollIntoView({behavior:'smooth'})}document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.onclick=()=>premiumNavigate(b.dataset.target));$('navToggle').setAttribute('aria-expanded','false');$('navToggle').setAttribute('aria-controls','premiumSidebar');$('navToggle').onclick=togglePremiumSidebar;$('sidebarScrim').onclick=closePremiumSidebar;document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremiumSidebar()});$('settingsLanguage').onchange=()=>{const select=$('crmLanguageSelect');if(select){select.value=$('settingsLanguage').value;select.dispatchEvent(new Event('change'))}};
+if(target==='owner-calendar'){if(!workspace?.is_internal)return;setView('owner-calendar');loadOwnerCalendar();$('ownerCalendarHub').scrollIntoView({behavior:'smooth'});return}if(target==='clients'&&workspace&&!workspace.is_internal){setView('buyer-customers');void loadBuyerRequests();$('buyerCustomersHub').scrollIntoView({behavior:'smooth'});return}if(target==='request-center'){if(!workspace||workspace.is_internal)return;setView('request-center');void loadBuyerRequests();$('buyerRequestsHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-followups'){if(!workspace||workspace.is_internal)return;setView('buyer-followups');$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='settings'){setView('settings');$('settingsAccountEmail').textContent=accountEmail||'—';$('settingsBusinessName').textContent=workspace?.name||'—';$('settingsLanguage').value=localStorage.getItem('tle_crm_language')==='es'?'es':'en';$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='inbox'){setView('inbox');$('inboundHub').scrollIntoView({behavior:'smooth'});return}if(target==='emails'){setView('emails');$('emailHub').scrollIntoView({behavior:'smooth'});return}if(target==='calendar'){$('dueFilter').value='';$('stageFilter').value='';render();setView('calendar')}else if(target==='clients'){$('stageFilter').value='';$('dueFilter').value='';render();setView('clients')}else{$('stageFilter').value='';$('dueFilter').value='';render();setView('pipeline')}document.getElementById('premiumViews').scrollIntoView({behavior:'smooth'})}document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.onclick=()=>premiumNavigate(b.dataset.target));$('navToggle').setAttribute('aria-expanded','false');$('navToggle').setAttribute('aria-controls','premiumSidebar');$('navToggle').onclick=togglePremiumSidebar;$('sidebarScrim').onclick=closePremiumSidebar;document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremiumSidebar()});$('settingsLanguage').onchange=()=>{const select=$('crmLanguageSelect');if(select){select.value=$('settingsLanguage').value;select.dispatchEvent(new Event('change'))}};
 document.querySelectorAll('[data-owner-help-target]').forEach(button=>button.onclick=()=>{if(workspace?.is_internal)premiumNavigate(button.dataset.ownerHelpTarget)});
 const buyerMailUrl="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-mail-setup";
 let buyerMailState=null;
@@ -1715,6 +1727,44 @@ function buyerRenderRequestCards(){
  if(!root.childElementCount)root.textContent=buyerText("No customer requests in this view.","No hay solicitudes en esta vista.");
 }
 function buyerRenderOtherLeads(){$("buyerOtherInquiries").replaceChildren();}
+function renderBuyerCustomers(){
+ if(!workspace||workspace.is_internal)return;
+ const root=$('buyerCustomersList');root.replaceChildren();
+ const map=new Map();
+ for(const request of [...buyerRequests].sort((a,b)=>Date.parse(b.created_at||0)-Date.parse(a.created_at||0))){
+  const email=String(request.customer_email||'').toLowerCase().trim();
+  const key=email||('request:'+request.id);
+  if(!map.has(key))map.set(key,{request});
+ }
+ for(const manual of leads.filter(x=>!x.research_only&&x.stage==='Won'||!x.research_only&&x.source!=='Booking Page'&&x.stage!=='Lost')){
+  const email=String(manual.email||'').toLowerCase().trim();
+  const key=email||('manual:'+manual.id);
+  if(!map.has(key))map.set(key,{manual});
+ }
+ const people=[...map.values()];
+ $('buyerCustomersCount').textContent=buyerText(people.length+' customer contacts',people.length+' contactos de clientes');
+ if(!people.length){root.append(buyerCreate('p',buyerText('No customers yet. New contacts from your Booking Page and manual inquiries will appear here.','Todavía no hay clientes. Aquí aparecerán los contactos de tu Booking Page y las consultas manuales.'),'muted'));return}
+ for(const person of people){
+  const x=person.request||person.manual;const isRequest=!!person.request;
+  const name=isRequest?(x.customer_name||x.customer_email):(x.contact||x.business||x.email);
+  const card=buyerCreate('button',undefined,'request-card');card.type='button';card.style.cssText='width:100%;text-align:left';
+  card.append(
+   buyerCreate('span',isRequest?buyerRequestState(x):buyerText('Manual contact','Contacto manual'),'request-pill'),
+   buyerCreate('strong',name||buyerText('Customer','Cliente')),
+   buyerCreate('div',isRequest?([x.customer_email,x.service_name].filter(Boolean).join(' · ')):[x.email,x.source].filter(Boolean).join(' · '),'request-summary'),
+   buyerCreate('small',buyerText('Open customer →','Abrir cliente →'),'request-summary')
+  );
+  card.onclick=()=>{
+   if(isRequest){
+    $('buyerRequestSearch').value=x.customer_email||x.customer_name||'';
+    $('buyerRequestType').value='all';
+    premiumNavigate('request-center');
+   }else edit(x)
+  };
+  root.append(card)
+ }
+}
+$('buyerCustomersRefresh').onclick=()=>{if(workspace&&!workspace.is_internal)void loadBuyerRequests()};
 function renderBuyerDashboard(){
  if(!workspace||workspace.is_internal)return;
  const attention=buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>["New","Follow-up"].includes(x.stage)).length;
@@ -1744,11 +1794,13 @@ async function loadBuyerRequests(){
   if(!workspace||workspace.is_internal||workspace.id!==wsId)return;
   buyerRequests=Array.isArray(data.requests)?data.requests:[];
   renderBuyerDashboard();
+  renderBuyerCustomers();
   buyerRequestSummaries();
   const previous=buyerSelectedRequest?.id;
   buyerSelectedRequest=null;
   buyerRenderRequestCards();
-  const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests[0];
+  const findEmail=$('buyerRequestSearch').value.toLowerCase().trim();
+  const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests.find(x=>findEmail&&String(x.customer_email||'').toLowerCase()===findEmail)||buyerRequests[0];
   if(selection)buyerOpenRequest(selection);
   else{$("buyerRequestDetailTitle").textContent=buyerText("Select a request or manual inquiry","Elige una solicitud o consulta manual");$("buyerRequestDetails").replaceChildren();$("buyerRequestNextAction").classList.add("hidden");$("buyerRequestReplyArea").classList.add("hidden")}
  }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message;$("buyerDashboardStatus").textContent=buyerText("Customer activity unavailable: ","Actividad no disponible: ")+e.message}
@@ -1818,6 +1870,7 @@ let view='pipeline';function setView(v){
   'pipeline':['YOUR BUSINESS / CUSTOMERS','Customer Inquiries'],
   'calendar':['YOUR BUSINESS / FOLLOW-UPS','Customer Follow-up Calendar'],
   'clients':['YOUR BUSINESS / CUSTOMERS','Customers'],
+  'buyer-customers':['YOUR BUSINESS / CUSTOMERS','Customers'],
   'request-center':['YOUR BUSINESS / INBOX','Inbox'],
   'emails':['YOUR BUSINESS / EMAIL','Customer Email History'],
   'buyer-followups':['YOUR BUSINESS / AUTOMATION','Automatic Follow-ups'],
@@ -1831,7 +1884,7 @@ let view='pipeline';function setView(v){
  $('quickIntro').textContent=internal
   ?'These are The Launch Era sales prospects—not customers of buyer cleaning businesses.'
   :'These are inquiries for your cleaning business—not The Launch Era sales leads.';
-$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');$('buyerDashboardHub').classList.toggle('hidden',v!=='buyer-dashboard');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings')loadOwnerDeliveries();}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
+$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');$('buyerCustomersHub').classList.toggle('hidden',v!=='buyer-customers');$('buyerDashboardHub').classList.toggle('hidden',v!=='buyer-dashboard');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings')loadOwnerDeliveries();}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
 async function showFollowupHistory(leadId){
  const target=$('followupHistory');const es=localStorage.getItem('tle_crm_language')==='es';
  const label=(en,spanish)=>es?spanish:en;
