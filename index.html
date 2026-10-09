@@ -1564,6 +1564,48 @@ function renderOwnerDailyOutreach(){
 }
 $('ownerDailyReview').onclick=()=>{ownerDailyOpen=!ownerDailyOpen;renderOwnerDailyOutreach()};
 $('ownerDailySelect').onclick=()=>{for(const x of ownerDailyQueue())if(!ownerDailyBlockReason(x.lead,x.draft))ownerDailySelected.add(x.lead.id);renderOwnerDailyOutreach()};
+
+$('ownerDailySend').onclick=async()=>{
+ if(!workspace?.is_internal||ownerDailyBusy||ownerDailySelected.size===0)return;
+ const selected=[...ownerDailySelected];
+ const approved=confirm(ownerDailyLabel(
+  'Send '+selected.length+' individual emails to verified, opted-in contacts? One confirmation for the entire selection. This cannot be undone.',
+  '¿Enviar '+selected.length+' correos individuales a los contactos con permiso verificado? Una sola confirmación para todos. No se puede deshacer.'));
+ if(!approved)return;
+ ownerDailyBusy=true;renderOwnerDailyOutreach();
+ let accepted=0,skipped=0,problem='';
+ const note=$('ownerDailyStatus');
+ try{
+  const {data:{session}}=await db.auth.getSession();
+  if(!session)throw Error(ownerDailyLabel('Please sign in again.','Vuelve a iniciar sesión.'));
+  await load();
+  for(const id of selected){
+   const x=leads.find(l=>l.id===id);
+   if(!x||!x.followup||x.followup>ownerDailyDate()){skipped++;continue}
+   const draft=ownerDailyDraft(x);
+   if(ownerDailyBlockReason(x,draft)){skipped++;continue}
+   note.textContent=ownerDailyLabel('Processing '+(accepted+skipped+1)+' of '+selected.length+'…','Procesando '+(accepted+skipped+1)+' de '+selected.length+'…');
+   const {data,error}=await db.functions.invoke('tle-crm-send-followup',{body:{lead_id:id,subject:draft.subject,body:draft.body}});
+   if(error||!data?.ok){
+    problem=ownerDailyLabel('Sending stopped after a provider or verification error. Review the delivery history before retrying.','Se detuvo el envío por un error del proveedor o de verificación. Revisa el historial antes de reintentar.');
+    break;
+   }
+   accepted++;ownerDailySelected.delete(id);
+   emailSentByLead.set(id,new Date().toISOString());
+   const due=new Date(ownerDailyDate()+'T12:00:00Z');due.setUTCDate(due.getUTCDate()+3);
+   const {error:dateError}=await db.from('tle_crm_leads')
+    .update({followup:due.toISOString().slice(0,10)}).eq('id',id).eq('workspace_id',workspace.id);
+   if(dateError){problem=ownerDailyLabel('Some emails were accepted, but a follow-up date could not be saved.','Se aceptaron correos, pero no se pudo guardar una fecha de seguimiento.');break}
+  }
+ }catch(e){problem=ownerDailyLabel('Sending stopped. Check the provider before retrying.','Envío detenido. Revisa el proveedor antes de reintentar.');}
+ finally{
+  ownerDailyBusy=false;
+  try{await load()}catch(e){}
+  renderOwnerDailyOutreach();
+  note.textContent=ownerDailyLabel('Accepted by provider: '+accepted+'. Skipped: '+skipped+'. ','Aceptados por el proveedor: '+accepted+'. Omitidos: '+skipped+'. ')+problem;
+ }
+};
+
 function renderEmailHub(){renderOwnerDailyOutreach();const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});
 /* Buyer-only request inbox: confirmed flat-price bookings, quote requests, and CRM inquiries. */
 const buyerRequestEndpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-request-center";
