@@ -233,6 +233,10 @@ body.crm-followups-focus #settingsHub > :not(#buyerEmailSetup):not(#buyerFollowu
           <option value="closed">Close / Cerrar</option>
           <option value="reply">Reply only / Solo responder</option>
         </select></label>
+        <div id="buyerRequestConfirmSlot" class="hidden" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <label>Booking date / Fecha<input id="buyerRequestBookingDate" type="date"></label>
+          <label>Start time / Hora<input id="buyerRequestBookingTime" type="time" step="1800"></label>
+        </div>
         <label>Reply to customer / Responder al cliente<textarea id="buyerRequestMessage" rows="6" maxlength="3000" placeholder="Write a helpful update in the customer's language."></textarea></label>
         <p class="muted" style="font-size:12px">Saving a status does not send a message. Choose Send update to email the customer. Changing a date in this message does not reserve a new slot; confirm availability separately.</p>
         <div style="display:flex;flex-wrap:wrap;gap:9px">
@@ -1251,12 +1255,15 @@ function buyerOpenRequest(x){
  for(const [label,value] of fields)body.append(buyerDetails(label,value));
  $("buyerRequestReplyArea").classList.remove("hidden");
  $("buyerRequestAction").value=x.status==="booked"?"reply":"reviewing";
+ $("buyerRequestBookingDate").value=String(payload.requested_date||"").slice(0,10);
+ $("buyerRequestBookingTime").value=String(payload.requested_time||"").slice(0,5);
  buyerSetDefaultMessage();
  $("buyerRequestStatus").textContent="";
  buyerRenderRequestCards();
 }
 function buyerSetDefaultMessage(){
  const x=buyerSelectedRequest;if(!x)return;
+ $("buyerRequestConfirmSlot").classList.toggle("hidden",$("buyerRequestAction").value!=="booked"||x.status==="booked");
  const action=$("buyerRequestAction").value,es=x.preferred_language==="es",name=(x.customer_name||"").trim().split(/\s+/)[0]||(es?"cliente":"there");
  const service=x.service_name||(es?"limpieza":"cleaning");
  let copy={
@@ -1320,7 +1327,7 @@ async function buyerUpdateRequest(sendEmail){
  const b1=$("buyerRequestSave"),b2=$("buyerRequestSend");b1.disabled=true;b2.disabled=true;
  $("buyerRequestStatus").textContent=buyerText("Saving update…","Guardando actualización…");
  try{
-  const result=await buyerRequestCall("update",{request_id:id,action,message,send_email:sendEmail});
+  const result=await buyerRequestCall("update",{request_id:id,action,message,send_email:sendEmail,request_date:$("buyerRequestBookingDate").value,request_time:$("buyerRequestBookingTime").value});
   const status=result.email_sent?buyerText("Update saved. The email service accepted your message.","Actualización guardada. El servicio aceptó el correo."):
    sendEmail?buyerText("Status saved, but the message was not accepted for sending. Check the email before retrying.","Estado guardado, pero el correo no fue aceptado. Revisa antes de repetir."):
    buyerText("Status saved; no email was sent.","Estado guardado; no se envió correo.");
