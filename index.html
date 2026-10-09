@@ -1526,9 +1526,9 @@ function renderOwnerDailyOutreach(){
  $('ownerDailyCounts').textContent=ownerDailyLabel(queue.length+' due · '+eligible.length+' ready · '+(queue.length-eligible.length)+' needs review',queue.length+' pendientes · '+eligible.length+' habilitados · '+(queue.length-eligible.length)+' por revisar');
  $('ownerDailyReview').textContent=ownerDailyOpen?ownerDailyLabel('Collapse all','Cerrar vistas'):ownerDailyLabel('Review all','Revisar todos');
  $('ownerDailySelect').textContent=ownerDailyLabel('Select all eligible','Seleccionar habilitados');
- $('ownerDailySend').textContent=ownerDailyLabel('Send all (requires activation)','Enviar todos (requiere activación)');
- $('ownerDailySend').disabled=true;
- $('ownerDailySend').title=ownerDailyLabel('Batch send is not activated. Review recipients here; no messages will send from this control.','El envío conjunto aún no está activado. Aquí puedes revisar; este botón no envía mensajes.');
+ $('ownerDailySend').textContent=ownerDailyLabel('Send all eligible ('+ownerDailySelected.size+')','Enviar todos los habilitados ('+ownerDailySelected.size+')');
+ $('ownerDailySend').disabled=ownerDailyBusy||ownerDailySelected.size===0;
+ $('ownerDailySend').title=ownerDailySelected.size?ownerDailyLabel('Confirm and send individual messages to the selected opted-in contacts.','Confirma y envía mensajes individuales a los contactos autorizados seleccionados.'):ownerDailyLabel('No contacts can receive email through this provider yet.','Todavía no hay contactos habilitados para este proveedor.');
  $('ownerDailyReview').disabled=ownerDailyBusy;$('ownerDailySelect').disabled=ownerDailyBusy;
  $('ownerDailyFooter').textContent=ownerDailyLabel(
  'Resend only sends to recipients with documented email permission. Opt-outs, bounces, replies and duplicates stay excluded. Sending is limited to 20 messages per rolling 24 hours. The second email is scheduled 3 days after an accepted send.',
