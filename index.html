@@ -452,6 +452,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  </div>
  <div id="ownerDueFollowupsStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:9px;margin:16px 0"></div>
 <div id="ownerProspectQueueStatus" style="padding:13px;margin:11px 0;border:1px solid #d6e8ee;background:#f0f8fc;border-radius:14px;font-size:13px;color:#33556e">Loading the scheduled follow-up queue…</div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0"><button id="exportSendvantaCsv" type="button" class="secondary">Export follow-up leads (CSV)</button><small id="exportSendvantaInfo" style="color:#60798a">Import only — this does not send emails.</small></div>
  <p id="ownerDueFollowupsWarning" style="padding:13px;border:1px solid #f2deba;background:#fff8eb;border-radius:12px;color:#805a26;font-size:12px;line-height:1.55"></p>
  <label style="display:block;margin:15px 0;font-size:12px;font-weight:700;color:#526b7d"><span id="ownerDueFollowupsSearchText">Search all due follow-ups</span>
   <input id="ownerDueFollowupsSearch" type="search" placeholder="Business or contact name" autocomplete="off" style="display:block;width:100%;max-width:430px;margin-top:8px"></label>
@@ -1551,11 +1552,52 @@ function ownerDueFollowups(){
  return leads.filter(x=>x.contact_decision==='yes'&&x.stage!=='Won'&&x.followup&&x.followup<=today)
   .sort((a,b)=>String(a.followup).localeCompare(String(b.followup))||String(a.business).localeCompare(String(b.business)));
 }
+function ownerSendvantaExportRows(){
+ if(!workspace?.is_internal||!Array.isArray(ownerProspectQueueRows))return [];
+ const waitingSecond=new Map(ownerProspectQueueRows.filter(q=>q.step_number===1&&q.status==='awaiting_sender').map(q=>[q.lead_id,q]));
+ const waitingThird=new Map(ownerProspectQueueRows.filter(q=>q.step_number===2&&q.status==='awaiting_sender').map(q=>[q.lead_id,q]));
+ return leads.filter(x=>
+  waitingSecond.has(x.id)&&waitingThird.has(x.id)&&x.contact_decision==='yes'
+  &&x.email&&/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(x.email)
+  &&emailSentByLead.has(x.id)&&!emailBouncedByLead.has(x.id)
+  &&!blockedLead(x)&&x.stage!=='Won'&&!x.replied_at&&!x.archived_at
+ ).sort((a,b)=>String(a.business||'').localeCompare(String(b.business||'')))
+ .map(x=>{
+  const person=String(x.contact||'').trim().split(/[\\/&,]/)[0].trim().split(/\\s+/)[0]||'';
+  const first=/^(yes|no|unknown|unverified|na|n\\/a)$/i.test(person)?'':person;
+  return [x.email,first,x.business||'',x.language||'',x.id,
+   waitingSecond.get(x.id).due_at?.slice(0,10)||'',
+   waitingThird.get(x.id).due_at?.slice(0,10)||'',
+   emailSentByLead.get(x.id)||''];
+ });
+}
+$('exportSendvantaCsv').onclick=()=>{
+ if(!workspace?.is_internal)return;
+ const records=ownerSendvantaExportRows();
+ if(!records.length){say(ownerDailyLabel('No approved previously emailed prospects are ready to export.','No hay prospectos previamente contactados listos para exportar.'));return}
+ const headings=['email','first_name','company','language','crm_lead_id','second_email_due','third_email_due','first_email_sent_at'];
+ const csvEsc=value=>{
+  let str=String(value??'');
+  // Prevent spreadsheet-formula execution in imported cells.
+  if(/^[=+\\-@\\t\\r]/.test(str))str="'"+str;
+  return '"'+str.replaceAll('"','""')+'"';
+ };
+ const csv=[headings.map(csvEsc).join(','),...records.map(row=>row.map(csvEsc).join(','))].join('\\r\\n');
+ const blob=new Blob(['\\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='tle-sendvanta-followups-'+ownerDailyDate()+'.csv';
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+ say(ownerDailyLabel(records.length+' previously emailed leads exported for review. Import does not start a campaign.','Se exportaron '+records.length+' prospectos ya contactados para revisar. La importación no inicia ninguna campaña.'));
+};
 function renderOwnerDueFollowups(){
  const panel=$('ownerDueFollowupsPanel');if(!panel)return;
  panel.classList.toggle('hidden',!workspace?.is_internal);
  if(!workspace?.is_internal)return;
  const all=ownerDueFollowups(),label=ownerDailyLabel;
+ const exportRows=ownerSendvantaExportRows();
+ $('exportSendvantaCsv').disabled=exportRows.length===0;
+ $('exportSendvantaCsv').textContent=label('Download '+exportRows.length+' leads (CSV)','Descargar '+exportRows.length+' leads (CSV)');
+ $('exportSendvantaInfo').textContent=label('Already contacted; import for review only. Do not restart the initial-email sequence.','Ya recibieron el primer correo. Importar solo para revisión; no repetirlo.');
  const sent=all.filter(x=>emailSentByLead.has(x.id)).length;
  const unverified=all.filter(x=>x.email_consent_status!=='authorized'||!String(x.email_consent_source||'').trim()).length;
  const disabled=all.filter(x=>x.email_followup_enabled!==true).length;
