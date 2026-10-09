@@ -354,7 +354,24 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <p><a href="https://thelaunchera.com/client-start-guide.html?lang=en" target="_blank" rel="noopener noreferrer">English buyer guide</a> · <a href="https://thelaunchera.com/client-start-guide.html?lang=es" target="_blank" rel="noopener noreferrer">Guía en español</a></p>
 <button type="button" class="secondary" id="ownerDeliveryRefresh">Refresh purchases / Actualizar compras</button>
 <div id="ownerDeliveryStatus" role="status" aria-live="polite" style="margin-top:12px"></div>
-<div id="ownerDeliveryList" style="display:grid;gap:14px;margin-top:16px"></div></article><button type="button" id="settingsSignOut" class="secondary">Sign out</button></section><section id="notificationPanel" class="hidden premium-emailhub"><div class="section-title">Notifications</div><p class="muted">Incoming requests and follow-ups requiring attention.</p><div id="notificationList"></div></section><section class="premium-emailhub" id="analyticsHub"><div class="section-title">Your analytics</div><div class="metrics premium-metrics"><div class="metric"><small>Conversion rate</small><strong id="analyticsConversion">0%</strong></div><div class="metric"><small>Emails recorded</small><strong id="analyticsSent">0</strong></div><div class="metric"><small>Incoming requests</small><strong id="analyticsInbound">—</strong></div><div class="metric"><small>Overdue follow-ups</small><strong id="analyticsOverdue">0</strong></div></div></section><div class="toolbar" id="leadToolbar"><div class="section-title">Your pipeline</div><div class="actionbar"><button type="button" id="exportCsv" class="secondary">Export CSV</button><button id="add">+ Add lead</button></div></div><div class="filters" id="leadFilters"><input id="search" placeholder="Search by business or contact" aria-label="Search leads"><select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select><select id="dueFilter" aria-label="Filter by follow-up"><option value="">All follow-ups</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="none">No follow-up date</option></select><select id="outreachFilter" aria-label="Filter by outreach status"><option value="">All outreach</option><option value="sent">Already emailed</option><option value="pending">No recorded email — review</option><option value="bounced">Bounced — do not email</option></select></div><div class="viewtabs" id="premiumViews"><button type="button" id="pipelineView" class="active">Pipeline</button><button type="button" id="calendarView">Follow-up calendar</button><button type="button" id="clientView">Won clients</button></div><div id="board" class="grid"></div><section id="inboundHub" class="hidden premium-emailhub"><div class="section-title">Incoming requests <span id="inboundCount" class="lead-profile-badge"></span></div><p class="muted">Freebie downloads, website messages, and personalized demo requests — together in one place.</p><div class="inbound-filters"><button type="button" class="active" data-inbound="all">All</button><button type="button" data-inbound="freebie">Freebies</button><button type="button" data-inbound="website">Website</button><button type="button" data-inbound="demo">Demo requests</button></div><div id="inboundList" aria-live="polite"></div></section><section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
+<div id="ownerDeliveryList" style="display:grid;gap:14px;margin-top:16px"></div></article><button type="button" id="settingsSignOut" class="secondary">Sign out</button></section><section id="notificationPanel" class="hidden premium-emailhub"><div class="section-title">Notifications</div><p class="muted">Incoming requests and follow-ups requiring attention.</p><div id="notificationList"></div></section><section class="premium-emailhub" id="analyticsHub"><div class="section-title">Your analytics</div><div class="metrics premium-metrics"><div class="metric"><small>Conversion rate</small><strong id="analyticsConversion">0%</strong></div><div class="metric"><small>Emails recorded</small><strong id="analyticsSent">0</strong></div><div class="metric"><small>Incoming requests</small><strong id="analyticsInbound">—</strong></div><div class="metric"><small>Overdue follow-ups</small><strong id="analyticsOverdue">0</strong></div></div></section><div class="toolbar" id="leadToolbar"><div class="section-title">Your pipeline</div><div class="actionbar"><button type="button" id="exportCsv" class="secondary">Export CSV</button><button id="add">+ Add lead</button></div></div><div class="filters" id="leadFilters"><input id="search" placeholder="Search by business or contact" aria-label="Search leads"><select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select><select id="dueFilter" aria-label="Filter by follow-up"><option value="">All follow-ups</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="none">No follow-up date</option></select><select id="outreachFilter" aria-label="Filter by outreach status"><option value="">All outreach</option><option value="sent">Already emailed</option><option value="pending">No recorded email — review</option><option value="bounced">Bounced — do not email</option></select></div><div class="viewtabs" id="premiumViews"><button type="button" id="pipelineView" class="active">Pipeline</button><button type="button" id="calendarView">Follow-up calendar</button><button type="button" id="clientView">Won clients</button></div><div id="board" class="grid"></div><section id="inboundHub" class="hidden premium-emailhub"><div class="section-title">Incoming requests <span id="inboundCount" class="lead-profile-badge"></span></div><p class="muted">Freebie downloads, website messages, and personalized demo requests — together in one place.</p><div class="inbound-filters"><button type="button" class="active" data-inbound="all">All</button><button type="button" data-inbound="freebie">Freebies</button><button type="button" data-inbound="website">Website</button><button type="button" data-inbound="demo">Demo requests</button></div><div id="inboundList" aria-live="polite"></div></section><section id="buyerDashboardHub" class="hidden premium-emailhub" aria-label="Business Dashboard">
+ <div class="section-title">Your Business</div>
+ <p class="muted">See what arrived, what was confirmed automatically, and what needs your attention.</p>
+ <div class="panel" style="padding:20px;margin:17px 0">
+  <div id="buyerDashboardStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr));gap:11px"></div>
+  <p class="muted" role="status" id="buyerDashboardStatus">Loading your customer activity…</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+   <button id="buyerDashboardOpenInbox" type="button">Open Inbox →</button>
+   <button id="buyerDashboardOpenSettings" type="button" class="secondary">Business Settings</button>
+  </div>
+ </div>
+ <div class="panel" style="padding:18px;line-height:1.65;font-size:13px">
+  <strong>What happens automatically?</strong>
+  <p>Customer request receipts, flat-price bookings with available times, quote acceptance checks and business notifications follow your configured workflow.</p>
+  <p class="muted">Inbox shows when you need to prepare a price or review a special request. The Cleaning App is separate for running your daily jobs and teams.</p>
+ </div>
+</section>
+<section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
   <div class="section-title">Inbox</div>
   <p class="muted">Your customer inquiries, estimates, quotes and confirmed bookings — all in one place. The Cleaning App is separate for managing jobs and teams.</p>
   <div id="buyerInboxLegend" class="panel" style="padding:14px 16px;line-height:1.65;font-size:12px">
@@ -671,9 +688,10 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
   await loadOwnerPages();
  }else{
   document.body.classList.remove('tle-owner-purchases');
-  setView('pipeline');
+  setView('buyer-dashboard');
   document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target==='home'));
   await load();
+  await loadBuyerRequests();
  }
  await loadStoredNotifications();
 }hideTleLoading()}catch(e){if(generation!==bootGeneration)return;if(roleVerified){say(e.message)}else{lockCommandCenterSession();$('authMessage').textContent=e.message}hideTleLoading()}}
@@ -714,7 +732,9 @@ $('search').oninput=render;$('stageFilter').onchange=render;$('dueFilter').oncha
  if(workspace?.is_internal&&target==='home')target='owner-pages';
  const leadSection=['leads','calendar','clients','inbox','emails'].includes(target);
  if(workspace?.is_internal&&leadSection&&!document.body.dataset.leadsLoaded)void load();
- document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target===target));closePremiumSidebar();if(target==='home'){setView('pipeline');$('search').value='';$('stageFilter').value='';$('dueFilter').value='';render();$('quickhome').scrollIntoView({behavior:'smooth'});return}if(target==='owner-help'){if(!workspace?.is_internal)return;setView('owner-help');$('ownerHelpHub').scrollIntoView({behavior:'smooth'});return}if(target==='help'){setView('help');$('helpHub').scrollIntoView({behavior:'smooth'});return}if(target==='availability'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='availability'){setView('availability');loadAvailability();$('availabilityHub').scrollIntoView({behavior:'smooth'});return}if(target==='pricing'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='pricing'){setView('pricing');loadPricing();$('pricingHub').scrollIntoView({behavior:'smooth'});return}if(target==='owner-pages'){setView('owner-pages');loadOwnerPages();$('ownerPagesHub').scrollIntoView({behavior:'smooth'});return}
+ document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target===target));closePremiumSidebar();if(target==='home'){
+ if(workspace&&!workspace.is_internal){setView('buyer-dashboard');void loadBuyerRequests();$('buyerDashboardHub').scrollIntoView({behavior:'smooth'});return}
+ setView('pipeline');$('search').value='';$('stageFilter').value='';$('dueFilter').value='';render();$('quickhome').scrollIntoView({behavior:'smooth'});return}if(target==='owner-help'){if(!workspace?.is_internal)return;setView('owner-help');$('ownerHelpHub').scrollIntoView({behavior:'smooth'});return}if(target==='help'){setView('help');$('helpHub').scrollIntoView({behavior:'smooth'});return}if(target==='availability'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='availability'){setView('availability');loadAvailability();$('availabilityHub').scrollIntoView({behavior:'smooth'});return}if(target==='pricing'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='pricing'){setView('pricing');loadPricing();$('pricingHub').scrollIntoView({behavior:'smooth'});return}if(target==='owner-pages'){setView('owner-pages');loadOwnerPages();$('ownerPagesHub').scrollIntoView({behavior:'smooth'});return}
 if(target==='owner-calendar'){if(!workspace?.is_internal)return;setView('owner-calendar');loadOwnerCalendar();$('ownerCalendarHub').scrollIntoView({behavior:'smooth'});return}if(target==='request-center'){if(!workspace||workspace.is_internal)return;setView('request-center');void loadBuyerRequests();$('buyerRequestsHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-followups'){if(!workspace||workspace.is_internal)return;setView('buyer-followups');$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='settings'){setView('settings');$('settingsAccountEmail').textContent=accountEmail||'—';$('settingsBusinessName').textContent=workspace?.name||'—';$('settingsLanguage').value=localStorage.getItem('tle_crm_language')==='es'?'es':'en';$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='inbox'){setView('inbox');$('inboundHub').scrollIntoView({behavior:'smooth'});return}if(target==='emails'){setView('emails');$('emailHub').scrollIntoView({behavior:'smooth'});return}if(target==='calendar'){$('dueFilter').value='';$('stageFilter').value='';render();setView('calendar')}else if(target==='clients'){$('stageFilter').value='';$('dueFilter').value='';render();setView('clients')}else{$('stageFilter').value='';$('dueFilter').value='';render();setView('pipeline')}document.getElementById('premiumViews').scrollIntoView({behavior:'smooth'})}document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.onclick=()=>premiumNavigate(b.dataset.target));$('navToggle').setAttribute('aria-expanded','false');$('navToggle').setAttribute('aria-controls','premiumSidebar');$('navToggle').onclick=togglePremiumSidebar;$('sidebarScrim').onclick=closePremiumSidebar;document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremiumSidebar()});$('settingsLanguage').onchange=()=>{const select=$('crmLanguageSelect');if(select){select.value=$('settingsLanguage').value;select.dispatchEvent(new Event('change'))}};
 document.querySelectorAll('[data-owner-help-target]').forEach(button=>button.onclick=()=>{if(workspace?.is_internal)premiumNavigate(button.dataset.ownerHelpTarget)});
 const buyerMailUrl="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-mail-setup";
@@ -1692,6 +1712,25 @@ function buyerRenderRequestCards(){
  if(!root.childElementCount)root.textContent=buyerText("No customer requests in this view.","No hay solicitudes en esta vista.");
 }
 function buyerRenderOtherLeads(){$("buyerOtherInquiries").replaceChildren();}
+function renderBuyerDashboard(){
+ if(!workspace||workspace.is_internal)return;
+ const attention=buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>["New","Follow-up"].includes(x.stage)).length;
+ const confirmed=buyerRequests.filter(x=>x.status==="booked").length;
+ const quotes=buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length;
+ const area=$("buyerDashboardStats");area.replaceChildren();
+ for(const [name,value] of [
+  [buyerText("Needs attention","Necesitan atención"),attention],
+  [buyerText("Confirmed bookings","Reservas confirmadas"),confirmed],
+  [buyerText("Quotes & estimates","Cotizaciones y estimados"),quotes]
+ ]){
+   const tile=buyerCreate("div",undefined,"request-stat");
+   tile.append(buyerCreate("small",name),buyerCreate("b",value));
+   area.append(tile);
+ }
+ $("buyerDashboardStatus").textContent=buyerText("Updated from your private business workspace.","Actualizado desde el espacio privado de tu negocio.");
+}
+$("buyerDashboardOpenInbox").onclick=()=>premiumNavigate("request-center");
+$("buyerDashboardOpenSettings").onclick=()=>premiumNavigate("settings");
 async function loadBuyerRequests(){
  if(!workspace||workspace.is_internal||buyerRequestBusy)return;buyerRequestBusy=true;
  $("buyerRequestCards").textContent=buyerText("Loading your bookings…","Cargando tus reservas…");
@@ -1701,6 +1740,7 @@ async function loadBuyerRequests(){
   const data=await buyerRequestCall("list");
   if(!workspace||workspace.is_internal||workspace.id!==wsId)return;
   buyerRequests=Array.isArray(data.requests)?data.requests:[];
+  renderBuyerDashboard();
   buyerRequestSummaries();
   const previous=buyerSelectedRequest?.id;
   buyerSelectedRequest=null;
@@ -1708,7 +1748,7 @@ async function loadBuyerRequests(){
   const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests[0];
   if(selection)buyerOpenRequest(selection);
   else{$("buyerRequestDetailTitle").textContent=buyerText("Select a request or manual inquiry","Elige una solicitud o consulta manual");$("buyerRequestDetails").replaceChildren();$("buyerRequestNextAction").classList.add("hidden");$("buyerRequestReplyArea").classList.add("hidden")}
- }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message}
+ }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message;$("buyerDashboardStatus").textContent=buyerText("Customer activity unavailable: ","Actividad no disponible: ")+e.message}
  finally{buyerRequestBusy=false}
 }
 $("buyerRequestSearch").oninput=buyerRenderRequestCards;
@@ -1770,10 +1810,11 @@ let view='pipeline';function setView(v){
   'availability':['BUYER WORKSPACE / REVIEW','Selected Buyer Availability']
  };
  const buyerTitles={
+  'buyer-dashboard':['YOUR BUSINESS / OVERVIEW','Dashboard'],
   'pipeline':['YOUR BUSINESS / CUSTOMERS','Customer Inquiries'],
   'calendar':['YOUR BUSINESS / FOLLOW-UPS','Customer Follow-up Calendar'],
   'clients':['YOUR BUSINESS / CUSTOMERS','Customers'],
-  'request-center':['YOUR BUSINESS / BOOKINGS','Bookings & Requests'],
+  'request-center':['YOUR BUSINESS / INBOX','Inbox'],
   'emails':['YOUR BUSINESS / EMAIL','Customer Email History'],
   'buyer-followups':['YOUR BUSINESS / AUTOMATION','Automatic Follow-ups'],
   'pricing':['YOUR BUSINESS / SERVICES','Pricing & Services'],
@@ -1786,7 +1827,7 @@ let view='pipeline';function setView(v){
  $('quickIntro').textContent=internal
   ?'These are The Launch Era sales prospects—not customers of buyer cleaning businesses.'
   :'These are inquiries for your cleaning business—not The Launch Era sales leads.';
-$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings')loadOwnerDeliveries();}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
+$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');$('buyerDashboardHub').classList.toggle('hidden',v!=='buyer-dashboard');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings')loadOwnerDeliveries();}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
 async function showFollowupHistory(leadId){
  const target=$('followupHistory');const es=localStorage.getItem('tle_crm_language')==='es';
  const label=(en,spanish)=>es?spanish:en;
