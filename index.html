@@ -48,7 +48,7 @@ body.crm-owner-view #buyerSettingsNav,
 body.crm-buyer-view #ownerInsightsNav,
 body.crm-buyer-view #ownerPagesNav,
 body.crm-buyer-view #ownerCalendarNav {display:none!important}
-body.crm-followups-focus #settingsHub > :not(#buyerEmailSetup):not(#buyerFollowupsIntro){display:none!important}
+body.crm-followups-focus #settingsHub > :not(#buyerEmailSetup):not(#buyerFollowupsIntro):not(#buyerEmailHealth){display:none!important}
 #buyerFollowupsIntro .buyer-followup-step{display:flex;gap:12px;align-items:center;background:#f4f9fd;border:1px solid #e0edf6;border-radius:16px;padding:12px 14px}
 #buyerFollowupsIntro .buyer-followup-step b{font-size:15px}
 #buyerFollowupsIntro .buyer-followup-step span{font-size:13px;color:#4f6d80}
@@ -197,6 +197,9 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  <p class="muted">You do not connect these with a manual spreadsheet or shared login. The private workspace is linked during the account invitation. Do not approve delivery before real tests pass.</p>
  </div>
 </details>
+<div id="ownerProductionSteps" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:16px 0;font-size:12px;text-align:center;color:#275f83" aria-label="Four stages">
+<div class="panel" style="padding:11px 5px">1 · New Order</div><div class="panel" style="padding:11px 5px">2 · Customize</div>
+<div class="panel" style="padding:11px 5px">3 · Test</div><div class="panel" style="padding:11px 5px">4 · Deliver</div></div>
 <div id="ownerPurchaseStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:12px;margin:20px 0" aria-label="Buyer order statistics"></div>
 <div class="panel" style="padding:16px 19px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <strong style="font-size:13px">Order status / Estado</strong>
@@ -299,7 +302,17 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  </div></details>
 </section>
 <!-- End temporary owner guide -->
-<section id="settingsHub" class="hidden premium-emailhub"><div id="settingsRoleTitle" class="section-title">Business settings</div><p id="settingsRoleDesc" class="muted">Manage your language, business access and account security.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:18px;margin:18px 0"><article class="panel" style="padding:20px"><h3>Language & display</h3><label>Language on this device<select id="settingsLanguage"><option value="en">English</option><option value="es">Español</option></select></label><p class="muted">Your preference is saved on this device, not on your account.</p></article><article class="panel" style="padding:20px"><h3>Workspace & account</h3><p><strong>Business name</strong></p><p id="settingsBusinessName"></p><p><strong>Account email</strong></p><p id="settingsAccountEmail"></p><button type="button" id="settingsPasswordReset" class="secondary">Send password reset email</button><p id="settingsSecurityStatus" role="status" aria-live="polite"></p></article></div><article class="panel" style="padding:20px"><h3 id="settingsFollowupTitle">Follow-ups &amp; notifications</h3><p id="settingsFollowupStatus" aria-live="polite">Checking follow-up setup…</p><p id="settingsPushNotice">Notifications depend on your browser permissions and verified business email setup.</p></article><section class="hidden" id="buyerFollowupsIntro" aria-label="Follow-up sequence for your business" style="margin-top:12px">
+<section id="settingsHub" class="hidden premium-emailhub">
+<div id="buyerBusinessShortcuts" class="hidden" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:18px 0">
+<button class="secondary" id="buyerShortcutPricing" type="button">Pricing & Services <small style="display:block">Services, flat prices, estimates, quotes and extras</small></button>
+<button class="secondary" id="buyerShortcutAvailability" type="button">Availability <small style="display:block">Open hours, times and service length</small></button>
+<button class="secondary" id="buyerShortcutAutomation" type="button">Email Automation <small style="display:block">Connection, follow-ups and alerts</small></button>
+</div><div id="settingsRoleTitle" class="section-title">Business settings</div><p id="settingsRoleDesc" class="muted">Manage your language, business access and account security.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:18px;margin:18px 0"><article class="panel" style="padding:20px"><h3>Language & display</h3><label>Language on this device<select id="settingsLanguage"><option value="en">English</option><option value="es">Español</option></select></label><p class="muted">Your preference is saved on this device, not on your account.</p></article><article class="panel" style="padding:20px"><h3>Workspace & account</h3><p><strong>Business name</strong></p><p id="settingsBusinessName"></p><p><strong>Account email</strong></p><p id="settingsAccountEmail"></p><button type="button" id="settingsPasswordReset" class="secondary">Send password reset email</button><p id="settingsSecurityStatus" role="status" aria-live="polite"></p></article></div><article class="panel" style="padding:20px"><h3 id="settingsFollowupTitle">Follow-ups &amp; notifications</h3><p id="settingsFollowupStatus" aria-live="polite">Checking follow-up setup…</p><p id="settingsPushNotice">Notifications depend on your browser permissions and verified business email setup.</p></article><section id="buyerEmailHealth" class="hidden" style="margin:15px 0"><div class="panel" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px">
+<div><small>Connected</small><strong id="buyerEmailHealthConnection" style="display:block">Checking…</strong></div>
+<div><small>Active</small><strong id="buyerEmailHealthActive" style="display:block">Checking…</strong></div>
+<div><small>Needs attention</small><strong id="buyerEmailHealthIssue" style="display:block">Checking…</strong></div>
+</div></section>
+<section class="hidden" id="buyerFollowupsIntro" aria-label="Follow-up sequence for your business" style="margin-top:12px">
 <div class="section-title">Automatic Follow-ups</div>
 <p class="muted">Only for your cleaning business. Manage your two automatic emails after a customer inquiry without changing another business or The Launch Era's campaigns.</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:16px 0">
@@ -329,19 +342,26 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <p><a href="https://thelaunchera.com/client-start-guide.html?lang=en" target="_blank" rel="noopener noreferrer">English buyer guide</a> · <a href="https://thelaunchera.com/client-start-guide.html?lang=es" target="_blank" rel="noopener noreferrer">Guía en español</a></p>
 <button type="button" class="secondary" id="ownerDeliveryRefresh">Refresh purchases / Actualizar compras</button>
 <div id="ownerDeliveryStatus" role="status" aria-live="polite" style="margin-top:12px"></div>
-<div id="ownerDeliveryList" style="display:grid;gap:14px;margin-top:16px"></div></article><button type="button" id="settingsSignOut" class="secondary">Sign out</button></section><section id="notificationPanel" class="hidden premium-emailhub"><div class="section-title">Notifications</div><p class="muted">Incoming requests and follow-ups requiring attention.</p><div id="notificationList"></div></section><section class="premium-emailhub" id="analyticsHub"><div class="section-title">Your analytics</div><div class="metrics premium-metrics"><div class="metric"><small>Conversion rate</small><strong id="analyticsConversion">0%</strong></div><div class="metric"><small>Emails recorded</small><strong id="analyticsSent">0</strong></div><div class="metric"><small>Incoming requests</small><strong id="analyticsInbound">—</strong></div><div class="metric"><small>Overdue follow-ups</small><strong id="analyticsOverdue">0</strong></div></div></section><div class="toolbar" id="leadToolbar"><div class="section-title">Your pipeline</div><div class="actionbar"><button type="button" id="exportCsv" class="secondary">Export CSV</button><button id="add">+ Add lead</button></div></div><div class="filters" id="leadFilters"><input id="search" placeholder="Search by business or contact" aria-label="Search leads"><select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select><select id="dueFilter" aria-label="Filter by follow-up"><option value="">All follow-ups</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="none">No follow-up date</option></select><select id="outreachFilter" aria-label="Filter by outreach status"><option value="">All outreach</option><option value="sent">Already emailed</option><option value="pending">No recorded email — review</option><option value="bounced">Bounced — do not email</option></select></div><div class="viewtabs" id="premiumViews"><button type="button" id="pipelineView" class="active">Pipeline</button><button type="button" id="calendarView">Follow-up calendar</button><button type="button" id="clientView">Won clients</button></div><div id="board" class="grid"></div><section id="inboundHub" class="hidden premium-emailhub"><div class="section-title">Incoming requests <span id="inboundCount" class="lead-profile-badge"></span></div><p class="muted">Freebie downloads, website messages, and personalized demo requests — together in one place.</p><div class="inbound-filters"><button type="button" class="active" data-inbound="all">All</button><button type="button" data-inbound="freebie">Freebies</button><button type="button" data-inbound="website">Website</button><button type="button" data-inbound="demo">Demo requests</button></div><div id="inboundList" aria-live="polite"></div></section><section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Bookings, quotes and requests">
-  <div class="section-title">Bookings & Requests</div>
-  <p class="muted">All requests from your Booking Page in one place. Flat-price bookings are confirmed when the displayed time was available. Review quote requests here and reply to customers. Your Cleaning App remains separate for managing jobs, workers and operations.</p>
+<div id="ownerDeliveryList" style="display:grid;gap:14px;margin-top:16px"></div></article><button type="button" id="settingsSignOut" class="secondary">Sign out</button></section><section id="notificationPanel" class="hidden premium-emailhub"><div class="section-title">Notifications</div><p class="muted">Incoming requests and follow-ups requiring attention.</p><div id="notificationList"></div></section><section class="premium-emailhub" id="analyticsHub"><div class="section-title">Your analytics</div><div class="metrics premium-metrics"><div class="metric"><small>Conversion rate</small><strong id="analyticsConversion">0%</strong></div><div class="metric"><small>Emails recorded</small><strong id="analyticsSent">0</strong></div><div class="metric"><small>Incoming requests</small><strong id="analyticsInbound">—</strong></div><div class="metric"><small>Overdue follow-ups</small><strong id="analyticsOverdue">0</strong></div></div></section><div class="toolbar" id="leadToolbar"><div class="section-title">Your pipeline</div><div class="actionbar"><button type="button" id="exportCsv" class="secondary">Export CSV</button><button id="add">+ Add lead</button></div></div><div class="filters" id="leadFilters"><input id="search" placeholder="Search by business or contact" aria-label="Search leads"><select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select><select id="dueFilter" aria-label="Filter by follow-up"><option value="">All follow-ups</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="none">No follow-up date</option></select><select id="outreachFilter" aria-label="Filter by outreach status"><option value="">All outreach</option><option value="sent">Already emailed</option><option value="pending">No recorded email — review</option><option value="bounced">Bounced — do not email</option></select></div><div class="viewtabs" id="premiumViews"><button type="button" id="pipelineView" class="active">Pipeline</button><button type="button" id="calendarView">Follow-up calendar</button><button type="button" id="clientView">Won clients</button></div><div id="board" class="grid"></div><section id="inboundHub" class="hidden premium-emailhub"><div class="section-title">Incoming requests <span id="inboundCount" class="lead-profile-badge"></span></div><p class="muted">Freebie downloads, website messages, and personalized demo requests — together in one place.</p><div class="inbound-filters"><button type="button" class="active" data-inbound="all">All</button><button type="button" data-inbound="freebie">Freebies</button><button type="button" data-inbound="website">Website</button><button type="button" data-inbound="demo">Demo requests</button></div><div id="inboundList" aria-live="polite"></div></section><section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
+  <div class="section-title">Inbox</div>
+  <p class="muted">Your customer inquiries, estimates, quotes and confirmed bookings — all in one place. The Cleaning App is separate for managing jobs and teams.</p>
+  <div id="buyerInboxLegend" class="panel" style="padding:14px 16px;line-height:1.65;font-size:12px">
+   <strong>How requests work</strong>
+   <div>Inquiry = a question · Estimate = approximate price · Quote = price proposal · Booking = a reserved appointment</div>
+   <div style="color:#607d8e">Open a request to see what needs attention.</div>
+  </div>
+  <div class="row" style="justify-content:space-between;gap:10px;margin-top:14px"><strong>Customer activity</strong><button type="button" class="secondary" id="buyerInboxNewManual">+ Add inquiry</button></div>
   <div id="buyerRequestStats" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 20px">
     <label style="flex:1;min-width:180px">Find a request<input id="buyerRequestSearch" type="search" placeholder="Name, email, service"></label>
-    <label style="min-width:160px">Type<select id="buyerRequestType"><option value="all">All</option><option value="booking">Bookings</option><option value="quote">Quotes</option><option value="inquiry">Inquiries</option></select></label>
+    <label style="min-width:160px">Type<select id="buyerRequestType"><option value="all">All</option><option value="inquiry">Inquiries</option><option value="quote">Quotes & Estimates</option><option value="booking">Bookings</option><option value="attention">Needs attention</option></select></label>
     <button type="button" id="buyerRequestRefresh" class="secondary">↻ Refresh</button>
   </div>
   <div class="request-layout">
     <div id="buyerRequestCards" style="display:grid;align-content:start;gap:10px;max-height:72vh;overflow-y:auto"></div>
     <article class="panel" id="buyerRequestDetail" style="padding:18px;min-width:0">
-      <h3 id="buyerRequestDetailTitle">Choose a request</h3>
+      <h3 id="buyerRequestDetailTitle">Choose a customer request</h3>
+      <div id="buyerRequestNextAction" class="hidden" style="margin:12px 0;padding:12px 13px;background:#edf6fc;border-radius:13px;color:#285a78;font-size:13px;line-height:1.5"></div>
       <div id="buyerRequestDetails" class="request-detail-grid"></div>
       <div id="buyerRequestReplyArea" class="hidden" style="margin-top:17px;border-top:1px solid #dce9f2;padding-top:16px">
         <label>Update status<select id="buyerRequestAction">
@@ -369,7 +389,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
       </div>
     </article>
   </div>
-  <div class="panel" style="padding:17px;margin-top:18px">
+  <div class="panel hidden" style="padding:17px;margin-top:18px" id="buyerOtherInquiriesPanel">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><h3>Other inquiries</h3><button type="button" class="secondary" id="buyerAddOtherInquiry">+ Add inquiry</button></div>
     <p class="muted">Calls, messages, referrals and contacts added manually. These are in your Leads section, without duplicating bookings.</p>
     <div id="buyerOtherInquiries" style="display:grid;gap:8px"></div>
@@ -1227,13 +1247,13 @@ function renderOwnerPurchases(){
  const es=buyerPageLabel(),all=ownerPurchases;
  const labels={
   all:es?'Compras pagadas':'Paid purchases',
-  intake:es?'Esperando intake':'Waiting for intake',
-  production:es?'En preparación':'In preparation',
-  review:es?'Pruebas finales':'Final review',
-  delivered:es?'Entrega en cola':'Delivery queued'
+  intake:es?'Nueva orden':'New Order',
+  production:es?'Personalizar':'Customize',
+  review:es?'Probar':'Test',
+  delivered:es?'Entregado':'Delivered'
  };
  stats.replaceChildren();
- for(const key of ['all','intake','production','review','delivered']){
+ for(const key of ['intake','production','review','delivered']){
   const count=key==='all'?all.length:all.filter(a=>ownerPurchaseStage(a)===key).length;
   const tile=ownerPageElem('div',undefined);tile.className='order-summary-metric';
   const number=ownerPageElem('strong',count),caption=ownerPageElem('span',labels[key]);
@@ -1260,6 +1280,8 @@ function renderOwnerPurchases(){
   if(a.owner_name)box.appendChild(ownerPageElem('div',a.owner_name,'font-size:13px;font-weight:600;color:#405969'));
   if(a.owner_email)box.appendChild(ownerPageElem('div',a.owner_email,'font-size:12px;color:#667d8c;overflow-wrap:anywhere'));
   const progress=(a.intake_done?1:0)+(a.booking_page_url?1:0)+(a.crm_ready?1:0)+(a.already_queued?1:0);
+  const nextByStage={intake:es?'Esperar los datos':'Waiting for intake',production:es?'Personalizar':'Customize Booking Page',review:es?'Completar pruebas':'Complete QA',delivered:es?'Pedido entregado':'Delivered'};
+  box.append(ownerPageElem('div',(es?'Siguiente: ':'Next: ')+nextByStage[stage],'font-size:13px;color:#2b6585;font-weight:700;margin-top:8px'));
   const step=ownerPageElem('div',undefined,'border-top:1px solid #e9eff3;padding-top:13px;margin-top:8px;display:grid;gap:5px');
   step.appendChild(ownerPageElem('div',(es?'Preparación: ':'Setup: ')+progress+'/4','font-size:12px;color:#537080;font-weight:700'));
   for(const [ok,title] of [
@@ -1271,11 +1293,8 @@ function renderOwnerPurchases(){
   box.appendChild(step);
   const buttons=ownerPageElem('div',undefined,'display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:15px');
   for(const [mode,label] of [
-   ['builder',es?'Personalizar y entregar':'Customize & deliver'],
-   ['preview',es?'Ver vista previa':'Preview Booking Page'],
-   ['pricing',es?'Editar precios':'Edit prices'],
-   ['availability',es?'Editar horarios':'Edit hours'],
-   ['owner-calendar',es?'Planificar fechas':'Plan work dates']
+   ['builder',es?'Continuar pedido →':'Continue order →'],
+   ['preview',es?'Vista previa →':'Preview →']
   ]){
    const button=ownerPageElem('button',label);button.type='button';button.className=mode==='builder'?'':'secondary';
    button.style.cssText='font-size:12px;padding:11px 13px;border-radius:35px;flex:1 1 120px';
