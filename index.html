@@ -456,6 +456,15 @@ async function loadBuyerMail(){
   const data=await buyerMailCall("status");
   if(!workspace||workspace.is_internal||workspace.id!==buyerWorkspaceId)return;
   buyerMailState=data;
+  if((data.preferred_language==="en"||data.preferred_language==="es")&&workspace&&!workspace.is_internal){
+   const lang=data.preferred_language;const key="tle_checkout_lang_"+workspace.id;
+   if(localStorage.getItem(key)!==lang){
+     localStorage.setItem(key,lang);
+     localStorage.setItem("tle_crm_language",lang);
+     const picker=document.getElementById("crmLanguageSelect");
+     if(picker){picker.value=lang;picker.dispatchEvent(new Event("change"))}
+   }
+  }
   const c=buyerMailState;
   const stage=c.status;
   let msg=stage==="not_connected"?(buyerEs()?"Sin conectar: verifica tu dominio y configura el correo.":"Not connected. Verify your domain and set up your reply inbox."):
