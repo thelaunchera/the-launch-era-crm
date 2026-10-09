@@ -742,6 +742,14 @@ async function loadBuyerMail(){
   if(!workspace||workspace.is_internal||workspace.id!==buyerWorkspaceId)return;
   buyerMailState=data;
   const c=buyerMailState;
+  const connected=!!c.sender_email&&c.status!=="not_connected";
+  const issue=!connected?(buyerEs()?"Conectar remitente":"Connect sender"):
+      !c.reply_tested?(buyerEs()?"Comprobar respuestas":"Verify reply inbox"):
+      !c.purchase_ready?(buyerEs()?"Esperando activación":"Setup pending"):
+      (buyerEs()?"Sin problemas de configuración":"No setup issues");
+  $("buyerEmailHealthConnection").textContent=connected?(buyerEs()?"Conectado":"Connected"):(buyerEs()?"Desconectado":"Not connected");
+  $("buyerEmailHealthActive").textContent=c.activated?(buyerEs()?"Sí":"On"):(buyerEs()?"No":"Off");
+  $("buyerEmailHealthIssue").textContent=issue;
   const stage=c.status;
   let msg=stage==="not_connected"?(buyerEs()?"Sin conectar: verifica tu dominio y configura el correo.":"Not connected. Verify your domain and set up your reply inbox."):
    stage==="waiting_for_reply_test"?(buyerEs()?"Conectado. Falta la prueba de recepción de respuestas.":"Connected. Reply inbox test is still required."):
@@ -757,7 +765,7 @@ async function loadBuyerMail(){
   if(!c.sender_email)$("buyerConnectDetails").open=true;
   $("buyerActivateMail").disabled=!c.reply_tested||!c.purchase_ready||!!c.activated;
   $("buyerPauseMail").disabled=!c.activated;
- }catch(e){buyerMailState=null;status.textContent=e.message;$("buyerAutomationState").textContent=buyerEs()?"No se pudo verificar el estado; actualiza antes de cambiarlo.":"Could not verify the current status. Refresh before making changes.";$("buyerActivateMail").disabled=true;$("buyerPauseMail").disabled=true}
+ }catch(e){buyerMailState=null;status.textContent=e.message;$("buyerEmailHealthConnection").textContent="—";$("buyerEmailHealthActive").textContent="—";$("buyerEmailHealthIssue").textContent=buyerEs()?"Revisar conexión":"Check connection";$("buyerAutomationState").textContent=buyerEs()?"No se pudo verificar el estado; actualiza antes de cambiarlo.":"Could not verify the current status. Refresh before making changes.";$("buyerActivateMail").disabled=true;$("buyerPauseMail").disabled=true}
 }
 $("buyerEmailForm").onsubmit=async(e)=>{
  e.preventDefault();
@@ -1250,7 +1258,7 @@ function renderOwnerPurchases(){
   intake:es?'Nueva orden':'New Order',
   production:es?'Personalizar':'Customize',
   review:es?'Probar':'Test',
-  delivered:es?'Entregado':'Delivered'
+  delivered:es?'En cola de entrega':'Delivery queued'
  };
  stats.replaceChildren();
  for(const key of ['intake','production','review','delivered']){
@@ -1280,7 +1288,7 @@ function renderOwnerPurchases(){
   if(a.owner_name)box.appendChild(ownerPageElem('div',a.owner_name,'font-size:13px;font-weight:600;color:#405969'));
   if(a.owner_email)box.appendChild(ownerPageElem('div',a.owner_email,'font-size:12px;color:#667d8c;overflow-wrap:anywhere'));
   const progress=(a.intake_done?1:0)+(a.booking_page_url?1:0)+(a.crm_ready?1:0)+(a.already_queued?1:0);
-  const nextByStage={intake:es?'Esperar los datos':'Waiting for intake',production:es?'Personalizar':'Customize Booking Page',review:es?'Completar pruebas':'Complete QA',delivered:es?'Pedido entregado':'Delivered'};
+  const nextByStage={intake:es?'Esperar los datos':'Waiting for intake',production:es?'Personalizar':'Customize Booking Page',review:es?'Completar pruebas':'Complete QA',delivered:es?'Verificar correo de entrega':'Check delivery email'};
   box.append(ownerPageElem('div',(es?'Siguiente: ':'Next: ')+nextByStage[stage],'font-size:13px;color:#2b6585;font-weight:700;margin-top:8px'));
   const step=ownerPageElem('div',undefined,'border-top:1px solid #e9eff3;padding-top:13px;margin-top:8px;display:grid;gap:5px');
   step.appendChild(ownerPageElem('div',(es?'Preparación: ':'Setup: ')+progress+'/4','font-size:12px;color:#537080;font-weight:700'));
@@ -1691,9 +1699,15 @@ async function buyerUpdateRequest(sendEmail){
 $("buyerRequestSave").onclick=()=>buyerUpdateRequest(false);
 $("buyerRequestSend").onclick=()=>buyerUpdateRequest(true);
 
+$("buyerShortcutPricing").onclick=()=>{if(workspace&&!workspace.is_internal)premiumNavigate("pricing")};
+$("buyerShortcutAvailability").onclick=()=>{if(workspace&&!workspace.is_internal)premiumNavigate("availability")};
+$("buyerShortcutAutomation").onclick=()=>{if(workspace&&!workspace.is_internal)premiumNavigate("buyer-followups")};
 let view='pipeline';function setView(v){
  if(!workspace?.is_internal&&['owner-pages','owner-calendar','owner-build','owner-preview','owner-help'].includes(v))v='pipeline';if(workspace?.is_internal&&['buyer-followups','request-center'].includes(v))v='owner-pages';
- view=v;document.body.classList.toggle('crm-isolated-view',!['pipeline','calendar','clients'].includes(v));document.body.classList.toggle('crm-followups-focus',v==='buyer-followups'&&!workspace?.is_internal);$('buyerFollowupsIntro').classList.toggle('hidden',v!=='buyer-followups'||!!workspace?.is_internal);$('ownerCalendarHub').classList.toggle('hidden',v!=='owner-calendar');
+ view=v;
+ $('buyerBusinessShortcuts').classList.toggle('hidden',v!=='settings'||!!workspace?.is_internal);
+ $('buyerEmailHealth').classList.toggle('hidden',v!=='buyer-followups'||!!workspace?.is_internal);
+ document.body.classList.toggle('crm-isolated-view',!['pipeline','calendar','clients'].includes(v));document.body.classList.toggle('crm-followups-focus',v==='buyer-followups'&&!workspace?.is_internal);$('buyerFollowupsIntro').classList.toggle('hidden',v!=='buyer-followups'||!!workspace?.is_internal);$('ownerCalendarHub').classList.toggle('hidden',v!=='owner-calendar');
  const internal=!!workspace?.is_internal;
  const leadMode=['pipeline','calendar','clients','inbox','emails','request-center'].includes(v);
  document.body.classList.toggle('tle-owner-purchases',internal&&!leadMode);
