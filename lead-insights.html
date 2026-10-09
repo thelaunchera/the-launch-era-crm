@@ -10,19 +10,24 @@
 <div class="metrics"><div class="metric"><b id="total">—</b><small>Leads</small></div><div class="metric"><b id="researched">—</b><small>With research</small></div><div class="metric"><b id="drafted">—</b><small>Individual email drafts</small></div><div class="metric"><b id="restricted">—</b><small>Restricted / review</small></div></div>
 <div class="split"><section class="panel"><div class="toolbar"><label style="flex:2;min-width:160px">Search lead / Buscar<input id="search" type="search" placeholder="Business, source, asset…"></label><label style="flex:1;min-width:135px">Stage<select id="stage"><option value="">All</option><option>New</option><option>Follow-up</option><option>Contacted</option><option>Lost</option><option>Won</option></select></label></div><p class="hint" id="count">Loading…</p><div class="list" id="list"></div></section>
 <section class="panel details" id="details"><h2 id="business">Choose a lead</h2><p id="context" class="hint"></p>
-<div id="editor" class="hidden"><div class="note" id="risk"></div><label>Primary friction / Problema probable<textarea id="friction" rows="3" maxlength="1500"></textarea></label>
+<div id="editor" class="hidden"><div class="note" id="risk"></div>
+<div style="display:flex;gap:12px;flex-wrap:wrap"><label style="flex:1;min-width:185px">Contactar / Contact?<select id="decision"><option value="review">Review / Revisar</option><option value="yes">Yes / Sí, contactar</option><option value="no">No / No contactar</option></select></label><label style="flex:2;min-width:190px">Email / Correo<input id="leadEmail" type="email" placeholder="name@business.com"></label></div>
+<p id="contactExplanation" class="hint" style="margin-top:-6px"></p><label>Primary friction / Problema probable<textarea id="friction" rows="3" maxlength="1500"></textarea></label>
 <label>Public evidence / Evidencia observada<textarea id="evidence" rows="4" maxlength="2200"></textarea></label>
 <label>Best-fit asset / Asset que ofrecer<select id="asset"><option value="">Needs recommendation / Revisar</option><option>Booking Automation + Lead Tracker Automation</option><option>Cleaning App</option><option>Cleaning App + Booking Automation + Lead Tracker Automation</option><option>Virtual Assistant (VA)</option></select></label>
 <label>Source URL / Fuente<input id="sourceUrl" type="url" placeholder="https://..."></label><div class="note" id="sourceDetail"></div>
-<h3 class="drafttitle">✉ Personal email draft / Correo personalizado</h3><p class="hint">Mention this business's observed public workflow and ask one relevant question. Do not claim the business is losing leads. Draft only, not sent.</p>
-<label>Subject / Asunto<input id="subject" maxlength="200"></label><label>Body / Mensaje<textarea id="body" rows="13" maxlength="7000"></textarea></label>
+<div id="emailDraftSection"><h3 class="drafttitle">✉ Personal email draft / Correo personalizado</h3><p class="hint">Mention this business's observed public workflow and ask one relevant question. Do not claim the business is losing leads. Draft only, not sent.</p>
+<label>Subject / Asunto<input id="subject" maxlength="200"></label><label>Body / Mensaje<textarea id="body" rows="13" maxlength="7000"></textarea></label></div><div class="note hidden" id="noEmailNotice">Research only: no email is stored. This record is excluded from active outreach, and no email draft is created. / Sin correo: solo investigación.</div>
 <div class="bar"><button class="btn" type="button" id="save">Save changes / Guardar</button><button class="btn secondary" type="button" id="copy">Copy draft / Copiar</button><button class="btn secondary" type="button" id="reload">Refresh / Actualizar</button></div><p id="status" class="status" role="status" aria-live="polite"></p></div></section></div>
 </main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 const db=createClient('https://bowacxhmjvrqixtwaikv.supabase.co','sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'tle-crm-auth'}});
-const $=id=>document.getElementById(id);const wsid='c0b24907-3a17-4273-b00c-70efbba314c4';let leads=[],chosen=null;
-const isRestricted=x=>x.email_consent_status==='withdrawn'||/do not contact:\s*yes|email bounced|unsubscrib/i.test(x.notes||'')||x.stage==='Lost';
+const $=id=>document.getElementById(id);const wsid='c0b24907-3a17-4273-b00c-70efbba314c4';let leads=[],chosen=null;const openRequested=new URLSearchParams(location.search).get('lead');
+const legacyFlag=x=>/do not contact:\s*(yes|true)/i.test(x.notes||'');
+const hardStop=x=>x.email_consent_status==='withdrawn'||/unsubscrib|opted out|stop (emailing|contacting)|do not email me/i.test(x.notes||'');
+const badEmail=x=>!x.email||!/^\S+@\S+\.\S+$/.test(x.email);
+const isRestricted=x=>hardStop(x)||x.contact_decision==='no'||(x.contact_decision!=='yes'&&legacyFlag(x))||x.stage==='Lost';
 const escHtml=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function boot(){try{
  const {data:{user},error}=await db.auth.getUser();if(error||!user)throw Error('Please sign into the Command Center first / Inicia sesión desde Command Center.');
@@ -31,22 +36,30 @@ async function boot(){try{
  $('guard').classList.add('hidden');$('app').classList.remove('hidden');await load();
  }catch(e){$('guardStatus').textContent=e.message}}
 async function load(){
- const {data,error}=await db.from('tle_crm_leads').select('id,business,contact,source,language,stage,notes,primary_friction,observed_evidence,service_fit,research_url,insight_status,personalized_email_subject,personalized_email_body,email_consent_status').eq('workspace_id',wsid).order('created_at',{ascending:false}).limit(500);
+ const {data,error}=await db.from('tle_crm_leads').select('id,business,contact,email,source,language,stage,notes,research_only,contact_decision,primary_friction,observed_evidence,service_fit,research_url,insight_status,personalized_email_subject,personalized_email_body,email_consent_status').eq('workspace_id',wsid).order('created_at',{ascending:false}).limit(500);
  if(error){$('count').textContent='Loading failed: '+error.message;return}
- leads=data||[];$('total').textContent=leads.length;$('researched').textContent=leads.filter(x=>x.primary_friction&&x.service_fit).length;$('drafted').textContent=leads.filter(x=>x.personalized_email_subject&&x.personalized_email_body).length;$('restricted').textContent=leads.filter(isRestricted).length;
- render();if(chosen){const again=leads.find(x=>x.id===chosen.id);if(again)open(again)}}
+ leads=data||[];$('total').textContent=leads.length;$('researched').textContent=leads.filter(x=>x.primary_friction&&x.service_fit).length;$('drafted').textContent=leads.filter(x=>!badEmail(x)&&!x.research_only&&x.personalized_email_subject&&x.personalized_email_body).length;$('restricted').textContent=leads.filter(isRestricted).length;
+ render();const requested=openRequested&&!chosen?leads.find(x=>x.id===openRequested):null;if(requested)open(requested);else if(chosen){const again=leads.find(x=>x.id===chosen.id);if(again)open(again)}}
 function render(){const q=$('search').value.toLowerCase().trim(),stage=$('stage').value;const visible=leads.filter(l=>(!stage||l.stage===stage)&&[l.business,l.contact,l.source,l.service_fit,l.primary_friction].some(v=>String(v||'').toLowerCase().includes(q)));$('count').textContent=visible.length+' leads shown';const root=$('list');root.replaceChildren();
  for(const l of visible){const el=document.createElement('button');el.className='lead'+(chosen?.id===l.id?' active':'');el.type='button';const summary=(l.primary_friction||'No research added yet').slice(0,205);
- el.innerHTML='<div><span class="badge">'+escHtml(l.stage)+'</span>'+(isRestricted(l)?'<span class="badge warn">Do not contact / Review</span>':'')+'</div><h3>'+escHtml(l.business)+'</h3><p><b>Problem / Problema:</b> '+escHtml(summary)+'</p><p><b>Asset:</b> '+escHtml(l.service_fit||'Not selected')+'</p><p class="muted">'+escHtml(l.source||'')+'</p>';el.onclick=()=>open(l);root.append(el)}
+ el.innerHTML='<div><span class="badge">'+escHtml(l.stage)+'</span>'+(l.contact_decision==='yes'?'<span class="badge">Contactar: Yes</span>':l.contact_decision==='no'?'<span class="badge warn">Contactar: No</span>':legacyFlag(l)?'<span class="badge warn">Review old DNC note</span>':'<span class="badge">Contactar: Review</span>')+(l.research_only||badEmail(l)?'<span class="badge warn">No email · research only</span>':'')+'</div><h3>'+escHtml(l.business)+'</h3><p><b>Problem / Problema:</b> '+escHtml(summary)+'</p><p><b>Asset:</b> '+escHtml(l.service_fit||'Not selected')+'</p><p class="muted">'+escHtml(l.source||'')+'</p>';el.onclick=()=>open(l);root.append(el)}
  if(!visible.length)root.textContent='No matching leads.'}
-function open(l){chosen=l;$('editor').classList.remove('hidden');$('business').textContent=l.business;$('context').textContent=(l.stage||'')+' · '+(l.source||'')+' · '+(l.contact||'Contact unknown');$('risk').textContent=isRestricted(l)?'Restricted contact: do not send messages. This is a research/draft record only. / Contacto restringido.':'Research is a hypothesis until confirmed with the business. Draft saved here does not send messages.';
+function open(l){chosen=l;$('editor').classList.remove('hidden');$('business').textContent=l.business;$('context').textContent=(l.stage||'')+' · '+(l.source||'')+' · '+(l.contact||'Contact unknown');$('risk').textContent=hardStop(l)?'Recipient has a documented unsubscribe / withdrawal. Do not contact.':l.contact_decision==='no'?'You selected No / No contactar.':legacyFlag(l)&&l.contact_decision!=='yes'?'Old imported note: “Do not contact: Yes”. Verify its origin; choose Contactar Yes only when no actual opt-out exists.':l.contact_decision==='yes'?'Contactar: Yes. This is for your outreach planning, not email marketing consent or a bounce override.':'Research is a hypothesis until confirmed. No messages are sent here.';
+ $('decision').value=l.contact_decision||'review';$('leadEmail').value=l.email||'';
+ $('contactExplanation').textContent=legacyFlag(l)?'The old imported DNC mark remains in notes for review. Yes records your own contact decision, not permission to send cold email.':'Yes/No controls your manual contact list, not consent to email marketing.';
+ const noEmail=badEmail(l)||l.research_only;$('emailDraftSection').classList.toggle('hidden',noEmail);$('noEmailNotice').classList.toggle('hidden',!noEmail);$('copy').disabled=noEmail;
  $('friction').value=l.primary_friction||'';$('evidence').value=l.observed_evidence||'';$('asset').value=l.service_fit||'';$('sourceUrl').value=(l.research_url||'').startsWith('http')?l.research_url:'';$('sourceDetail').textContent=l.insight_status==='public_site_reviewed'?'Public website reviewed; the actual internal process remains unverified.':'Earlier sales research; verify the public information before using it in a message.';
  $('subject').value=l.personalized_email_subject||'';$('body').value=l.personalized_email_body||'';$('status').textContent='Not sent / Sin enviar';render()}
 $('search').oninput=render;$('stage').onchange=render;
 $('save').onclick=async()=>{if(!chosen)return;const btn=$('save');btn.disabled=true;$('status').textContent='Saving...';try{
- const patch={primary_friction:$('friction').value.trim(),observed_evidence:$('evidence').value.trim(),service_fit:$('asset').value,research_url:$('sourceUrl').value.trim(),personalized_email_subject:$('subject').value.trim(),personalized_email_body:$('body').value.trim()};
+ const email=$('leadEmail').value.trim().toLowerCase();
+ if(email&&!/^\S+@\S+\.\S+$/.test(email))throw Error('Enter a valid email or leave blank.');
+ const decision=$('decision').value;if(hardStop(chosen)&&decision==='yes')throw Error('Recipient opted out or withdrew permission. Contact remains restricted.');
+ const noEmail=!email;
+ const patch={email:email||null,research_only:noEmail,contact_decision:decision,primary_friction:$('friction').value.trim(),observed_evidence:$('evidence').value.trim(),service_fit:$('asset').value,research_url:$('sourceUrl').value.trim(),personalized_email_subject:noEmail?null:$('subject').value.trim(),personalized_email_body:noEmail?null:$('body').value.trim()};
+ if(decision!==chosen.contact_decision)patch.contact_decision_updated_at=new Date().toISOString();
  const {data,error}=await db.from('tle_crm_leads').update(patch).eq('workspace_id',wsid).eq('id',chosen.id).select('id').single();if(error||!data)throw error||Error('Save failed');
- Object.assign(chosen,patch);$('status').textContent='✓ Saved. No message sent. / Guardado, sin enviar mensajes.';render();
+ Object.assign(chosen,patch);$('status').textContent='✓ Saved. No message sent. / Guardado, sin enviar mensajes.';await load();
  }catch(e){$('status').textContent='Could not save: '+e.message}finally{btn.disabled=false}};
 $('copy').onclick=async()=>{const str=$('subject').value+'\n\n'+$('body').value;if(!$('subject').value.trim()||!$('body').value.trim()){$('status').textContent='Write the individual email first.';return}try{await navigator.clipboard.writeText(str);$('status').textContent='Copied. Check contact restrictions and provider rules before using it.'}catch(e){$('status').textContent='Copy unavailable: '+e.message}};
 $('reload').onclick=load;boot();
