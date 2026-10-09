@@ -1176,7 +1176,165 @@ $('ownerAvBack').onclick=()=>premiumNavigate('owner-pages');
 $('ownerPreviewEditPrices').onclick=()=>premiumNavigate('pricing');
 $('ownerPreviewEditHours').onclick=()=>premiumNavigate('availability');
 $('ownerDeliveryRefresh').onclick=loadOwnerDeliveries;
-$('settingsSignOut').onclick=()=>$('logout').click();$('settingsPasswordReset').onclick=async()=>{const out=$('settingsSecurityStatus');try{const {data:{user},error}=await db.auth.getUser();if(error)throw error;if(!user?.email)throw Error('Please sign in first.');await check(await db.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+location.pathname}));out.textContent='If the email is registered, reset instructions have been sent.'}catch(e){out.textContent='Unable to request reset: '+e.message}};$('navAdd').onclick=()=>edit(null);$('mobileNew').onclick=()=>edit(null);$('headerNew').onclick=()=>edit(null);$('globalSearch').onclick=()=>{$('search').focus();$('search').scrollIntoView({behavior:'smooth',block:'center'})};function showLeadTab(tab){document.querySelectorAll('[data-leadtab]').forEach(t=>{const active=t.dataset.leadtab===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});$('leadOverviewSection').classList.toggle('hidden',tab!=='overview');$('leadEmailSection').classList.toggle('hidden',tab!=='emails');$('leadNotesSection').classList.toggle('hidden',tab!=='notes');$('leadEmailSection').open=tab==='emails';$('leadNotesSection').open=tab==='notes';$('editor').scrollTop=0}document.querySelectorAll('[data-leadtab]').forEach(b=>b.onclick=()=>showLeadTab(b.dataset.leadtab));function renderEmailHub(){const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});let view='pipeline';function setView(v){
+$('settingsSignOut').onclick=()=>$('logout').click();$('settingsPasswordReset').onclick=async()=>{const out=$('settingsSecurityStatus');try{const {data:{user},error}=await db.auth.getUser();if(error)throw error;if(!user?.email)throw Error('Please sign in first.');await check(await db.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+location.pathname}));out.textContent='If the email is registered, reset instructions have been sent.'}catch(e){out.textContent='Unable to request reset: '+e.message}};$('navAdd').onclick=()=>edit(null);$('mobileNew').onclick=()=>edit(null);$('headerNew').onclick=()=>edit(null);$('globalSearch').onclick=()=>{$('search').focus();$('search').scrollIntoView({behavior:'smooth',block:'center'})};function showLeadTab(tab){document.querySelectorAll('[data-leadtab]').forEach(t=>{const active=t.dataset.leadtab===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});$('leadOverviewSection').classList.toggle('hidden',tab!=='overview');$('leadEmailSection').classList.toggle('hidden',tab!=='emails');$('leadNotesSection').classList.toggle('hidden',tab!=='notes');$('leadEmailSection').open=tab==='emails';$('leadNotesSection').open=tab==='notes';$('editor').scrollTop=0}document.querySelectorAll('[data-leadtab]').forEach(b=>b.onclick=()=>showLeadTab(b.dataset.leadtab));function renderEmailHub(){const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});
+/* Buyer-only request inbox: confirmed flat-price bookings, quote requests, and CRM inquiries. */
+const buyerRequestEndpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-request-center";
+let buyerRequests=[],buyerSelectedRequest=null,buyerRequestBusy=false;
+const buyerText=(en,es)=>buyerEs()?es:en;
+function buyerCreate(tag,textValue,cls){const e=document.createElement(tag);if(cls)e.className=cls;if(textValue!==undefined&&textValue!==null)e.textContent=String(textValue);return e}
+function buyerDetails(label,value){
+ const col=buyerCreate("div");col.append(buyerCreate("div",label,"request-label"),buyerCreate("div",value===null||value===undefined||value===""?"—":value,"request-value"));return col
+}
+async function buyerRequestCall(action,extra){
+ if(!workspace||workspace.is_internal)throw Error("Only business buyer accounts can manage booking requests.");
+ const {data:{session}}=await db.auth.getSession();
+ if(!session)throw Error("Please sign in again.");
+ const response=await fetch(buyerRequestEndpoint,{
+  method:action==="list"?"GET":"POST",
+  headers:{"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json"},
+  ...(action==="list"?{}:{body:JSON.stringify(extra)})
+ });
+ const payload=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(payload.error||buyerText("Could not load this business.","No se pudo cargar el negocio."));
+ return payload;
+}
+function buyerRequestKind(v){return v.request_type==="quote"?"quote":"booking"}
+function buyerRequestState(v){
+ if(v.status==="booked")return buyerText("Confirmed booking","Reserva confirmada");
+ if(v.status==="declined"||v.workflow_stage==="declined")return buyerText("Declined","Rechazada");
+ if(v.workflow_stage==="quoted")return buyerText("Quote prepared","Cotización preparada");
+ if(v.workflow_stage==="reviewing")return buyerText("Under review","En revisión");
+ return v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
+}
+function buyerRequestSummaries(){
+ const area=$("buyerRequestStats");area.replaceChildren();
+ const counts=[
+  [buyerText("Confirmed bookings","Reservas confirmadas"),buyerRequests.filter(x=>x.status==="booked").length],
+  [buyerText("Quote requests","Solicitudes de cotización"),buyerRequests.filter(x=>x.request_type==="quote"&&x.status!=="booked").length],
+  [buyerText("Other booking requests","Otras reservas pendientes"),buyerRequests.filter(x=>x.request_type==="booking"&&x.status!=="booked").length]
+ ];
+ for(const [label,count] of counts){
+  const card=buyerCreate("div",undefined,"request-stat");
+  card.append(buyerCreate("small",label),buyerCreate("b",count));area.append(card)
+ }
+}
+function buyerRequestCard(x){
+ const btn=buyerCreate("button",undefined,"request-card"+(buyerSelectedRequest?.id===x.id?" selected":""));btn.type="button";
+ const bar=buyerCreate("div");bar.style.cssText="display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap";
+ bar.append(buyerCreate("span",x.request_type==="quote"?buyerText("Quote / Cotización","Cotización / Quote"):buyerText("Booking / Reserva","Reserva / Booking"),"request-pill"),
+  buyerCreate("span",buyerRequestState(x),"request-pill"));
+ const title=buyerCreate("strong",x.customer_name||x.customer_email||"Customer");title.style.cssText="display:block;font-size:16px;margin:10px 0 6px";
+ const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
+ const details=buyerCreate("div",[x.service_name,time,x.raw_payload?.estimate_display].filter(Boolean).join(" · "),"request-summary");
+ const footer=buyerCreate("div",x.created_at?new Date(x.created_at).toLocaleString():"","request-summary");footer.style.marginTop="8px";
+ btn.append(bar,title,details,footer);btn.onclick=()=>buyerOpenRequest(x);return btn
+}
+function buyerOpenRequest(x){
+ buyerSelectedRequest=x;$("buyerRequestDetailTitle").textContent=x.customer_name||x.customer_email||buyerText("Customer request","Solicitud de cliente");
+ const body=$("buyerRequestDetails");body.replaceChildren();
+ const payload=x.raw_payload||{};
+ const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
+ const fields=[
+  [buyerText("Request type","Tipo"),x.request_type==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
+  [buyerText("Status","Estado"),buyerRequestState(x)],
+  [buyerText("Cleaning service","Servicio de limpieza"),x.service_name],
+  [buyerText("Published price / estimate","Precio o estimado"),payload.estimate_display],
+  [buyerText("Requested date and time","Fecha y hora solicitadas"),requested|| (x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"")],
+  [buyerText("Frequency","Frecuencia"),payload.frequency],
+  [buyerText("Property","Propiedad"),[payload.property_type,payload.bedrooms?payload.bedrooms+" bed":"",payload.bathrooms?payload.bathrooms+" bath":"",payload.square_footage].filter(Boolean).join(" · ")],
+  [buyerText("Add-ons","Extras"),payload.extras],
+  [buyerText("Customer email","Correo del cliente"),x.customer_email],
+  [buyerText("Phone","Teléfono"),x.customer_phone],
+  [buyerText("Service address","Dirección del servicio"),x.service_address],
+  [buyerText("Customer notes","Notas del cliente"),x.notes]
+ ];
+ for(const [label,value] of fields)body.append(buyerDetails(label,value));
+ $("buyerRequestReplyArea").classList.remove("hidden");
+ $("buyerRequestAction").value=x.status==="booked"?"reply":"reviewing";
+ buyerSetDefaultMessage();
+ $("buyerRequestStatus").textContent="";
+ buyerRenderRequestCards();
+}
+function buyerSetDefaultMessage(){
+ const x=buyerSelectedRequest;if(!x)return;
+ const action=$("buyerRequestAction").value,es=x.preferred_language==="es",name=(x.customer_name||"").trim().split(/\s+/)[0]||(es?"cliente":"there");
+ const service=x.service_name||(es?"limpieza":"cleaning");
+ let copy={
+  reviewing:es?"Recibimos tu solicitud para "+service+" y estamos revisando los detalles. Te confirmaremos el próximo paso.":"We received your "+service+" request and are reviewing the details. We'll let you know the next step.",
+  quoted:es?"Revisamos tu solicitud de cotización para "+service+". Responde a este correo para confirmar los detalles y continuar.":"We reviewed your quote request for "+service+". Reply here to confirm any details and move forward.",
+  booked:es?"Tu reserva de "+service+" está confirmada. Si necesitas cambiar algún detalle, responde a este correo.":"Your "+service+" booking is confirmed. If anything needs changing, please reply here.",
+  change_requested:es?"Necesitamos confirmar un detalle de tu solicitud de "+service+". Responde a este correo para revisar una nueva opción antes de cambiar la reserva.":"We need to confirm a detail about your "+service+" request. Please reply so we can review an alternative before any booking change.",
+  declined:es?"Gracias por tu interés en "+service+". En este momento no podemos confirmar tu solicitud. Escríbenos si deseas explorar otra opción.":"Thank you for your interest in "+service+". We can't confirm this request at the moment. Reply if you'd like to discuss another option.",
+  closed:es?"Queríamos avisarte que hemos cerrado esta solicitud. Si necesitas una nueva limpieza, puedes escribirnos nuevamente.":"We're letting you know this request has been closed. If you need another cleaning, you're welcome to reach out.",
+  reply:es?"Gracias por contactar a nuestro negocio. Revisamos tu solicitud; responde a este correo si tienes preguntas.":"Thanks for contacting our business. We've reviewed your request. Reply here if you have any questions."
+ };
+ $("buyerRequestMessage").value=(es?"Hola ":"Hi ")+name+",\n\n"+copy[action]+"\n\n"+(workspace?.name||"Your cleaning team")
+}
+function buyerRenderRequestCards(){
+ const root=$("buyerRequestCards");root.replaceChildren();
+ const q=$("buyerRequestSearch").value.toLowerCase().trim(),type=$("buyerRequestType").value;
+ const rows=buyerRequests.filter(x=>(type==="all"||buyerRequestKind(x)===type)
+ &&[x.customer_name,x.customer_email,x.service_name,x.status,x.raw_payload?.estimate_display].some(v=>String(v||"").toLowerCase().includes(q)));
+ for(const x of rows)root.append(buyerRequestCard(x));
+ if(!rows.length)root.textContent=buyerText("No bookings or quotes match this filter.","No hay reservas o cotizaciones en este filtro.");
+}
+function buyerRenderOtherLeads(){
+ const root=$("buyerOtherInquiries");root.replaceChildren();
+ const filtered=leads.filter(x=>x.source!=="Booking Page"&&!x.research_only&&x.stage!=="Won").slice(0,16);
+ for(const item of filtered){
+  const card=buyerCreate("button",undefined,"request-card");card.type="button";
+  card.append(buyerCreate("strong",item.contact||item.business||"Inquiry"),
+   buyerCreate("div",[item.source||"Manual",item.email||"No email",item.stage||"New"].join(" · "),"request-summary"));
+  card.onclick=()=>edit(item);root.append(card)
+ }
+ if(!filtered.length)root.append(buyerCreate("p",buyerText("No other inquiries yet. Add one from a call, text or referral.","Todavía no hay otras solicitudes. Puedes añadir una llamada, mensaje o referido."),"muted"));
+}
+async function loadBuyerRequests(){
+ if(!workspace||workspace.is_internal||buyerRequestBusy)return;buyerRequestBusy=true;
+ $("buyerRequestCards").textContent=buyerText("Loading your bookings…","Cargando tus reservas…");
+ try{
+  const wsId=workspace.id;
+  const data=await buyerRequestCall("list");
+  if(!workspace||workspace.is_internal||workspace.id!==wsId)return;
+  buyerRequests=Array.isArray(data.requests)?data.requests:[];
+  buyerRequestSummaries();
+  const previous=buyerSelectedRequest?.id;
+  buyerSelectedRequest=null;
+  buyerRenderRequestCards();buyerRenderOtherLeads();
+  const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests[0];
+  if(selection)buyerOpenRequest(selection);
+  else{$("buyerRequestDetailTitle").textContent=buyerText("No requests yet","Todavía no hay solicitudes");$("buyerRequestDetails").replaceChildren();$("buyerRequestReplyArea").classList.add("hidden")}
+ }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message}
+ finally{buyerRequestBusy=false}
+}
+$("buyerRequestSearch").oninput=buyerRenderRequestCards;
+$("buyerRequestType").onchange=buyerRenderRequestCards;
+$("buyerRequestRefresh").onclick=loadBuyerRequests;
+$("buyerRequestAction").onchange=buyerSetDefaultMessage;
+$("buyerAddOtherInquiry").onclick=()=>{if(workspace&&!workspace.is_internal)edit(null)};
+async function buyerUpdateRequest(sendEmail){
+ if(!buyerSelectedRequest||!workspace||workspace.is_internal)return;
+ const id=buyerSelectedRequest.id,action=$("buyerRequestAction").value,message=$("buyerRequestMessage").value.trim();
+ if(sendEmail&&!message){$("buyerRequestStatus").textContent=buyerText("Write the message first.","Primero escribe el mensaje.");return}
+ if(sendEmail&&!confirm(buyerText("Send this real email to the customer?","¿Enviar este correo real al cliente?")))return;
+ const b1=$("buyerRequestSave"),b2=$("buyerRequestSend");b1.disabled=true;b2.disabled=true;
+ $("buyerRequestStatus").textContent=buyerText("Saving update…","Guardando actualización…");
+ try{
+  const result=await buyerRequestCall("update",{request_id:id,action,message,send_email:sendEmail});
+  const status=result.email_sent?buyerText("Update saved. The email service accepted your message.","Actualización guardada. El servicio aceptó el correo."):
+   sendEmail?buyerText("Status saved, but the message was not accepted for sending. Check the email before retrying.","Estado guardado, pero el correo no fue aceptado. Revisa antes de repetir."):
+   buyerText("Status saved; no email was sent.","Estado guardado; no se envió correo.");
+  $("buyerRequestStatus").textContent=status;
+  if(result.warning)$("buyerRequestStatus").textContent+=" "+result.warning;
+  await loadBuyerRequests();
+  $("buyerRequestStatus").textContent=status+(result.warning?" "+result.warning:"");
+ }catch(e){$("buyerRequestStatus").textContent=e.message}
+ finally{b1.disabled=false;b2.disabled=false}
+}
+$("buyerRequestSave").onclick=()=>buyerUpdateRequest(false);
+$("buyerRequestSend").onclick=()=>buyerUpdateRequest(true);
+
+let view='pipeline';function setView(v){
  if(!workspace?.is_internal&&['owner-pages','owner-calendar','owner-build','owner-preview'].includes(v))v='pipeline';if(workspace?.is_internal&&['buyer-followups','request-center'].includes(v))v='owner-pages';
  view=v;document.body.classList.toggle('crm-followups-focus',v==='buyer-followups'&&!workspace?.is_internal);$('buyerFollowupsIntro').classList.toggle('hidden',v!=='buyer-followups'||!!workspace?.is_internal);$('ownerCalendarHub').classList.toggle('hidden',v!=='owner-calendar');
  const internal=!!workspace?.is_internal;
