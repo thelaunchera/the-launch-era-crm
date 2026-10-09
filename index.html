@@ -444,7 +444,19 @@ body.crm-isolated-view #reminderBanner {display:none!important}
     <p class="muted">Calls, messages, referrals and contacts added manually. These are in your Leads section, without duplicating bookings.</p>
     <div id="buyerOtherInquiries" style="display:grid;gap:8px"></div>
   </div>
-</section><section id="emailHub" class="hidden premium-emailhub"><div class="section-title" id="emailHubTitle">Email activity</div><p class="muted" id="emailHubIntro">Sent emails recorded in this workspace. Open a contact to view details or write a permitted follow-up.</p><div id="ownerDailyOutreach" class="hidden panel" style="background:#FAF8F3;border:1px solid #dce8ef;border-radius:20px;padding:18px;margin:16px 0">
+</section><section id="emailHub" class="hidden premium-emailhub"><div class="section-title" id="emailHubTitle">Email activity</div><p class="muted" id="emailHubIntro">Sent emails recorded in this workspace. Open a contact to view details or write a permitted follow-up.</p><section id="ownerDueFollowupsPanel" class="hidden panel" style="padding:20px;margin:16px 0;border:1px solid #cddfea;border-radius:20px;background:#fff">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <div><h3 id="ownerDueFollowupsHeading" style="margin:0 0 6px;color:#244d67">Follow-ups due · Previous contacts</h3>
+  <p class="muted" id="ownerDueFollowupsIntro" style="margin:0;font-size:13px">Contacts with follow-up dates due, regardless of whether a new first email is ready.</p></div>
+  <strong id="ownerDueFollowupsCount" style="font-size:27px;color:#234d69">—</strong>
+ </div>
+ <div id="ownerDueFollowupsStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:9px;margin:16px 0"></div>
+ <p id="ownerDueFollowupsWarning" style="padding:13px;border:1px solid #f2deba;background:#fff8eb;border-radius:12px;color:#805a26;font-size:12px;line-height:1.55"></p>
+ <label style="display:block;margin:15px 0;font-size:12px;font-weight:700;color:#526b7d"><span id="ownerDueFollowupsSearchText">Search all due follow-ups</span>
+  <input id="ownerDueFollowupsSearch" type="search" placeholder="Business or contact name" autocomplete="off" style="display:block;width:100%;max-width:430px;margin-top:8px"></label>
+ <div id="ownerDueFollowupsList" style="display:grid;gap:8px"></div>
+</section>
+<div id="ownerDailyOutreach" class="hidden panel" style="background:#FAF8F3;border:1px solid #dce8ef;border-radius:20px;padding:18px;margin:16px 0">
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
 <div><h3 id="ownerDailyTitle" style="margin:0;color:#191919">Today's individual emails</h3><p id="ownerDailyIntro" class="muted" style="margin:6px 0;font-size:13px">Review today's messages together before sending.</p></div>
 <strong id="ownerDailyCounts" style="font-size:13px;color:#32658b">Checking…</strong></div>
@@ -1524,14 +1536,68 @@ function ownerDailyQueue(){
  .sort((a,b)=>String(a.followup).localeCompare(String(b.followup))||a.business.localeCompare(b.business))
  .map(x=>({lead:x,draft:ownerDailyDraft(x)}));
 }
+function ownerDueFollowups(){
+ if(!workspace?.is_internal)return [];
+ const today=ownerDailyDate();
+ return leads.filter(x=>x.contact_decision==='yes'&&x.stage!=='Won'&&x.followup&&x.followup<=today)
+  .sort((a,b)=>String(a.followup).localeCompare(String(b.followup))||String(a.business).localeCompare(String(b.business)));
+}
+function renderOwnerDueFollowups(){
+ const panel=$('ownerDueFollowupsPanel');if(!panel)return;
+ panel.classList.toggle('hidden',!workspace?.is_internal);
+ if(!workspace?.is_internal)return;
+ const all=ownerDueFollowups(),label=ownerDailyLabel;
+ const sent=all.filter(x=>emailSentByLead.has(x.id)).length;
+ const unverified=all.filter(x=>x.email_consent_status!=='authorized'||!String(x.email_consent_source||'').trim()).length;
+ const disabled=all.filter(x=>x.email_followup_enabled!==true).length;
+ $('ownerDueFollowupsHeading').textContent=label('Follow-ups due · Previous contacts','Seguimientos pendientes · Contactos anteriores');
+ $('ownerDueFollowupsIntro').textContent=label('All contacts due today or earlier, not just new initial emails.','Todos los contactos con fecha pendiente, no solamente los primeros correos nuevos.');
+ $('ownerDueFollowupsCount').textContent=String(all.length);
+ $('ownerDueFollowupsWarning').textContent=label(
+  'A due date is not permission to email. Contacts without documented consent or with email follow-ups turned off are visible here for review, but they will not be emailed automatically. An initial email does not prove a second email was sent.',
+  'La fecha pendiente no autoriza enviar emails. Los contactos sin permiso documentado o con seguimientos por correo desactivados aparecen para revisión; no recibirán envíos automáticos. Un correo inicial registrado no demuestra que se enviara el segundo.');
+ $('ownerDueFollowupsSearchText').textContent=label('Search all due follow-ups','Buscar seguimientos pendientes');
+ $('ownerDueFollowupsSearch').placeholder=label('Business or contact name','Negocio o contacto');
+ const stats=ownerDailyEs()?[['Pendientes por fecha',all.length],['Correo inicial registrado',sent],['Permiso sin verificar',unverified],['Email desactivado',disabled]]:
+  [['Follow-ups due',all.length],['Initial emails recorded',sent],['Permission unverified',unverified],['Email follow-ups off',disabled]];
+ const root=$('ownerDueFollowupsStats');root.replaceChildren();
+ for(const [name,count] of stats){
+  const card=document.createElement('div');card.style.cssText='background:#f5f9fc;border:1px solid #dcecf5;border-radius:13px;padding:11px';
+  const bold=document.createElement('strong');bold.textContent=String(count);bold.style.cssText='display:block;font-size:21px;color:#244d67';
+  const tiny=document.createElement('small');tiny.textContent=name;tiny.style.cssText='font-size:11px;color:#60798a';
+  card.append(bold,tiny);root.append(card);
+ }
+ const query=$('ownerDueFollowupsSearch').value.trim().toLowerCase();
+ const shown=all.filter(x=>(String(x.business||'')+' '+String(x.contact||'')).toLowerCase().includes(query));
+ const list=$('ownerDueFollowupsList');list.replaceChildren();
+ for(const x of shown){
+  const card=document.createElement('div');card.style.cssText='padding:12px;border:1px solid #e0eaf2;border-radius:13px;background:white;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap';
+  const desc=document.createElement('div');desc.style.cssText='min-width:0;flex:1';
+  const name=document.createElement('strong');name.textContent=x.business;name.style.cssText='display:block;font-size:13px;color:#233f52;overflow-wrap:anywhere';
+  const date=document.createElement('small');date.style.cssText='display:block;margin-top:5px;color:#728a9b';
+  date.textContent=label('Due ','Vence ')+x.followup+(emailSentByLead.has(x.id)?label(' · Initial email recorded',' · Primer correo registrado'):'');
+  const state=document.createElement('small');state.style.cssText='display:block;margin-top:5px;color:#94642e;font-weight:650';
+  state.textContent=confirmedOptOut(x)?label('Unsubscribed — do not email','Baja solicitada — no enviar'):
+   emailBouncedByLead.has(x.id)?label('Email failed — check','Fallo de correo — revisar'):
+   x.email_consent_status!=='authorized'||!String(x.email_consent_source||'').trim()?label('Email permission not documented','Permiso de email sin documentar'):
+   x.email_followup_enabled!==true?label('Automatic email follow-ups off','Seguimientos automáticos desactivados'):
+   label('Review follow-up status','Revisar estado del seguimiento');
+  desc.append(name,date,state);
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.style.cssText='font-size:12px;white-space:nowrap';
+  button.textContent=label('Open contact','Abrir contacto');button.onclick=()=>edit(x);
+  card.append(desc,button);list.append(card);
+ }
+ if(!shown.length){const empty=document.createElement('p');empty.className='muted';empty.textContent=query?label('No matching contacts','Sin contactos coincidentes'):label('No due follow-ups','Sin seguimientos pendientes');list.append(empty)}
+}
+$('ownerDueFollowupsSearch').oninput=renderOwnerDueFollowups;
 function renderOwnerDailyOutreach(){
  const panel=$('ownerDailyOutreach');if(!panel)return;
  const internal=!!workspace?.is_internal;panel.classList.toggle('hidden',!internal);if(!internal)return;
  const queue=ownerDailyQueue(),eligible=queue.filter(x=>!ownerDailyBlockReason(x.lead,x.draft));
  const valid=new Set(eligible.map(x=>x.lead.id));
  for(const id of ownerDailySelected)if(!valid.has(id))ownerDailySelected.delete(id);
- $('ownerDailyTitle').textContent=ownerDailyLabel('First emails · Due today','Primeros correos · Para hoy');
- $('ownerDailyIntro').textContent=ownerDailyLabel('You send only the first email. The next two follow-ups are automatic when the recipient is eligible.','Tú envías únicamente el primer correo. Los dos seguimientos siguientes son automáticos cuando el contacto está habilitado.');
+ $('ownerDailyTitle').textContent=ownerDailyLabel('New first emails · Send queue','Primeros correos nuevos · Cola de envío');
+ $('ownerDailyIntro').textContent=ownerDailyLabel('This queue is for new first emails only. Follow-ups are tracked separately above; automation requires verified permission.','Esta cola es solo para primeros correos nuevos. Los seguimientos anteriores se ven arriba y su automatización requiere permiso verificado.');
  $('ownerDailyCounts').textContent=ownerDailyLabel(queue.length+' due · '+eligible.length+' ready · '+(queue.length-eligible.length)+' needs review',queue.length+' pendientes · '+eligible.length+' habilitados · '+(queue.length-eligible.length)+' por revisar');
  $('ownerDailyReview').textContent=ownerDailyOpen?ownerDailyLabel('Collapse all','Cerrar vistas'):ownerDailyLabel('Review all','Revisar todos');
  $('ownerDailySelect').textContent=ownerDailyLabel('Select all eligible','Seleccionar habilitados');
@@ -1576,7 +1642,7 @@ function renderOwnerDailyOutreach(){
   }(reason?pendingList:list).append(row);
  }
  if(pendingList.children.length)list.append(pending);
- if(!queue.length){const empty=document.createElement('p');empty.className='muted';empty.textContent=ownerDailyLabel('No new first emails are due. Previous contacts move through their follow-ups automatically when eligible.','No hay primeros correos nuevos para hoy. Los contactos anteriores siguen los seguimientos automáticos cuando están habilitados.');list.append(empty)}
+ if(!queue.length){const empty=document.createElement('p');empty.className='muted';empty.textContent=ownerDailyLabel('No new first emails are due. Review previous contacts in Follow-ups Due above; automated email requires permission and an active sequence.','No hay primeros correos nuevos. Revisa arriba los seguimientos pendientes; el envío automático requiere permiso y una secuencia activa.');list.append(empty)}
 }
 $('ownerDailyReview').onclick=()=>{ownerDailyOpen=!ownerDailyOpen;renderOwnerDailyOutreach()};
 $('ownerDailySelect').onclick=()=>{for(const x of ownerDailyQueue())if(!ownerDailyBlockReason(x.lead,x.draft))ownerDailySelected.add(x.lead.id);renderOwnerDailyOutreach()};
@@ -1622,7 +1688,7 @@ $('ownerDailySend').onclick=async()=>{
  }
 };
 
-function renderEmailHub(){if($('emailHubTitle'))$('emailHubTitle').textContent=workspace?.is_internal?ownerDailyLabel('Your emails','Tus correos'):'Email activity';if($('emailHubIntro'))$('emailHubIntro').textContent=workspace?.is_internal?ownerDailyLabel('Review today’s individual emails, select those ready to send and confirm only once.','Revisa tus correos individuales, selecciona los habilitados y confirma una sola vez.'):'Sent emails recorded in this workspace. Open a contact to view details or write a permitted follow-up.';renderOwnerDailyOutreach();const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});
+function renderEmailHub(){renderOwnerDueFollowups();if($('emailHubTitle'))$('emailHubTitle').textContent=workspace?.is_internal?ownerDailyLabel('Emails & due follow-ups','Correos y seguimientos pendientes'):'Email activity';if($('emailHubIntro'))$('emailHubIntro').textContent=workspace?.is_internal?ownerDailyLabel('All due follow-ups are listed above. Initial emails eligible to send appear separately below.','Arriba se muestran todos los seguimientos pendientes; los primeros correos que se pueden enviar se muestran aparte debajo.'):'Sent emails recorded in this workspace. Open a contact to view details or write a permitted follow-up.';renderOwnerDailyOutreach();const list=$('emailHubList');list.replaceChildren();const sent=leads.filter(x=>emailSentByLead.has(x.id)).sort((a,b)=>String(emailSentByLead.get(b.id)).localeCompare(String(emailSentByLead.get(a.id))));for(const x of sent){const b=document.createElement('button');b.type='button';b.className='emailhub-item';const left=document.createElement('span');const name=document.createElement('strong');name.textContent=x.business;const details=document.createElement('small');details.textContent=x.email||'No email';left.append(name,details);const when=document.createElement('small');when.textContent='Sent · '+new Date(emailSentByLead.get(x.id)).toLocaleDateString();b.append(left,when);b.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]').click()};list.append(b)}if(!sent.length){const p=document.createElement('p');p.className='muted';p.textContent='No sent emails recorded yet.';list.append(p)}}let inboundRequests=[],inboundType='all';async function loadInbound(){const list=$('inboundList');list.textContent='Loading incoming requests…';const {data,error}=await db.rpc('tle_crm_inbound_requests',{p_workspace_id:workspace.id});if(error){list.textContent='Could not load requests: '+error.message;return}inboundRequests=data||[];renderInbound();updateAnalytics();loadStoredNotifications()}function renderInbound(){const list=$('inboundList');list.replaceChildren();$('inboundCount').textContent=String(inboundRequests.length);const items=inboundRequests.filter(x=>inboundType==='all'||x.source_type===inboundType);for(const x of items){const card=document.createElement('article');card.className='inbound-item';const top=document.createElement('div');top.className='inbound-top';const label=document.createElement('strong');label.textContent=({freebie:'Freebie',website:'Website contact',demo:'Demo request'})[x.source_type]||'Request';const when=document.createElement('time');when.textContent=new Date(x.received_at).toLocaleString();top.append(label,when);const name=document.createElement('b');name.textContent=x.business_name||x.request_name||x.email||'New request';card.append(top,name);if(x.email){const email=document.createElement('a');email.href='mailto:'+encodeURIComponent(x.email);email.textContent=x.email;card.append(email)}if(x.details){const details=document.createElement('p');details.textContent=x.details;card.append(details)}const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent='Remove from inbox';archive.onclick=async()=>{if(!confirm('Remove this request from your inbox? The original submission will be kept for records.'))return;archive.disabled=true;const {data:{user}}=await db.auth.getUser();const {error}=await db.from('tle_crm_archived_incoming').insert({workspace_id:workspace.id,request_id:x.request_id,source_type:x.source_type,archived_by:user.id});if(error){archive.disabled=false;say('Could not remove request: '+error.message);return}await loadInbound();say('Request removed from inbox.')};card.append(archive);list.append(card)}if(!items.length)list.textContent='No requests in this category yet.'}document.querySelectorAll('[data-inbound]').forEach(b=>b.onclick=()=>{inboundType=b.dataset.inbound;document.querySelectorAll('[data-inbound]').forEach(x=>x.classList.toggle('active',x===b));renderInbound()});
 /* Buyer-only request inbox: confirmed flat-price bookings, quote requests, and CRM inquiries. */
 const buyerRequestEndpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-request-center";
 let buyerRequests=[],buyerSelectedRequest=null,buyerRequestBusy=false;
