@@ -1558,13 +1558,13 @@ function ownerSendvantaExportRows(){
  const waitingThird=new Map(ownerProspectQueueRows.filter(q=>q.step_number===2&&q.status==='awaiting_sender').map(q=>[q.lead_id,q]));
  return leads.filter(x=>
   waitingSecond.has(x.id)&&waitingThird.has(x.id)&&x.contact_decision==='yes'
-  &&x.email&&/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(x.email)
+  &&x.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.email)
   &&emailSentByLead.has(x.id)&&!emailBouncedByLead.has(x.id)
   &&!blockedLead(x)&&x.stage!=='Won'&&!x.replied_at&&!x.archived_at
  ).sort((a,b)=>String(a.business||'').localeCompare(String(b.business||'')))
  .map(x=>{
-  const person=String(x.contact||'').trim().split(/[\\/&,]/)[0].trim().split(/\\s+/)[0]||'';
-  const first=/^(yes|no|unknown|unverified|na|n\\/a)$/i.test(person)?'':person;
+  const person=String(x.contact||'').trim().split(/[\/&,]/)[0].trim().split(/\s+/)[0]||'';
+  const first=/^(yes|no|unknown|unverified|na|n\/a)$/i.test(person)?'':person;
   return [x.email,first,x.business||'',x.language||'',x.id,
    waitingSecond.get(x.id).due_at?.slice(0,10)||'',
    waitingThird.get(x.id).due_at?.slice(0,10)||'',
@@ -1579,11 +1579,11 @@ $('exportSendvantaCsv').onclick=()=>{
  const csvEsc=value=>{
   let str=String(value??'');
   // Prevent spreadsheet-formula execution in imported cells.
-  if(/^[=+\\-@\\t\\r]/.test(str))str="'"+str;
+  if(/^[=+\-@\t\r]/.test(str))str="'"+str;
   return '"'+str.replaceAll('"','""')+'"';
  };
- const csv=[headings.map(csvEsc).join(','),...records.map(row=>row.map(csvEsc).join(','))].join('\\r\\n');
- const blob=new Blob(['\\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+ const csv=[headings.map(csvEsc).join(','),...records.map(row=>row.map(csvEsc).join(','))].join('\r\n');
+ const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='tle-sendvanta-followups-'+ownerDailyDate()+'.csv';
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
