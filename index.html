@@ -90,18 +90,20 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  <button type="button" class="nav-link hidden" id="ownerCalendarNav" data-target="owner-calendar">▣ <span>Client Calendar</span></button>
  <div class="nav-caption hidden" id="ownerProspectsCaption"></div>
 </div>
-<div id="buyerBusinessSection" class="hidden" aria-label="Buyer business workspace navigation">
+<div id="buyerBusinessSection" class="hidden" aria-label="Buyer business workspace">
  <div class="nav-caption" id="mainNavCaption">YOUR CLEANING BUSINESS</div>
- <button type="button" class="nav-link active" id="navOverview" data-target="home">⌂ <span>Overview</span></button>
- <button type="button" class="nav-link" id="buyerLeadsNav" data-target="leads">▦ <span>Customer Inquiries</span></button>
- <button type="button" class="nav-link" id="leadCalendarNav" data-target="calendar">◷ <span>Customer Follow-ups</span></button>
- <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Bookings & Requests</span></button>
- <button type="button" class="nav-link" id="buyerEmailsNav" data-target="emails">✉ <span>Email History</span></button>
- <button type="button" class="nav-link hidden" id="buyerFollowupsNav" data-target="buyer-followups">↻ <span>Automatic Follow-ups</span></button>
+ <button type="button" class="nav-link active" id="navOverview" data-target="home">⌂ <span>Dashboard</span></button>
+ <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox</span></button>
  <button type="button" class="nav-link" id="buyerClientsNav" data-target="clients">♧ <span>Customers</span></button>
- <button type="button" class="nav-link" id="buyerPricingNav" data-target="pricing">＄ <span>Pricing & Services</span></button>
- <button type="button" class="nav-link" id="buyerAvailabilityNav" data-target="availability">◷ <span>Availability</span></button>
- <button type="button" class="nav-link" id="navAdd">＋ <span>Add inquiry</span></button>
+ <div class="hidden" aria-hidden="true" style="display:none">
+  <button type="button" class="nav-link" id="buyerLeadsNav" data-target="leads">Customer Inquiries</button>
+  <button type="button" class="nav-link" id="leadCalendarNav" data-target="calendar">Customer Follow-ups</button>
+  <button type="button" class="nav-link" id="buyerEmailsNav" data-target="emails">Email History</button>
+  <button type="button" class="nav-link" id="buyerFollowupsNav" data-target="buyer-followups">Email Automation</button>
+  <button type="button" class="nav-link" id="buyerPricingNav" data-target="pricing">Pricing & Services</button>
+  <button type="button" class="nav-link" id="buyerAvailabilityNav" data-target="availability">Availability</button>
+  <button type="button" class="nav-link" id="navAdd">Add inquiry</button>
+ </div>
 </div>
 <div class="nav-bottom" id="sidebarUtilityMenu">
  <button type="button" class="nav-link hidden" id="ownerHelpNav" data-target="owner-help">ⓘ <span>Ayuda para ti</span></button>
