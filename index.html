@@ -1535,6 +1535,12 @@ function renderOwnerDailyOutreach(){
  'Resend solo permite destinatarios con permiso documentado. Se excluyen bajas, rebotes, respuestas y duplicados. Máximo 20 correos en 24 horas. El siguiente correo se programa 3 días después del envío aceptado.'
  );
  const list=$('ownerDailyItems');list.replaceChildren();
+ const pending=document.createElement('details');pending.open=ownerDailyOpen;
+ pending.style.cssText='margin-top:12px;border-top:1px solid #e1e8ee;padding-top:12px';
+ const pendingTitle=document.createElement('summary');pendingTitle.textContent=ownerDailyLabel('Needs attention ('+(queue.length-eligible.length)+')','Requieren atención ('+(queue.length-eligible.length)+')');
+ pendingTitle.style.cssText='cursor:pointer;font-size:13px;font-weight:700;color:#53677c';
+ const pendingList=document.createElement('div');pendingList.style.cssText='display:grid;gap:10px;margin-top:10px';
+ pending.append(pendingTitle,pendingList);
  for(const item of queue){
   const x=item.lead,d=item.draft,reason=ownerDailyBlockReason(x,d);
   const row=document.createElement('div');row.style.cssText='background:white;border:1px solid #e2e8ef;padding:11px 13px;border-radius:14px;display:grid;gap:7px';
@@ -1558,8 +1564,9 @@ function renderOwnerDailyOutreach(){
    const editButton=document.createElement('button');editButton.type='button';editButton.className='secondary';editButton.style.cssText='width:max-content;font-size:12px';
    editButton.textContent=ownerDailyLabel('Review contact','Revisar contacto');editButton.onclick=()=>{edit(x);document.querySelector('[data-leadtab="emails"]')?.click()};
    row.append(editButton);
-  }list.append(row);
+  }(reason?pendingList:list).append(row);
  }
+ if(pendingList.children.length)list.append(pending);
  if(!queue.length){const empty=document.createElement('p');empty.className='muted';empty.textContent=ownerDailyLabel('No approved contacts have an email due today.','Hoy no hay contactos aprobados con correos pendientes.');list.append(empty)}
 }
 $('ownerDailyReview').onclick=()=>{ownerDailyOpen=!ownerDailyOpen;renderOwnerDailyOutreach()};
