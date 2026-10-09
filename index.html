@@ -256,7 +256,9 @@ body.crm-followups-focus #settingsHub > :not(#buyerEmailSetup):not(#buyerFollowu
           <option value="closed">Close / Cerrar</option>
           <option value="reply">Reply only / Solo responder</option>
         </select></label>
-        <div id="buyerRequestConfirmSlot" class="hidden" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+        <div id="buyerRequestQuoteOffer" class="hidden" style="margin:10px 0 14px"><label>Quote price / Precio cotizado<input id="buyerRequestQuoteAmount" type="number" min="0.01" max="999999" step="0.01" placeholder="125.00"></label>
+<p class="muted" style="font-size:12px">Enter the final quote amount. When you select Send update, the customer receives Accept, Decline (with reason), and Let's talk. The quote does not confirm a booking. / Escribe el monto para enviar la cotización con las tres opciones.</p></div>
+<div id="buyerRequestConfirmSlot" class="hidden" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <label>Booking date / Fecha<input id="buyerRequestBookingDate" type="date"></label>
           <label>Start time / Hora<input id="buyerRequestBookingTime" type="time" step="1800"></label>
         </div>
@@ -1232,6 +1234,10 @@ async function buyerRequestCall(action,extra){
 function buyerRequestKind(v){return v.status==="booked"?"booking":v.raw_payload?.request_intent==="inquiry"?"inquiry":v.request_type==="quote"?"quote":"booking"}
 function buyerRequestState(v){
  if(v.status==="booked")return buyerText("Confirmed booking","Reserva confirmada");
+ const answer=v.raw_payload?.quote_response?.status;
+ if(answer==="accepted")return buyerText("Quote accepted — confirm booking","Cotización aceptada — confirmar reserva");
+ if(answer==="declined")return buyerText("Quote declined","Cotización rechazada");
+ if(answer==="lets_talk")return buyerText("Customer wants to talk","Cliente quiere conversar");
  if(v.status==="declined"||v.workflow_stage==="declined")return buyerText("Declined","Rechazada");
  if(v.status==="closed")return buyerText("Closed / Declined","Cerrada / Rechazada");
  if(v.workflow_stage==="quoted")return buyerText("Quote prepared","Cotización preparada");
@@ -1279,11 +1285,19 @@ function buyerOpenRequest(x){
   [buyerText("Customer email","Correo del cliente"),x.customer_email],
   [buyerText("Phone","Teléfono"),x.customer_phone],
   [buyerText("Service address","Dirección del servicio"),x.service_address],
-  [buyerText("Customer notes","Notas del cliente"),x.notes]
+  [buyerText("Customer notes","Notas del cliente"),x.notes],
+  [buyerText("Quote sent","Cotización enviada"),payload.quote_offer?.amount?new Intl.NumberFormat(x.preferred_language==="es"?"es-US":"en-US",{style:"currency",currency:payload.quote_offer.currency==="CAD"?"CAD":"USD"}).format(Number(payload.quote_offer.amount)):""],
+  [buyerText("Customer quote response","Respuesta a cotización"),payload.quote_response?.status==="accepted"?buyerText("Accepted","Aceptada"):payload.quote_response?.status==="declined"?buyerText("Declined","Rechazada"):payload.quote_response?.status==="lets_talk"?buyerText("Let's talk","Quiere conversar"):""],
+  [buyerText("Decline reason","Motivo del rechazo"),payload.quote_response?.reason],
+  [buyerText("Customer response note","Comentario del cliente"),payload.quote_response?.note],
+  [buyerText("Booking change request","Solicitud de cambio"),payload.customer_change_request?.action==="cancel"?buyerText("Cancellation requested — pending owner review","Cancelación solicitada — pendiente de revisión"):payload.customer_change_request?.action==="reschedule"?buyerText("Reschedule requested — pending review","Cambio de fecha solicitado — pendiente de revisión"):""],
+  [buyerText("Preferred new date","Nueva fecha preferida"),payload.customer_change_request?.preferred_date],
+  [buyerText("Preferred new time","Nueva hora preferida"),payload.customer_change_request?.preferred_time]
  ];
  for(const [label,value] of fields)body.append(buyerDetails(label,value));
  $("buyerRequestReplyArea").classList.remove("hidden");
  $("buyerRequestAction").value=x.status==="booked"?"reply":"reviewing";
+ $("buyerRequestQuoteAmount").value=payload.quote_offer?.amount||"";
  $("buyerRequestBookingDate").value=String(payload.requested_date||"").slice(0,10);
  $("buyerRequestBookingTime").value=String(payload.requested_time||"").slice(0,5);
  buyerSetDefaultMessage();
@@ -1292,6 +1306,7 @@ function buyerOpenRequest(x){
 }
 function buyerSetDefaultMessage(){
  const x=buyerSelectedRequest;if(!x)return;
+ $("buyerRequestQuoteOffer").classList.toggle("hidden",$("buyerRequestAction").value!=="quoted");
  $("buyerRequestConfirmSlot").classList.toggle("hidden",$("buyerRequestAction").value!=="booked"||x.status==="booked");
  const action=$("buyerRequestAction").value,es=x.preferred_language==="es",name=(x.customer_name||"").trim().split(/\s+/)[0]||(es?"cliente":"there");
  const service=x.service_name||(es?"limpieza":"cleaning");
@@ -1359,7 +1374,7 @@ async function buyerUpdateRequest(sendEmail){
  const b1=$("buyerRequestSave"),b2=$("buyerRequestSend");b1.disabled=true;b2.disabled=true;
  $("buyerRequestStatus").textContent=buyerText("Saving update…","Guardando actualización…");
  try{
-  const result=await buyerRequestCall("update",{request_id:id,action,message,send_email:sendEmail,request_date:$("buyerRequestBookingDate").value,request_time:$("buyerRequestBookingTime").value});
+  const result=await buyerRequestCall("update",{request_id:id,action,message,send_email:sendEmail,quote_amount:$("buyerRequestQuoteAmount").value,request_date:$("buyerRequestBookingDate").value,request_time:$("buyerRequestBookingTime").value});
   const status=result.email_sent?buyerText("Update saved. The email service accepted your message.","Actualización guardada. El servicio aceptó el correo."):
    sendEmail?buyerText("Status saved, but the message was not accepted for sending. Check the email before retrying.","Estado guardado, pero el correo no fue aceptado. Revisa antes de repetir."):
    buyerText("Status saved; no email was sent.","Estado guardado; no se envió correo.");
