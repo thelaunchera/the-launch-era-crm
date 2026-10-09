@@ -1500,6 +1500,29 @@ async function buyerRequestCall(action,extra){
  return payload;
 }
 function buyerRequestKind(v){return v.status==="booked"?"booking":v.raw_payload?.request_intent==="inquiry"?"inquiry":v.request_type==="quote"?"quote":"booking"}
+function buyerRequestIsEstimate(v){return buyerRequestKind(v)==="quote"&&v.raw_payload?.request_intent==="estimate"}
+function buyerRequestNeedsAttention(v){
+ const p=v.raw_payload||{};
+ if(p.customer_change_request?.state==="pending_owner_review"||p.quote_response?.status==="lets_talk")return true;
+ if(p.email_handoff&&(p.email_handoff.customer_handoff_accepted===false||p.email_handoff.owner_handoff_accepted===false))return true;
+ if(p.change_email_handoff?.results?.some(x=>x.accepted===false))return true;
+ if(v.status==="booked"||["closed","declined"].includes(v.status)||v.workflow_stage==="quoted")return false;
+ return v.request_type==="quote"||v.raw_payload?.request_intent==="inquiry"||v.workflow_stage!=="booked"
+}
+function buyerRequestNext(v){
+ const p=v.raw_payload||{};
+ if(p.email_handoff&&(p.email_handoff.customer_handoff_accepted===false||p.email_handoff.owner_handoff_accepted===false))
+  return buyerText("Email needs attention: verify delivery before retrying.","Correo pendiente: comprueba el envío antes de reenviar.");
+ if(p.customer_change_request?.state==="pending_owner_review")
+  return buyerText("Review the requested cancellation or new date. The booking stays active until you change it.","Revisa la cancelación o nueva fecha. La reserva sigue activa hasta que la cambies.");
+ if(v.status==="booked")return buyerText("Booking confirmed automatically. No approval needed.","Reserva confirmada automáticamente. No requiere aprobación.");
+ if(p.quote_response?.status==="lets_talk")return buyerText("The customer wants to talk. Reply to their message.","El cliente quiere conversar. Responde a su mensaje.");
+ if(p.quote_response?.status==="declined")return buyerText("Quote declined. Review the reason; no booking was created.","Cotización rechazada. Revisa el motivo; no se creó una reserva.");
+ if(v.workflow_stage==="quoted")return buyerText("Quote sent. The customer can accept, decline or request a conversation.","Cotización enviada. El cliente puede aceptar, rechazar o conversar.");
+ if(buyerRequestKind(v)==="quote")return buyerText("Next: review details, set a price and send the quote.","Siguiente: revisa los datos, indica el precio y envía la cotización.");
+ if(buyerRequestKind(v)==="inquiry")return buyerText("Next: answer the question or prepare a quote.","Siguiente: responde o prepara una cotización.");
+ return buyerText("Next: review the request and confirm an available slot.","Siguiente: revisa la solicitud y confirma un horario libre.");
+}
 function buyerRequestState(v){
  if(v.status==="booked")return buyerText("Confirmed booking","Reserva confirmada");
  const answer=v.raw_payload?.quote_response?.status;
@@ -1518,7 +1541,7 @@ function buyerRequestSummaries(){
   [buyerText("Confirmed bookings","Reservas confirmadas"),buyerRequests.filter(x=>x.status==="booked").length],
   [buyerText("Quote requests","Solicitudes de cotización"),buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length],
   [buyerText("Inquiries","Consultas"),buyerRequests.filter(x=>buyerRequestKind(x)==="inquiry").length],
-  [buyerText("Other booking requests","Otras reservas pendientes"),buyerRequests.filter(x=>x.request_type==="booking"&&x.status!=="booked").length]
+  [buyerText("Needs attention","Necesitan atención"),buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>["New","Follow-up"].includes(x.stage)).length]
  ];
  for(const [label,count] of counts){
   const card=buyerCreate("div",undefined,"request-stat");
@@ -1528,7 +1551,7 @@ function buyerRequestSummaries(){
 function buyerRequestCard(x){
  const btn=buyerCreate("button",undefined,"request-card"+(buyerSelectedRequest?.id===x.id?" selected":""));btn.type="button";
  const bar=buyerCreate("div");bar.style.cssText="display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap";
- bar.append(buyerCreate("span",buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva"),"request-pill"),
+ bar.append(buyerCreate("span",buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?(buyerRequestIsEstimate(x)?buyerText("Estimate","Estimado"):buyerText("Quote","Cotización")):buyerText("Booking","Reserva"),"request-pill"),
   buyerCreate("span",buyerRequestState(x),"request-pill"));
  const title=buyerCreate("strong",x.customer_name||x.customer_email||"Customer");title.style.cssText="display:block;font-size:16px;margin:10px 0 6px";
  const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
@@ -1563,6 +1586,7 @@ function buyerOpenRequest(x){
   [buyerText("Preferred new time","Nueva hora preferida"),payload.customer_change_request?.preferred_time]
  ];
  for(const [label,value] of fields)body.append(buyerDetails(label,value));
+ $("buyerRequestNextAction").classList.remove("hidden");$("buyerRequestNextAction").textContent=buyerRequestNext(x);
  $("buyerRequestReplyArea").classList.remove("hidden");
  $("buyerRequestAction").value=x.status==="booked"?"reply":"reviewing";
  $("buyerRequestQuoteAmount").value=payload.quote_offer?.amount||"";
@@ -1590,40 +1614,50 @@ function buyerSetDefaultMessage(){
  };
  $("buyerRequestMessage").value=(es?"Hola ":"Hi ")+name+",\n\n"+copy[action]+"\n\n"+(workspace?.name||"Your cleaning team")
 }
+function buyerManualLeads(){
+ if(!workspace||workspace.is_internal)return [];
+ return leads.filter(x=>x.stage!=="Won"&&!x.research_only&&!/booking page|booking flow|booking form|quote request/i.test(String(x.source||"")))
+}
+function buyerManualCard(x){
+ const btn=buyerCreate("button",undefined,"request-card");btn.type="button";
+ const label=buyerCreate("span",buyerText("Inquiry · Other source","Consulta · Otra fuente"),"request-pill");
+ const name=buyerCreate("strong",x.contact||x.business||buyerText("Customer","Cliente"));
+ name.style.cssText="display:block;margin:10px 0 5px";
+ const desc=buyerCreate("div",[x.source,x.email,x.stage].filter(Boolean).join(" · "),"request-summary");
+ const next=buyerCreate("div",buyerText("Next: review or reply","Siguiente: revisar o responder"),"buyer-inbox-next");
+ next.style.cssText="margin-top:9px;font-size:12px;color:#45677f";
+ btn.append(label,name,desc,next);btn.onclick=()=>edit(x);return btn;
+}
 function buyerRenderRequestCards(){
  const root=$("buyerRequestCards");root.replaceChildren();
  const q=$("buyerRequestSearch").value.toLowerCase().trim(),type=$("buyerRequestType").value;
- const rows=buyerRequests.filter(x=>(type==="all"||buyerRequestKind(x)===type)
+ const rows=buyerRequests.filter(x=>(type==="all"||type==="attention"&&buyerRequestNeedsAttention(x)||buyerRequestKind(x)===type)
  &&[x.customer_name,x.customer_email,x.service_name,x.status,x.raw_payload?.estimate_display].some(v=>String(v||"").toLowerCase().includes(q)));
+ rows.sort((a,b)=>Number(buyerRequestNeedsAttention(b))-Number(buyerRequestNeedsAttention(a))||Date.parse(b.created_at)-Date.parse(a.created_at));
  for(const x of rows)root.append(buyerRequestCard(x));
- if(!rows.length)root.textContent=buyerText("No bookings or quotes match this filter.","No hay reservas o cotizaciones en este filtro.");
+ if(["all","inquiry","attention"].includes(type))for(const item of buyerManualLeads().filter(x=>
+  (type!=="attention"||["New","Follow-up"].includes(x.stage))&&
+  [x.contact,x.business,x.email,x.source,x.notes].some(v=>String(v||"").toLowerCase().includes(q))
+ ))root.append(buyerManualCard(item));
+ if(!root.childElementCount)root.textContent=buyerText("No customer requests in this view.","No hay solicitudes en esta vista.");
 }
-function buyerRenderOtherLeads(){
- const root=$("buyerOtherInquiries");root.replaceChildren();
- const filtered=leads.filter(x=>x.source!=="Booking Page"&&!x.research_only&&x.stage!=="Won").slice(0,16);
- for(const item of filtered){
-  const card=buyerCreate("button",undefined,"request-card");card.type="button";
-  card.append(buyerCreate("strong",item.contact||item.business||"Inquiry"),
-   buyerCreate("div",[item.source||"Manual",item.email||"No email",item.stage||"New"].join(" · "),"request-summary"));
-  card.onclick=()=>edit(item);root.append(card)
- }
- if(!filtered.length)root.append(buyerCreate("p",buyerText("No other inquiries yet. Add one from a call, text or referral.","Todavía no hay otras solicitudes. Puedes añadir una llamada, mensaje o referido."),"muted"));
-}
+function buyerRenderOtherLeads(){$("buyerOtherInquiries").replaceChildren();}
 async function loadBuyerRequests(){
  if(!workspace||workspace.is_internal||buyerRequestBusy)return;buyerRequestBusy=true;
  $("buyerRequestCards").textContent=buyerText("Loading your bookings…","Cargando tus reservas…");
  try{
   const wsId=workspace.id;
+  if(!document.body.dataset.leadsLoaded)await load();
   const data=await buyerRequestCall("list");
   if(!workspace||workspace.is_internal||workspace.id!==wsId)return;
   buyerRequests=Array.isArray(data.requests)?data.requests:[];
   buyerRequestSummaries();
   const previous=buyerSelectedRequest?.id;
   buyerSelectedRequest=null;
-  buyerRenderRequestCards();buyerRenderOtherLeads();
+  buyerRenderRequestCards();
   const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests[0];
   if(selection)buyerOpenRequest(selection);
-  else{$("buyerRequestDetailTitle").textContent=buyerText("No requests yet","Todavía no hay solicitudes");$("buyerRequestDetails").replaceChildren();$("buyerRequestReplyArea").classList.add("hidden")}
+  else{$("buyerRequestDetailTitle").textContent=buyerText("Select a request or manual inquiry","Elige una solicitud o consulta manual");$("buyerRequestDetails").replaceChildren();$("buyerRequestNextAction").classList.add("hidden");$("buyerRequestReplyArea").classList.add("hidden")}
  }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message}
  finally{buyerRequestBusy=false}
 }
@@ -1634,6 +1668,7 @@ $("buyerRequestAction").onchange=buyerSetDefaultMessage;
 $("buyerRequestBookingDate").onchange=()=>{if(buyerSelectedRequest&&$("buyerRequestAction").value==="booked")buyerSetDefaultMessage()};
 $("buyerRequestBookingTime").onchange=()=>{if(buyerSelectedRequest&&$("buyerRequestAction").value==="booked")buyerSetDefaultMessage()};
 $("buyerAddOtherInquiry").onclick=()=>{if(workspace&&!workspace.is_internal)edit(null)};
+$("buyerInboxNewManual").onclick=()=>{if(workspace&&!workspace.is_internal)edit(null)};
 async function buyerUpdateRequest(sendEmail){
  if(!buyerSelectedRequest||!workspace||workspace.is_internal)return;
  const id=buyerSelectedRequest.id,action=$("buyerRequestAction").value,message=$("buyerRequestMessage").value.trim();
