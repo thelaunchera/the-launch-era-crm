@@ -215,7 +215,7 @@ body.crm-followups-focus #settingsHub > :not(#buyerEmailSetup):not(#buyerFollowu
   <div id="buyerRequestStats" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 20px">
     <label style="flex:1;min-width:180px">Find a request / Buscar<input id="buyerRequestSearch" type="search" placeholder="Name, email, service"></label>
-    <label style="min-width:160px">Type / Tipo<select id="buyerRequestType"><option value="all">All / Todos</option><option value="booking">Bookings / Reservas</option><option value="quote">Quotes / Cotizaciones</option></select></label>
+    <label style="min-width:160px">Type / Tipo<select id="buyerRequestType"><option value="all">All / Todos</option><option value="booking">Bookings / Reservas</option><option value="quote">Quotes / Cotizaciones</option><option value="inquiry">Inquiries / Consultas</option></select></label>
     <button type="button" id="buyerRequestRefresh" class="secondary">↻ Refresh / Actualizar</button>
   </div>
   <div class="request-layout">
@@ -1202,20 +1202,21 @@ async function buyerRequestCall(action,extra){
  if(!response.ok)throw Error(payload.error||buyerText("Could not load this business.","No se pudo cargar el negocio."));
  return payload;
 }
-function buyerRequestKind(v){return v.status==="booked"?"booking":v.request_type==="quote"?"quote":"booking"}
+function buyerRequestKind(v){return v.status==="booked"?"booking":v.raw_payload?.request_intent==="inquiry"?"inquiry":v.request_type==="quote"?"quote":"booking"}
 function buyerRequestState(v){
  if(v.status==="booked")return buyerText("Confirmed booking","Reserva confirmada");
  if(v.status==="declined"||v.workflow_stage==="declined")return buyerText("Declined","Rechazada");
  if(v.status==="closed")return buyerText("Closed / Declined","Cerrada / Rechazada");
  if(v.workflow_stage==="quoted")return buyerText("Quote prepared","Cotización preparada");
  if(v.workflow_stage==="reviewing")return buyerText("Under review","En revisión");
- return v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
+ return buyerRequestKind(v)==="inquiry"?buyerText("New inquiry","Nueva consulta"):v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
 }
 function buyerRequestSummaries(){
  const area=$("buyerRequestStats");area.replaceChildren();
  const counts=[
   [buyerText("Confirmed bookings","Reservas confirmadas"),buyerRequests.filter(x=>x.status==="booked").length],
-  [buyerText("Quote requests","Solicitudes de cotización"),buyerRequests.filter(x=>x.request_type==="quote"&&x.status!=="booked").length],
+  [buyerText("Quote requests","Solicitudes de cotización"),buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length],
+  [buyerText("Inquiries","Consultas"),buyerRequests.filter(x=>buyerRequestKind(x)==="inquiry").length],
   [buyerText("Other booking requests","Otras reservas pendientes"),buyerRequests.filter(x=>x.request_type==="booking"&&x.status!=="booked").length]
  ];
  for(const [label,count] of counts){
@@ -1226,7 +1227,7 @@ function buyerRequestSummaries(){
 function buyerRequestCard(x){
  const btn=buyerCreate("button",undefined,"request-card"+(buyerSelectedRequest?.id===x.id?" selected":""));btn.type="button";
  const bar=buyerCreate("div");bar.style.cssText="display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap";
- bar.append(buyerCreate("span",buyerRequestKind(x)==="quote"?buyerText("Quote / Cotización","Cotización / Quote"):buyerText("Booking / Reserva","Reserva / Booking"),"request-pill"),
+ bar.append(buyerCreate("span",buyerRequestKind(x)==="inquiry"?buyerText("Inquiry / Consulta","Consulta / Inquiry"):buyerRequestKind(x)==="quote"?buyerText("Quote / Cotización","Cotización / Quote"):buyerText("Booking / Reserva","Reserva / Booking"),"request-pill"),
   buyerCreate("span",buyerRequestState(x),"request-pill"));
  const title=buyerCreate("strong",x.customer_name||x.customer_email||"Customer");title.style.cssText="display:block;font-size:16px;margin:10px 0 6px";
  const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
@@ -1240,7 +1241,7 @@ function buyerOpenRequest(x){
  const payload=x.raw_payload||{};
  const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
  const fields=[
-  [buyerText("Request type","Tipo"),buyerRequestKind(x)==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
+  [buyerText("Request type","Tipo"),buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
   [buyerText("Status","Estado"),buyerRequestState(x)],
   [buyerText("Cleaning service","Servicio de limpieza"),x.service_name],
   [buyerText("Published price / estimate","Precio o estimado"),payload.estimate_display],
