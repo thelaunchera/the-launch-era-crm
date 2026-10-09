@@ -1618,13 +1618,13 @@ function buyerRequestState(v){
  if(v.status==="closed")return buyerText("Closed / Declined","Cerrada / Rechazada");
  if(v.workflow_stage==="quoted")return buyerText("Quote prepared","Cotización preparada");
  if(v.workflow_stage==="reviewing")return buyerText("Under review","En revisión");
- return buyerRequestKind(v)==="inquiry"?buyerText("New inquiry","Nueva consulta"):v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
+ return buyerRequestKind(v)==="inquiry"?buyerText("New inquiry","Nueva consulta"):buyerRequestIsEstimate(v)?buyerText("Estimate requested","Solicitó estimado"):v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
 }
 function buyerRequestSummaries(){
  const area=$("buyerRequestStats");area.replaceChildren();
  const counts=[
   [buyerText("Confirmed bookings","Reservas confirmadas"),buyerRequests.filter(x=>x.status==="booked").length],
-  [buyerText("Quote requests","Solicitudes de cotización"),buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length],
+  [buyerText("Quotes & estimates","Cotizaciones y estimados"),buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length],
   [buyerText("Inquiries","Consultas"),buyerRequests.filter(x=>buyerRequestKind(x)==="inquiry").length],
   [buyerText("Needs attention","Necesitan atención"),buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>["New","Follow-up"].includes(x.stage)).length]
  ];
@@ -1650,7 +1650,7 @@ function buyerOpenRequest(x){
  const payload=x.raw_payload||{};
  const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
  const fields=[
-  [buyerText("Request type","Tipo"),buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
+  [buyerText("Request type","Tipo"),buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?(buyerRequestIsEstimate(x)?buyerText("Estimate","Estimado"):buyerText("Quote","Cotización")):buyerText("Booking","Reserva")],
   [buyerText("Status","Estado"),buyerRequestState(x)],
   [buyerText("Cleaning service","Servicio de limpieza"),x.service_name],
   [buyerText("Published price / estimate","Precio o estimado"),payload.estimate_display],
