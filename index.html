@@ -360,6 +360,13 @@ function pricingFormRow(group,item){
   mode.onchange=()=>{item.mode=mode.value;amount.disabled=mode.value!=='flat';if(amount.disabled){amount.value='';item.price=null}};
   const wrap=priceElement('label',{},'Type / Tipo');wrap.append(mode);el.append(wrap);
  }
+ const category=priceElement('select');
+ for(const [val,name] of [['residential','Home / Residencial'],['commercial','Business / Comercial'],['both','Both / Ambos']])category.append(priceElement('option',{value:val},name));
+ const estimated=/office|commercial|retail|restaurant|salon|medical|warehouse|construction|janitorial|business|restroom|floor scrub|breakroom|after.hour/i.test(item.name||'')?'commercial':/oven|fridge|refrigerator|baseboard|laundry|cabinet|bedroom/i.test(item.name||'')?'residential':'both';
+ category.value=item.category||estimated;
+ item.category=category.value;
+ category.onchange=()=>item.category=category.value;
+ const categoryLabel=priceElement('label',{},'Available for / Disponible para');categoryLabel.append(category);el.append(categoryLabel);
  const amountLabel=priceElement('label',{},'Price / Precio');amountLabel.append(amount);el.append(amountLabel);
  const tools=priceElement('div');tools.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap';
  const active=priceElement('input',{type:'checkbox'});active.checked=item.active!==false;active.style.width='auto';active.onchange=()=>item.active=active.checked;
