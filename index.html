@@ -1202,10 +1202,11 @@ async function buyerRequestCall(action,extra){
  if(!response.ok)throw Error(payload.error||buyerText("Could not load this business.","No se pudo cargar el negocio."));
  return payload;
 }
-function buyerRequestKind(v){return v.request_type==="quote"?"quote":"booking"}
+function buyerRequestKind(v){return v.status==="booked"?"booking":v.request_type==="quote"?"quote":"booking"}
 function buyerRequestState(v){
  if(v.status==="booked")return buyerText("Confirmed booking","Reserva confirmada");
  if(v.status==="declined"||v.workflow_stage==="declined")return buyerText("Declined","Rechazada");
+ if(v.status==="closed")return buyerText("Closed / Declined","Cerrada / Rechazada");
  if(v.workflow_stage==="quoted")return buyerText("Quote prepared","Cotización preparada");
  if(v.workflow_stage==="reviewing")return buyerText("Under review","En revisión");
  return v.request_type==="quote"?buyerText("Quote requested","Solicita cotización"):buyerText("Booking request","Solicitud de reserva");
@@ -1225,7 +1226,7 @@ function buyerRequestSummaries(){
 function buyerRequestCard(x){
  const btn=buyerCreate("button",undefined,"request-card"+(buyerSelectedRequest?.id===x.id?" selected":""));btn.type="button";
  const bar=buyerCreate("div");bar.style.cssText="display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap";
- bar.append(buyerCreate("span",x.request_type==="quote"?buyerText("Quote / Cotización","Cotización / Quote"):buyerText("Booking / Reserva","Reserva / Booking"),"request-pill"),
+ bar.append(buyerCreate("span",buyerRequestKind(x)==="quote"?buyerText("Quote / Cotización","Cotización / Quote"):buyerText("Booking / Reserva","Reserva / Booking"),"request-pill"),
   buyerCreate("span",buyerRequestState(x),"request-pill"));
  const title=buyerCreate("strong",x.customer_name||x.customer_email||"Customer");title.style.cssText="display:block;font-size:16px;margin:10px 0 6px";
  const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
@@ -1239,7 +1240,7 @@ function buyerOpenRequest(x){
  const payload=x.raw_payload||{};
  const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
  const fields=[
-  [buyerText("Request type","Tipo"),x.request_type==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
+  [buyerText("Request type","Tipo"),buyerRequestKind(x)==="quote"?buyerText("Quote","Cotización"):buyerText("Booking","Reserva")],
   [buyerText("Status","Estado"),buyerRequestState(x)],
   [buyerText("Cleaning service","Servicio de limpieza"),x.service_name],
   [buyerText("Published price / estimate","Precio o estimado"),payload.estimate_display],
@@ -1266,10 +1267,11 @@ function buyerSetDefaultMessage(){
  $("buyerRequestConfirmSlot").classList.toggle("hidden",$("buyerRequestAction").value!=="booked"||x.status==="booked");
  const action=$("buyerRequestAction").value,es=x.preferred_language==="es",name=(x.customer_name||"").trim().split(/\s+/)[0]||(es?"cliente":"there");
  const service=x.service_name||(es?"limpieza":"cleaning");
+ const slot=[ $("buyerRequestBookingDate").value,$("buyerRequestBookingTime").value ].filter(Boolean).join(" · ");
  let copy={
   reviewing:es?"Recibimos tu solicitud para "+service+" y estamos revisando los detalles. Te confirmaremos el próximo paso.":"We received your "+service+" request and are reviewing the details. We'll let you know the next step.",
   quoted:es?"Revisamos tu solicitud de cotización para "+service+". Responde a este correo para confirmar los detalles y continuar.":"We reviewed your quote request for "+service+". Reply here to confirm any details and move forward.",
-  booked:es?"Tu reserva de "+service+" está confirmada. Si necesitas cambiar algún detalle, responde a este correo.":"Your "+service+" booking is confirmed. If anything needs changing, please reply here.",
+  booked:es?"Tu reserva de "+service+" está confirmada"+(slot?" para "+slot:"")+". Si necesitas cambiar algún detalle, responde a este correo.":"Your "+service+" booking is confirmed"+(slot?" for "+slot:"")+". If anything needs changing, please reply here.",
   change_requested:es?"Necesitamos confirmar un detalle de tu solicitud de "+service+". Responde a este correo para revisar una nueva opción antes de cambiar la reserva.":"We need to confirm a detail about your "+service+" request. Please reply so we can review an alternative before any booking change.",
   declined:es?"Gracias por tu interés en "+service+". En este momento no podemos confirmar tu solicitud. Escríbenos si deseas explorar otra opción.":"Thank you for your interest in "+service+". We can't confirm this request at the moment. Reply if you'd like to discuss another option.",
   closed:es?"Queríamos avisarte que hemos cerrado esta solicitud. Si necesitas una nueva limpieza, puedes escribirnos nuevamente.":"We're letting you know this request has been closed. If you need another cleaning, you're welcome to reach out.",
@@ -1318,6 +1320,8 @@ $("buyerRequestSearch").oninput=buyerRenderRequestCards;
 $("buyerRequestType").onchange=buyerRenderRequestCards;
 $("buyerRequestRefresh").onclick=loadBuyerRequests;
 $("buyerRequestAction").onchange=buyerSetDefaultMessage;
+$("buyerRequestBookingDate").onchange=()=>{if(buyerSelectedRequest&&$("buyerRequestAction").value==="booked")buyerSetDefaultMessage()};
+$("buyerRequestBookingTime").onchange=()=>{if(buyerSelectedRequest&&$("buyerRequestAction").value==="booked")buyerSetDefaultMessage()};
 $("buyerAddOtherInquiry").onclick=()=>{if(workspace&&!workspace.is_internal)edit(null)};
 async function buyerUpdateRequest(sendEmail){
  if(!buyerSelectedRequest||!workspace||workspace.is_internal)return;
