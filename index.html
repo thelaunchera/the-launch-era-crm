@@ -897,7 +897,7 @@ async function loadBuilderRealPreview(){
   const frame=$('buildLiveFrame');
   const send=()=>{if(frame.contentWindow&&builderPreviewData)frame.contentWindow.postMessage({type:'TLE_OWNER_BOOKING_PREVIEW',config:builderPreviewData},'*')};
   frame.onload=send;
-  frame.src='https://thelaunchera.com/booking/?owner_preview=1';
+  frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(builderPreviewData.language==='es'?'es':'en');
   status.textContent=buildLabel('Private real-template preview loaded. Test services, prices and screens; submissions are disabled.','Vista real privada. Revisa servicios, precios y diseño; no se enviarán reservas.');
  }catch(e){status.textContent='Preview unavailable / Vista no disponible: '+e.message}
 }
