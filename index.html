@@ -932,7 +932,9 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 </details><details class="lead-section" id="leadNotesSection"><summary><span>📝 Notes</span><small>Context and previous conversations</small></summary><label>Notes<textarea name="notes" maxlength="4000"></textarea></label></details><div class="lead-editor-actions"><button>Save changes</button> <button type="button" id="remove" class="danger">Delete</button> <button type="button" id="cancel">Cancel</button></div></form></dialog><script>(function(){function initLegal(){const info={faq:{title:'Frequently asked questions / Preguntas frecuentes',body:"<h3>How do I get started?</h3><p>Sign in with your purchase email and open your business workspace. Your leads and appointments are organized in the menu.</p><h3>Where is my Booking Page?</h3><p>When your personalized page is ready, you'll receive a delivery email with your Booking Page and Command Center links. You can save and share the Booking Page link.</p><h3>Can I change prices and services?</h3><p>Yes. Open Pricing & Services to update your services, add-ons and fixed-price or estimate options. Save, then review the Booking Page.</p><h3>How do I change available dates and times?</h3><p>Open Availability to set your weekly hours, blocked dates and appointment length. Save to update the available booking times.</p><h3>Do all requests confirm automatically?</h3><p>Not always. A service with an enabled fixed price can confirm when a time is available. Requests for estimates or special jobs can require your review.</p><h3>Where do my new leads go?</h3><p>Open Leads & pipeline or Incoming requests. You'll see contact details, status and follow-up activity for the leads in your business.</p><h3>How do automatic follow-ups work?</h3><p>Once you've connected and verified your business email, eligible contacts can receive the first two follow-up messages. The third follow-up is up to you. Replies and opt-outs stop further reminders. Only contact people who have authorized emails.</p><h3>Can I use Gmail?</h3><p>Yes, you can sign in with Gmail. Sending automatic messages from your own business requires a verified email connection, which is set up separately.</p><h3>Is the Cleaning App included?</h3><p>No. The Booking Page + Command Center works on its own. The Cleaning App is a separate service.</p><h3>How do I get help?</h3><p>Reply to your delivery email with your business name and what you need changed. Do not send passwords or private access keys.</p>"},privacy:{title:'Privacy',body:'<p>We use account details to provide sign-in and workspace access. Information you enter about your leads is stored for your workspace and used to provide the lead management features you choose.</p><p>Do not upload information you do not have permission to manage. You are responsible for ensuring that outreach to your contacts complies with applicable privacy and marketing rules.</p><p>For questions about access, correction, or deletion of account data, use Contact below.</p>'},terms:{title:'Terms of use',body:'<p>The Launch Era Command Center is a business tool for organizing leads, notes, and follow-up activity. You are responsible for the accuracy of information you enter and for obtaining appropriate permission before sending marketing or follow-up emails.</p><p>Do not use this service for unlawful messaging, spam, or unauthorized access to other businesses’ information.</p><p>For account or service questions, contact our team before continuing.</p>'},contact:{title:'Contact support',body:'<p>Need help signing in, accessing your workspace, or managing your account? Send a message to The Launch Era support team.</p><a class="public-contact-action" href="mailto:hello@thelaunchera.com?subject=Lead%20Command%20Center%20Support">Open email to contact us →</a><p>This opens your device’s email application.</p>'}};const infoEs={"faq": {"title": "Preguntas frecuentes", "body": "<h3>¿Cómo empiezo?</h3><p>Entra con el correo de tu compra y abre tu espacio de trabajo.</p><h3>¿Dónde está mi página de reservas?</h3><p>Recibirás ambos enlaces por correo cuando tu sistema esté listo.</p><h3>¿Puedo cambiar mis precios?</h3><p>Abre Precios y servicios, actualiza los datos y guarda.</p><h3>¿Cómo cambio mis horarios?</h3><p>En Disponibilidad puedes editar horarios, días libres y duración de los servicios.</p><h3>¿Todas las solicitudes se confirman solas?</h3><p>Las reservas con precio fijo pueden confirmarse; los estimados o trabajos especiales pueden necesitar revisión.</p><h3>¿Dónde veo mis solicitudes?</h3><p>Revisa Prospectos y embudo o Solicitudes recibidas.</p><h3>¿Cómo funcionan los seguimientos?</h3><p>Tras verificar el correo del negocio, los primeros dos seguimientos pueden enviarse automáticamente; el tercero es manual. Las respuestas y bajas cancelan los siguientes.</p><h3>¿Puedo usar Gmail?</h3><p>Puedes entrar con Gmail. Para enviar correos automáticos desde tu negocio, necesitas verificar el servicio de envío.</p><h3>¿Incluye la Cleaning App?</h3><p>No, es un producto independiente.</p><h3>¿Cómo pido ayuda?</h3><p>Responde al correo de entrega e indica tu negocio y qué necesitas ajustar. Nunca envíes contraseñas.</p>"}, "privacy": {"title": "Privacidad", "body": "<p>Utilizamos los datos de cuenta para permitir el acceso a tu espacio. La información de prospectos se guarda para ofrecer las funciones de gestión que elijas.</p><p>No añadas datos que no estés autorizada a administrar. Debes cumplir las normas aplicables de privacidad y comunicación comercial.</p><p>Para consultas sobre acceso, corrección o eliminación de datos, utiliza Contacto.</p>"}, "terms": {"title": "Términos de uso", "body": "<p>Command Center permite organizar prospectos, notas y seguimientos. Eres responsable de la exactitud de los datos y de obtener los permisos necesarios antes de enviar mensajes.</p><p>No utilices este servicio para spam, comunicaciones ilegales ni acceso no autorizado.</p>"}, "contact": {"title": "Contactar a soporte", "body": "<p>¿Necesitas ayuda con tu cuenta o espacio de trabajo? Comunícate con el equipo de The Launch Era.</p><a class='public-contact-action' href='mailto:hello@thelaunchera.com?subject=Lead%20Command%20Center%20Support'>Escribir a soporte →</a><p>Se abrirá la aplicación de correo de tu dispositivo.</p>"}};const dialog=document.getElementById('publicInfoDialog');const title=document.getElementById('publicInfoTitle');const body=document.getElementById('publicInfoBody');document.querySelectorAll('[data-public-info]').forEach(el=>{el.addEventListener('click',function(e){e.preventDefault();const entry=(localStorage.getItem('tle_crm_language')==='es'?infoEs:info)[el.dataset.publicInfo];if(!entry)return;title.textContent=entry.title;body.innerHTML=entry.body;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','')})});document.getElementById('publicInfoClose').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initLegal);else initLegal()})();</script><script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 const db=createClient('https://bowacxhmjvrqixtwaikv.supabase.co','sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'tle-crm-auth'}});
-const $=id=>document.getElementById(id);if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(new URL('sw.js',location.href).pathname).catch(err=>console.warn('Push service worker unavailable',err.message)))}function hideTleLoading(){const el=$('tleLoading');if(!el)return;el.classList.add('tle-loading-hide');setTimeout(()=>el.remove(),280)}let activeAuthUserId=null,bootGeneration=0;let workspace=null,leads=[],editing=null,emailSentByLead=new Map(),emailBouncedByLead=new Map(),accountEmail='';
+const $=id=>document.getElementById(id);
+const crmLocaleText=(en,es)=>localStorage.getItem('tle_crm_language')==='es'?es:en;
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(new URL('sw.js',location.href).pathname).catch(err=>console.warn('Push service worker unavailable',err.message)))}function hideTleLoading(){const el=$('tleLoading');if(!el)return;el.classList.add('tle-loading-hide');setTimeout(()=>el.remove(),280)}let activeAuthUserId=null,bootGeneration=0;let workspace=null,leads=[],editing=null,emailSentByLead=new Map(),emailBouncedByLead=new Map(),accountEmail='';
 const say=s=>{$('message').textContent=s;if($('editor')?.open){const status=$('followupStatus');if(status)status.textContent=s}};
 async function check(result){if(result.error)throw result.error;return result.data}
 
@@ -1540,13 +1542,13 @@ async function loadOwnerDeliveries(){
  panel.classList.toggle('hidden',!workspace?.is_internal);
  if(!workspace?.is_internal)return;
  const list=$('ownerDeliveryList'),status=$('ownerDeliveryStatus');
- status.textContent='Checking customer delivery status… / Revisando entregas…';list.replaceChildren();
+ status.textContent=crmLocaleText("Checking customer delivery status…","Revisando entregas…");list.replaceChildren();
  try{
   const startedWith=workspace.id;
   const {data,error}=await db.rpc('tle_booking_flow_owner_pending');if(error)throw error;
   if(!workspace?.is_internal||workspace.id!==startedWith)return;
   const entries=Array.isArray(data)?data:[];
-  if(!entries.length){status.textContent='No paid accounts waiting for delivery / No hay compras pendientes';return}
+  if(!entries.length){status.textContent=crmLocaleText("No paid accounts waiting for delivery","No hay compras pendientes");return}
   const deliveredCount=entries.filter(a=>a.activation_email_delivery_status==='delivered'&&a.activation_email_link_version==='handoff-v2').length;
   status.textContent=entries.length+' paid account(s) / compra(s) · '+deliveredCount+' verified activation email(s) delivered. Final delivery requires your approval. / Activaciones entregadas verificadas: '+deliveredCount+'.';
   for(const a of entries){
@@ -1592,15 +1594,15 @@ async function loadOwnerDeliveries(){
        'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
     msg.style.cssText='margin:0;font-size:12px;line-height:1.55';msg.setAttribute('role','status');
     send.onclick=async()=>{
-      if(kind.value==='other'&&!other.value.trim()){msg.textContent='Name the service / Escribe el servicio';other.focus();return}
+      if(kind.value==='other'&&!other.value.trim()){msg.textContent=crmLocaleText("Name the service","Escribe el servicio");other.focus();return}
       const to=String(a.owner_email||'').trim();
-      if(!to.includes('@')){msg.textContent='Invalid buyer email / Correo inválido';return}
+      if(!to.includes('@')){msg.textContent=crmLocaleText("Invalid buyer email","Correo inválido");return}
       if(!confirm('Send activation to '+to+' for '+(a.business_name||'this business')+' ('+kind.options[kind.selectedIndex].text+')? Final delivery will NOT be sent. / ¿Confirmas el envío?'))return;
-      send.disabled=true;msg.textContent='Requesting activation… / Enviando…';
+      send.disabled=true;msg.textContent=crmLocaleText("Requesting activation…","Enviando activación…");
       try{
         const result=await sendOwnerActivationFor(a.id,kind.value,kind.value==='other'?other.value.trim():'');
         msg.textContent=result.already_sent?'✓ Activation already accepted recently; no duplicate. / No se envió duplicado.':'✓ Accepted by Resend for '+to+'. Inbox delivery pending. / Aceptado por Resend; entrega pendiente.';
-        send.textContent='✓ Activation requested / Activación solicitada';
+        send.textContent=crmLocaleText("✓ Activation requested","✓ Activación solicitada");
       }catch(e){send.disabled=false;msg.textContent='Not sent / No enviado: '+e.message}
     };
     activation.append(send,msg);item.append(activation);
@@ -1615,7 +1617,7 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
    const qaButton=deliveryNode('button','Run private lead test / Probar entrada de lead');qaButton.type='button';qaButton.className='secondary';qaButton.style.cssText='max-width:100%;white-space:normal';
    const qaStatus=deliveryNode('p','Not yet tested / Pendiente de prueba');qaStatus.style.cssText='font-size:12px;margin:0';qaStatus.setAttribute('role','status');qaStatus.setAttribute('aria-live','polite');
    qaButton.onclick=async()=>{
-     qaButton.disabled=true;qaStatus.textContent='Testing private lead routing… / Comprobando…';
+     qaButton.disabled=true;qaStatus.textContent=crmLocaleText("Testing private lead routing…","Comprobando conexión privada de contactos…");
      try{
        const {data:{session},error:sessionError}=await db.auth.getSession();
        if(sessionError||!session?.access_token)throw Error('Sign in to the owner Command Center first');
@@ -1623,8 +1625,8 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
         body:JSON.stringify({account_id:a.id,action:'qa_test_lead'})});
        const result=await response.json().catch(()=>({}));
        if(!response.ok||!result.ok)throw Error(result.error||'Routing test failed');
-       qaStatus.textContent='✓ PASS — Request saved → correct private Command Center → QA record removed. No email or booking sent. / PASS: lead recibido y vinculado correctamente. Sin correos ni reservas.';
-       qaButton.textContent='✓ Retest lead routing / Repetir prueba';
+       qaStatus.textContent=crmLocaleText("✓ PASS — Request saved → correct private Command Center → QA record removed. No email or booking sent.","✓ PRUEBA APROBADA — La solicitud llegó al Command Center correcto y se eliminó. Sin correos ni reservas reales.");
+       qaButton.textContent=crmLocaleText("✓ Retest lead routing","✓ Repetir prueba de conexión");
      }catch(e){qaStatus.textContent='Not verified / No verificado: '+(e.message||String(e))}
      finally{qaButton.disabled=false}
    };
@@ -1640,8 +1642,8 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
    item.appendChild(checks);
    const action=deliveryNode('button','Approve & send 2 access links + guide / Aprobar y entregar');action.type='button';action.className='secondary delivery-qa-action';
    action.onclick=async()=>{
-    if(item.dataset.clientReviewApproved!=='true'){status.textContent='Buyer approval is required before final delivery / Falta la aprobación del cliente';return}
-    if(!Object.values(inputs).every(input=>input.checked)){status.textContent='Complete all six checks before sending / Marca las seis pruebas primero';return}
+    if(item.dataset.clientReviewApproved!=='true'){status.textContent=crmLocaleText("Buyer approval is required before final delivery","Falta la aprobación del cliente antes de entregar");return}
+    if(!Object.values(inputs).every(input=>input.checked)){status.textContent=crmLocaleText("Complete all six checks before sending","Completa las seis comprobaciones antes de enviar");return}
     const description=(a.business_name||'business')+' ('+(a.owner_email||'buyer')+')';
     if(!confirm('Final delivery to '+description+'? The email will include the real Booking Page, private Command Center and bilingual guide. / ¿Confirmas la entrega?'))return;
     action.disabled=true;status.textContent='Checking and queuing delivery…';
@@ -1906,7 +1908,7 @@ async function loadOwnerBuilder(){
   for(let n=1;n<=3;n++){const r=brand.reviews?.[n-1]||{};for(const key of ['name','text','rating'])buildField(form,'review_'+n+'_'+key,r[key]??'')}
   buildRenderStatus();
   setBuyerClientEmailChoice();
- }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
+ }catch(e){builderState=null;status.textContent=crmLocaleText("Could not load buyer setup: ","No se pudo cargar la configuración: ")+e.message}
 }
 $('buildBack').onclick=()=>premiumNavigate('owner-pages');
 $('buildOpenCal').onclick=()=>{if(ownerReviewAccount?.id)openBuyerWorkCalendar(ownerReviewAccount.id)};
@@ -1964,7 +1966,7 @@ $('buildBrandForm').onsubmit=async e=>{
   await ownerStudioCall('save',{branding:{...formData,reviews,service_photo_paths}});
   await loadOwnerBuilder();
   $('buildStatus').textContent=buildLabel('Design saved. Open the real preview and approve it.','Diseño guardado. Revisa la vista real y apruébala.');
- }catch(error){$('buildStatus').textContent='Not saved / No se guardó: '+error.message}
+ }catch(error){$('buildStatus').textContent=crmLocaleText("Not saved: ","No se guardó: ")+error.message}
  finally{button.disabled=false}
 };
 async function loadBuilderRealPreview(){
@@ -1994,7 +1996,7 @@ async function loadBuilderRealPreview(){
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(builderPreviewData.language==='es'?'es':'en');
   if(window.matchMedia('(max-width:760px)').matches)setOwnerBookingPreviewFullscreen(true);
   status.textContent=buildLabel('Private buyer preview. Submit a sample request to verify lead routing: no actual email, booking or follow-up is created.','Vista privada. Envía una solicitud de prueba para verificar la llegada del lead; no se crean correos ni reservas.');
- }catch(e){status.textContent='Preview unavailable / Vista no disponible: '+e.message}
+ }catch(e){status.textContent=crmLocaleText("Preview unavailable: ","Vista previa no disponible: ")+e.message}
 }
 let ownerPreviewMode='desktop';
 function setOwnerBookingPreviewMode(mode){
@@ -2435,7 +2437,7 @@ async function loadOwnerPages(){
   ownerPurchases=Array.isArray(data)?data:[];
   renderOwnerPurchases();
  }catch(e){
-  $('ownerPagesStatus').textContent='Could not load purchases / No se pudieron cargar: '+e.message;
+  $('ownerPagesStatus').textContent=crmLocaleText("Could not load purchases: ","No se pudieron cargar las compras: ")+e.message;
   $('ownerPagesList').replaceChildren();
   $('ownerPurchaseStats').replaceChildren();
  }
@@ -2450,7 +2452,7 @@ function ownerPageStat(label,value){
 }
 async function renderOwnerPagePreview(){
  if(!ownerReviewAccount||!workspace?.is_internal)return premiumNavigate('owner-pages');
- const status=$('ownerPagePreviewStatus'),root=$('ownerPagePreviewBody');root.replaceChildren();status.textContent='Preparing private preview… / Preparando vista privada…';
+ const status=$('ownerPagePreviewStatus'),root=$('ownerPagePreviewBody');root.replaceChildren();status.textContent=crmLocaleText("Preparing private preview…","Preparando vista previa privada…");
  try{
   const [pr,av]=await Promise.all([pricingCall('get'),availabilityCall('get')]);
   const es=buyerPageLabel();const name=ownerReviewAccount.business_name||'Cleaning Business';
@@ -2490,7 +2492,7 @@ async function renderOwnerPagePreview(){
   const note=ownerPageElem('p',es?'Vista privada de servicios y horarios guardados. Las reservas públicas solo se habilitan cuando todo está preparado, probado y entregado.':'Private preview of saved services and hours. Public booking opens only after the system has been fully configured, tested and delivered.','font-size:13px;color:#5c707d;line-height:1.6;margin-top:18px');
   root.appendChild(note);
   if(pr.booking_url&&pr.delivery_ready){const link=ownerPageElem('a',es?'Abrir la Booking Page publicada ↗':'Open published Booking Page ↗');link.href=pr.booking_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='display:inline-block;margin-top:14px';root.appendChild(link)}
- }catch(e){status.textContent='Preview unavailable / Vista previa no disponible: '+e.message}
+ }catch(e){status.textContent=crmLocaleText("Preview unavailable: ","Vista previa no disponible: ")+e.message}
 }
 $('ownerPagesRefresh').onclick=loadOwnerPages;
 $('ownerBackPages').onclick=()=>premiumNavigate('owner-pages');
@@ -3061,7 +3063,7 @@ $('buyerReviewApprove').onclick=async()=>{
 };
 $('buyerReviewSend').onclick=async()=>{
  const button=$('buyerReviewSend'),status=$('buyerClientReviewStatus'),feedback=$('buyerReviewFeedback').value.trim();
- if(feedback.length<12){status.textContent='Describe the changes you need in at least 12 characters. / Describe el cambio con más detalle.';return}
+ if(feedback.length<12){status.textContent=crmLocaleText("Describe the changes you need in at least 12 characters.","Describe los cambios que necesitas con al menos 12 caracteres.");return}
  if(!confirm('Send your correction request? This uses one included revision. / ¿Enviar y descontar una revisión?'))return;
  button.disabled=true;status.textContent='Sending your request to The Launch Era…';
  try{buyerClientReviewState=await clientReviewRequest('buyer_decision',{decision:'request_changes',feedback});renderBuyerClientReview();}
