@@ -288,8 +288,9 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 </article>
 <article class="panel" id="buildAccessPanel" style="padding:22px;margin:16px 0;scroll-margin-top:24px"><h3>4. Prepare private access / Preparar acceso privado</h3>
 <p class="muted">First save the design, set prices and open hours, then approve the preview. Preparing access does not publish bookings or send the final delivery email. / No publica la página ni manda el correo final.</p>
-<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" id="buildPrepare" class="secondary">Prepare system / Preparar sistema</button><button type="button" id="buildInvite" class="secondary">Send private account invitation / Invitar compradora</button></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" id="buildRunPreflight" class="secondary">Verify privately — no email / Verificar sin enviar correo</button><button type="button" id="buildPrepare" class="secondary">Prepare system / Preparar sistema</button><button type="button" id="buildInvite" class="secondary">Send private account invitation / Invitar compradora</button></div>
 <p id="buildInviteStatus" role="status" class="muted"></p>
+<section id="buildPrivateCheckResult" aria-live="polite" style="margin:14px 0 0;max-width:720px"></section>
 </article>
 <article class="panel" style="padding:22px;margin:16px 0"><h3>5–6. Test & deliver / Probar y entregar</h3><p class="muted">Confirm buyer sign-in, lead routing, services, availability, follow-ups, notifications and account privacy. Then approve the six delivery checks in Settings. / Prueba todo y aprueba la entrega.</p><button type="button" id="buildFinalChecks">Open final QA & delivery / Revisar y entregar</button></article>
 </section><section id="ownerPagePreviewHub" class="hidden premium-emailhub">
@@ -1257,6 +1258,55 @@ $('buildMarkReviewed').onclick=async()=>{
   status.textContent=note.textContent;
   btn.disabled=false;btn.textContent=buildLabel('Approve the design','Aprobar diseño');
  }
+};
+$('buildRunPreflight').onclick=async()=>{
+ const button=$('buildRunPreflight'),output=$('buildPrivateCheckResult');
+ if(!workspace?.is_internal||!ownerReviewAccount?.id)return;
+ const id=ownerReviewAccount.id;
+ button.disabled=true;button.textContent=buildLabel('Checking privately…','Verificando en privado…');
+ output.replaceChildren();
+ const note=ownerPageElem('p',buildLabel('Reviewing only; no emails, reservations or access invitations.','Solo revisión; no se envían correos, reservas ni invitaciones.'),'color:#386786;font-size:13px;font-weight:700;line-height:1.55');
+ output.append(note);
+ try{
+  const data=await ownerStudioCall('preflight');
+  if(ownerReviewAccount?.id!==id)return;
+  output.replaceChildren();
+  const header=ownerPageElem('div',undefined,'background:#eff6fd;border:1px solid #d6e7f5;border-radius:16px;padding:16px');
+  header.append(ownerPageElem('strong',data.setup_ready?buildLabel('✓ CB Depot configuration verified privately','✓ Configuración de CB Depot verificada en privado'):buildLabel('CB Depot: configuration needs attention','CB Depot: hay configuraciones pendientes'),'font-size:15px;color:#214a69;display:block'));
+  header.append(ownerPageElem('p',buildLabel('No emails, reservations, invitations or workspaces were created.','No se crearon correos, reservas, invitaciones ni espacios de trabajo.'),'margin:6px 0 0;font-size:12px;color:#486778;line-height:1.5'));
+  output.append(header);
+  const checks=[
+   ['Payment and intake / Pago y formulario',data.checks?.paid&&data.checks?.intake],
+   ['Design approved / Diseño aprobado',data.checks?.design],
+   ['Active services / Servicios activos',data.checks?.services],
+   ['Business hours / Horarios',data.checks?.hours],
+   ['Booking Page prepared / Booking Page preparada',data.checks?.booking_page],
+   ['Buyer identity exists / Identidad registrada',data.checks?.identity_exists],
+   ['Buyer email verified / Correo del cliente verificado',data.checks?.identity_verified],
+   ['Private Command Center linked / Command Center vinculado',data.checks?.workspace_linked],
+   ['Final delivery sent / Entrega final enviada',data.checks?.public_delivery]
+  ];
+  const grid=ownerPageElem('div',undefined,'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:8px;margin:12px 0');
+  for(const [label,passed] of checks){
+   const cell=ownerPageElem('div',undefined,'background:'+(passed?'#f0f8f5':'#fff6e9')+';border:1px solid '+(passed?'#c9e6d9':'#f0ddc4')+';border-radius:11px;padding:11px;color:#304e62;font-size:12px;font-weight:700;line-height:1.4');
+   cell.append(ownerPageElem('span',(passed?'✓ ':'○ ')+label));
+   grid.append(cell);
+  }
+  output.append(grid);
+  const days={0:'Sun',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  const schedule=(data.open_days||[]).map(x=>days[x.day]+' '+x.start+'–'+x.end).join(' · ');
+  const svc=Array.isArray(data.service_names)?data.service_names.join(' · '):'';
+  output.append(ownerPageElem('p',buildLabel('Services: ','Servicios: ')+svc,'font-size:12px;line-height:1.6;color:#496276'));
+  output.append(ownerPageElem('p',buildLabel('Hours: ','Horario: ')+schedule,'font-size:12px;line-height:1.6;color:#496276'));
+  output.append(ownerPageElem('p',buildLabel('Existing requests: ','Solicitudes existentes: ')+Number(data.request_count||0),'font-size:12px;line-height:1.5;color:#496276'));
+  const next=data.checks?.workspace_linked?
+   buildLabel('Workspace linked; real login and tenant isolation still need testing before delivery.','Espacio vinculado; todavía falta probar el inicio de sesión y el aislamiento antes de entregar.'):
+   data.checks?.identity_verified?
+   buildLabel('Customer identity verified. Private linkage is pending; use the invitation step only when you authorize it.','Identidad verificada. Falta vincular su espacio; usa la invitación solo cuando la autorices.'):
+   buildLabel('Customer email is not verified yet. Real login is blocked until verification; do not send the product yet.','El correo del cliente no está verificado. El acceso real requiere verificarlo; no entregues el producto todavía.');
+  output.append(ownerPageElem('p',next,'background:#fff8e8;border:1px solid #f1dfbc;padding:13px;border-radius:12px;font-size:12px;font-weight:700;line-height:1.55'));
+ }catch(e){output.replaceChildren(ownerPageElem('p',buildLabel('Private verification failed: ','Error en verificación privada: ')+e.message,'color:#a13931;font-size:13px'))}
+ finally{button.disabled=false;button.textContent=buildLabel('Verify privately — no email','Verificar sin enviar correo')}
 };
 $('buildPrepare').onclick=async()=>{
  const btn=$('buildPrepare'),note=$('buildInviteStatus');
