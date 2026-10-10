@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-ipad-auth-fallback-v25"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-ipad-startup-recovery-v26"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -410,22 +410,24 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <script id="tleBootRecovery">
 /* This executes independently of remote module imports, including in iOS Home Screen apps. */
 (function(){
+ var spanish=false;try{spanish=localStorage.getItem('tle_crm_language')==='es'}catch(_){}
+ var splashText=document.querySelector('#tleLoading > span');if(spanish&&splashText)splashText.textContent='Cargando tu espacio de trabajo…';
  var timer=window.setTimeout(function(){
   var cover=document.getElementById('tleLoading');
   if(!cover||cover.classList.contains('tle-loading-hide')||window.__tleBootReady)return;
   var copy=cover.querySelector('span');
-  if(copy)copy.textContent='Taking longer than expected to connect. Your data is safe.';
+  if(copy)copy.textContent=spanish?'La conexión tarda más de lo esperado. Tus datos están seguros.':'Taking longer than expected to connect. Your data is safe.';
   if(cover.querySelector('#tleBootRecoveryActions'))return;
   var actions=document.createElement('div');actions.id='tleBootRecoveryActions';
   actions.style.cssText='display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:9px;padding:0 18px;max-width:330px;text-align:center';
-  var retry=document.createElement('button');retry.type='button';retry.textContent='Try again';
+  var retry=document.createElement('button');retry.type='button';retry.textContent=spanish?'Volver a intentar':'Try again';
   retry.style.cssText='background:#191919;color:#fff;border:0;border-radius:999px;padding:12px 30px;font-size:14px;font-weight:700;cursor:pointer';
   retry.onclick=function(){location.reload()};
-  var browser=document.createElement('a');browser.textContent='Open web version ↗';
+  var browser=document.createElement('a');browser.textContent=spanish?'Abrir versión web ↗':'Open web version ↗';
   browser.href='https://the-launch-era-crm.dailinsegura17.workers.dev/';
   browser.target='_blank';browser.rel='noopener noreferrer';
   browser.style.cssText='font-size:13px;color:#326d9f;text-decoration:underline;padding:6px';
-  var note=document.createElement('small');note.textContent='You will not lose your client data or change any bookings.';
+  var note=document.createElement('small');note.textContent=spanish?'No perderás datos de clientes ni cambiarás ninguna reserva.':'You will not lose your client data or change any bookings.';
   note.style.cssText='color:#667e8d;font-size:12px;line-height:1.5';
   actions.append(retry,browser,note);cover.append(actions);
  },14000);
