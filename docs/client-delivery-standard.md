@@ -76,3 +76,11 @@
 - The managed follow-up job runs every 20 minutes using a worker token; it checks the Resend incoming mailbox before choosing a due reminder. Any unprocessed incoming buyer reply blocks the next reminder instead of risking an unwanted email.
 - All managed replies and follow-up test data must be deleted after QA. The private test verified reply-stop and forwarding to the agency inbox, but real CB Depot owner notification and real post-delivery booking still require final QA and buyer approval.
 - Buyers should see `Managed by The Launch Era` in the Email Automation panel. Do not show customer Resend API key forms on this product.
+
+## Manual 12-hour client design-review reminder
+
+- Applies to the Booking Page + Command Center client approval stage, not to customers making a booking. The owner may send **one manual review reminder per design/retest cycle** from **Owner Settings → Client Delivery**.
+- The 12-hour clock begins only when the personalized design has been approved for preview **and** the buyer's private access invitation was sent; on a corrected retest it begins at `ready_at`.
+- The reminder button is never shown as ready before 12 elapsed hours; it disappears when the buyer approves, requests changes, or the order is delivered. Reminders do not use revisions or count as the final handoff.
+- A server-side transaction claims each reminder once, prevents duplicates across devices and checks buyer status before sending. A failed/ambiguous provider response must be investigated rather than automatically retried.
+- The bilingual email directs the buyer to their own private Test Center to choose Approve & Continue or Request Changes. No automatic reminder job is scheduled.
