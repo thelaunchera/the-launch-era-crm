@@ -1,0 +1,19 @@
+{
+  "id": "/?app=cb-depot",
+  "name": "CB Depot Command Center",
+  "short_name": "CB Depot",
+  "description": "Private CB Depot operations workspace",
+  "start_url": "/?app=cb-depot",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#191919",
+  "icons": [
+    {
+      "src": "https://d2ol7oe51mr4n9.cloudfront.net/user_3FC9GcVebQE6WAxiCP5Hh9w95GF/e7419bba-8612-4c2d-81e2-6e5a971d4db8.jpg",
+      "sizes": "1254x1254",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

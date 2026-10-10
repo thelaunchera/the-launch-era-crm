@@ -1,0 +1,19 @@
+{
+  "id": "/?app=tle",
+  "name": "The Launch Era Command Center",
+  "short_name": "TLE Command",
+  "description": "The Launch Era Command Center",
+  "start_url": "/?app=tle",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#191919",
+  "icons": [
+    {
+      "src": "https://d2ol7oe51mr4n9.cloudfront.net/user_3FC9GcVebQE6WAxiCP5Hh9w95GF/fa37d208-8432-4a17-8b75-fe77f091cd64.jpg",
+      "sizes": "1254x1254",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
