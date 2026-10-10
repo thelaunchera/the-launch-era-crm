@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-owner-qa-center-v23"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-ipad-loading-recovery-v24"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -406,7 +406,32 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <p id="paMessage">Verifying your private access securely…</p>
 <div class="pa-spin" id="paSpin" aria-hidden="true"></div>
 <button type="button" id="paReturn">Go to sign in →</button>
-</div></div><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section>
+</div></div><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div>
+<script id="tleBootRecovery">
+/* This executes independently of remote module imports, including in iOS Home Screen apps. */
+(function(){
+ var timer=window.setTimeout(function(){
+  var cover=document.getElementById('tleLoading');
+  if(!cover||cover.classList.contains('tle-loading-hide')||window.__tleBootReady)return;
+  var copy=cover.querySelector('span');
+  if(copy)copy.textContent='Taking longer than expected to connect. Your data is safe.';
+  if(cover.querySelector('#tleBootRecoveryActions'))return;
+  var actions=document.createElement('div');actions.id='tleBootRecoveryActions';
+  actions.style.cssText='display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:9px;padding:0 18px;max-width:330px;text-align:center';
+  var retry=document.createElement('button');retry.type='button';retry.textContent='Try again';
+  retry.style.cssText='background:#191919;color:#fff;border:0;border-radius:999px;padding:12px 30px;font-size:14px;font-weight:700;cursor:pointer';
+  retry.onclick=function(){location.reload()};
+  var browser=document.createElement('a');browser.textContent='Open web version ↗';
+  browser.href='https://the-launch-era-crm.dailinsegura17.workers.dev/';
+  browser.target='_blank';browser.rel='noopener noreferrer';
+  browser.style.cssText='font-size:13px;color:#326d9f;text-decoration:underline;padding:6px';
+  var note=document.createElement('small');note.textContent='You will not lose your client data or change any bookings.';
+  note.style.cssText='color:#667e8d;font-size:12px;line-height:1.5';
+  actions.append(retry,browser,note);cover.append(actions);
+ },14000);
+ window.addEventListener('tle-crm-ready',function(){clearTimeout(timer)},{once:true});
+})();
+</script><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section>
 <section id="buyerPasswordSetup" class="hidden" aria-labelledby="buyerPasswordTitle">
  <span class="enrollment-mark">CB DEPOT · PRIVATE ACCOUNT</span>
  <h2 id="buyerPasswordTitle">Secure your Command Center</h2>
@@ -934,7 +959,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 const db=createClient('https://bowacxhmjvrqixtwaikv.supabase.co','sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'tle-crm-auth'}});
 const $=id=>document.getElementById(id);
 const crmLocaleText=(en,es)=>localStorage.getItem('tle_crm_language')==='es'?es:en;
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(new URL('sw.js',location.href).pathname).catch(err=>console.warn('Push service worker unavailable',err.message)))}function hideTleLoading(){const el=$('tleLoading');if(!el)return;el.classList.add('tle-loading-hide');setTimeout(()=>el.remove(),280)}let activeAuthUserId=null,bootGeneration=0;let workspace=null,leads=[],editing=null,emailSentByLead=new Map(),emailBouncedByLead=new Map(),accountEmail='';
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(new URL('sw.js',location.href).pathname).catch(err=>console.warn('Push service worker unavailable',err.message)))}function hideTleLoading(){window.__tleBootReady=true;window.dispatchEvent(new Event('tle-crm-ready'));const el=$('tleLoading');if(!el)return;el.classList.add('tle-loading-hide');setTimeout(()=>el.remove(),280)}let activeAuthUserId=null,bootGeneration=0;let workspace=null,leads=[],editing=null,emailSentByLead=new Map(),emailBouncedByLead=new Map(),accountEmail='';
 const say=s=>{$('message').textContent=s;if($('editor')?.open){const status=$('followupStatus');if(status)status.textContent=s}};
 async function check(result){if(result.error)throw result.error;return result.data}
 
@@ -1247,7 +1272,7 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
      return;
    }
  }
- accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,business_category,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){
+ accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,business_category,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(!workspace)hideTleLoading();if(workspace){
  $('workspaceName').textContent=workspace.name;
  $('ownerOrdersCaption').classList.toggle('hidden',!workspace.is_internal);
  $('ownerProspectsCaption').classList.add('hidden');
@@ -1257,11 +1282,13 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
  if(workspace.is_internal){
   setView('owner-pages');
   document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target==='owner-pages'));
+  hideTleLoading(); // verified owner can use navigation while purchases fetch in the background
   await loadOwnerPages();
  }else{
   document.body.classList.remove('tle-owner-purchases');
   setView('buyer-dashboard');
   document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target==='home'));
+  hideTleLoading(); // verified buyer sees their private dashboard without waiting for all request lists
   await load();
   await loadBuyerRequests();
  }
