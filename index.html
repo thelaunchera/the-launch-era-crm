@@ -3136,12 +3136,12 @@ window.addEventListener('message',async event=>{
  const answer=(payload)=>frame.contentWindow?.postMessage(
   {type:'TLE_OWNER_PREVIEW_QA_RESULT',nonce,...payload},'https://thelaunchera.com');
  if(buyerPreviewQaRunning){
-  answer({ok:false,verified:false,error:'Another private test is already running.'});
+  answer({ok:false,verified:false,error:buyerText('Another private test is already running.','Ya se está realizando otra prueba privada.')});
   return;
  }
  buyerPreviewQaRunning=true;
  const status=$('buyerBookingPreviewStatus');
- status.textContent='Running your private test: checking that the sample request reaches this Command Center…';
+ status.textContent=buyerText('Running your private test: checking that the sample request reaches this Command Center…','Realizando prueba privada: comprobando que la solicitud llegue a este Command Center…');
  try{
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError||!session?.access_token)throw Error('Sign in again to run the test.');
@@ -3159,11 +3159,11 @@ window.addEventListener('message',async event=>{
   if(!response.ok||result.ok!==true||result.verified!==true||
      result.correct_private_workspace!==true||result.test_data_deleted!==true)
    throw Error(result.error||'The sample request was not verified.');
-  status.textContent='✓ TEST PASSED — Request reached the correct private Command Center. Sample removed. No real booking, customer email, or charge.';
+  status.textContent=buyerText('✓ TEST PASSED — Request reached the correct private Command Center. Sample removed. No real booking, customer email, or charge.','✓ PRUEBA APROBADA — La solicitud llegó al Command Center correcto. Se eliminó el ejemplo y no se creó ninguna reserva, correo ni cargo real.');
   answer({ok:true,verified:true,test_data_deleted:true,no_customer_email_sent:true,no_booking_created:true});
  }catch(error){
-  status.textContent='TEST FAILED — '+(error.message||String(error));
-  answer({ok:false,verified:false,error:error.message||'Please try again.'});
+  status.textContent=buyerText('TEST FAILED — '+(error.message||String(error)),'PRUEBA FALLIDA — No se pudo verificar la solicitud. Actualiza la vista previa e inténtalo de nuevo.');
+  answer({ok:false,verified:false,error:buyerText(error.message||'Please try again.','No se pudo completar la prueba. Inténtalo de nuevo.')});
  }finally{buyerPreviewQaRunning=false}
 });
 async function loadBuyerBookingPreview(){
@@ -3173,7 +3173,7 @@ async function loadBuyerBookingPreview(){
  buyerClientReviewState=null;renderBuyerClientReview();
  buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
  const status=$('buyerBookingPreviewStatus'),frame=$('buyerBookingPreviewFrame'),id=workspace.id;
- status.textContent='Preparing your real Booking Page design safely…';
+ status.textContent=buyerText('Preparing your real Booking Page design safely…','Preparando de forma segura el diseño real de tu página de reservas…');
  try{
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError||!session?.access_token)throw Error('Please sign in with your password first.');
@@ -3185,18 +3185,18 @@ async function loadBuyerBookingPreview(){
   if(workspace?.id!==id||workspace.is_internal)return;
   const config=payload.config;
   if(typeof config.qa_nonce!=='string'||!config.qa_nonce)throw Error('Private QA is not ready. Refresh the preview.');
-  $('buyerBookingPreviewBusiness').textContent=(String(config.business_name||workspace?.name||'Your business').slice(0,110))+' · Test mode';
+  $('buyerBookingPreviewBusiness').textContent=(String(config.business_name||workspace?.name||buyerText('Your business','Tu negocio')).slice(0,110))+buyerText(' · Test mode',' · Modo de prueba');
   buyerPreviewQaNonce=config.qa_nonce;buyerPreviewQaWorkspace=id;
   frame.onload=()=>{if(frame.contentWindow&&workspace?.id===id)frame.contentWindow.postMessage(
    {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en')+'&preview_refresh='+Date.now();
-  status.textContent='✓ Private Test Center ready with your latest saved services and prices. Sample requests verify your own Command Center routing and are deleted automatically; no real booking or email is sent.';
+  status.textContent=buyerText('✓ Private Test Center ready with your latest saved services and prices. Sample requests verify your own Command Center routing and are deleted automatically; no real booking or email is sent.','✓ Centro de Pruebas privado listo con los servicios y precios guardados. Las solicitudes de prueba comprueban que llegan a tu Command Center y se eliminan automáticamente; no se crean reservas ni se envían correos reales.');
   if(payload.delivered===true){buyerClientReviewState={status:'approved',delivered:true};renderBuyerClientReview();}
   else void loadBuyerClientReview();
  }catch(error){
   buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
   frame.onload=null;frame.removeAttribute('src');
-  status.textContent='Preview unavailable: '+(error.message||String(error));
+  status.textContent=buyerText('Preview unavailable: '+(error.message||String(error)),'Vista previa no disponible. Actualiza la pantalla o contacta con soporte.');
  }finally{buyerPreviewLoading=false}
 }
 function renderBuyerDashboard(){
