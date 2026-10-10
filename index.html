@@ -238,7 +238,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-private-lead-qa-v8"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-qa-bridge-v9"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -1436,6 +1436,29 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
 
 const ownerStudioEndpoint='https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-booking-owner-studio';
 let builderState=null,builderPreviewData=null;
+let previewLeadTestInProgress=false;
+window.addEventListener('message',async event=>{
+ if(event.origin!=='https://thelaunchera.com'||event.source!==$('buildLiveFrame')?.contentWindow
+  ||event.data?.type!=='TLE_OWNER_PREVIEW_QA_REQUEST')return;
+ const nonce=event.data?.nonce;
+ if(!nonce||nonce!==builderPreviewData?.qa_nonce||!workspace?.is_internal||!ownerReviewAccount?.id)return;
+ const frame=$('buildLiveFrame'),accountId=ownerReviewAccount.id;
+ const respond=(payload)=>frame?.contentWindow?.postMessage({type:'TLE_OWNER_PREVIEW_QA_RESULT',nonce,...payload},'https://thelaunchera.com');
+ if(previewLeadTestInProgress){respond({ok:false,error:'A QA request is already being checked.'});return}
+ previewLeadTestInProgress=true;
+ try{
+  const request=event.data.request||{};
+  const result=await ownerStudioCall('qa_test_lead',{qa_payload:{
+    service_name:String(request.service_name||'').slice(0,120),
+    vehicle_type:String(request.property_type||'').slice(0,80),
+    requested_date:String(request.requested_date||'').slice(0,10)
+  }});
+  if(ownerReviewAccount?.id!==accountId)return;
+  $('buildPreviewStatus').textContent='✓ Private form test PASSED: Preview submission → correct Command Center lead. Sample deleted; no emails or bookings.';
+  respond({ok:!!result.ok,verified:!!result.linked_to_crm,error:result.error||''});
+ }catch(error){respond({ok:false,error:error.message||'Lead QA failed'})}
+ finally{previewLeadTestInProgress=false}
+});
 async function ownerStudioCall(action,extra={}){
  if(!workspace?.is_internal||!ownerReviewAccount?.id)throw Error('Select a paid buyer order first');
  const {data:{session},error:e}=await db.auth.getSession();
@@ -1739,12 +1762,12 @@ async function loadBuilderRealPreview(){
      (studio.uploaded_photos||[]).find(x=>x.path===b.service_photos?.[k]?.path)?.preview_url||b.service_photos?.[k]?.url||null]))},
    currency:price.settings?.currency||'USD',services:svc,addons:price.settings?.addons||[],
    quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true,
-   availability:availability.settings||{}};
+   availability:availability.settings||{},qa_nonce:crypto.randomUUID()};
   const frame=$('buildLiveFrame');
   const send=()=>{if(frame.contentWindow&&builderPreviewData)frame.contentWindow.postMessage({type:'TLE_OWNER_BOOKING_PREVIEW',config:builderPreviewData},'*')};
   frame.onload=send;
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(builderPreviewData.language==='es'?'es':'en');
-  status.textContent=buildLabel('Private real-template preview loaded. Test services, prices and screens; submissions are disabled.','Vista real privada. Revisa servicios, precios y diseño; no se enviarán reservas.');
+  status.textContent=buildLabel('Private buyer preview. Submit a sample request to verify lead routing: no actual email, booking or follow-up is created.','Vista privada. Envía una solicitud de prueba para verificar la llegada del lead; no se crean correos ni reservas.');
  }catch(e){status.textContent='Preview unavailable / Vista no disponible: '+e.message}
 }
 $('buildPreviewReload').onclick=loadBuilderRealPreview;
