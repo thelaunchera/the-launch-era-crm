@@ -23,6 +23,22 @@ body.tle-owner-purchases #bellButton {display:none!important}
 #ownerPagesHub .order-summary-metric strong {display:block;font-size:clamp(25px,3vw,37px);letter-spacing:-.045em;color:#243d50;line-height:1.1}
 #ownerPagesHub .order-summary-metric span {display:block;font-size:12px;color:#5b7182;line-height:1.4;margin-top:8px}
 @media(max-width:750px){#ownerPagesHub .order-summary-metric{padding:16px}#ownerPurchaseFilter{flex:1 1 190px}}
+</style><style id="tleCBDepotBuyerTheme">
+/* Applied only to CB Depot's own buyer workspace, not the TLE owner or other buyers. */
+body.cb-depot-buyer{--premium-bg:#ECF5FF;--premium-ink:#20252D;--premium-border:#BCD6F2;background:#ECF5FF;color:#20252D}
+body.cb-depot-buyer #premiumSidebar{background:#20252D;border-color:#364A62}
+body.cb-depot-buyer #premiumSidebar .nav-link{color:#D9E8FA}
+body.cb-depot-buyer #premiumSidebar .nav-link.active,
+body.cb-depot-buyer #premiumSidebar .nav-link:hover{background:#1769D2;color:#fff}
+body.cb-depot-buyer #premiumSidebar .premium-brand{color:#fff}
+body.cb-depot-buyer #premiumSidebar .premium-brand small,
+body.cb-depot-buyer #premiumSidebar .nav-caption{color:#A9C3E1}
+body.cb-depot-buyer #premiumSidebar .brand-symbol{background:#1769D2;color:#fff}
+body.cb-depot-buyer .viewtabs button.active{background:#1769D2;color:#fff}
+body.cb-depot-buyer .month-cell.today .month-number{background:#1769D2;color:#fff}
+body.cb-depot-buyer .quickhome,body.cb-depot-buyer .panel{border-color:#D3E3F4}
+body.cb-depot-buyer .quickstat{background:#E7F2FF;border-color:#CDDEF2;color:#234873}
+body.cb-depot-buyer a:focus-visible,body.cb-depot-buyer button:focus-visible{outline-color:#1769D2}
 </style><style id="tleRoleIsolationStyle">
 body.crm-buyer-view #ownerPagesHub,
 body.crm-buyer-view #ownerCalendarHub,
@@ -673,7 +689,7 @@ function applyCRMRoleInterface(){
  const owner=!!workspace?.is_internal,buyer=!!workspace&&!owner;
  if(workspace){document.body.dataset.languageWorkspace=workspace.id;const saved=localStorage.getItem('tle_crm_language_'+workspace.id);const selected=saved==='es'?'es':saved==='en'?'en':owner?(localStorage.getItem('tle_crm_owner_language')||'en'):'en';document.dispatchEvent(new CustomEvent('tle-crm-language',{detail:{language:selected}}))}else delete document.body.dataset.languageWorkspace;
  document.body.classList.toggle('crm-owner-view',owner);
- document.body.classList.toggle('crm-buyer-view',buyer);document.body.classList.remove('crm-followups-focus');
+ document.body.classList.toggle('crm-buyer-view',buyer);document.body.classList.toggle('cb-depot-buyer',buyer&&String(workspace?.name||'').trim().toLowerCase()==='cb depot');document.body.classList.remove('crm-followups-focus');
  $('ownerPagesNav').classList.toggle('hidden',!owner);
  $('ownerCalendarNav').classList.toggle('hidden',!owner);$('ownerHelpNav').classList.toggle('hidden',!owner);if(!owner)$('ownerHelpHub').classList.add('hidden');
  $('ownerOrdersCaption').classList.toggle('hidden',!owner);
