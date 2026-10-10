@@ -288,7 +288,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 </article>
 <article class="panel" id="buildAccessPanel" style="padding:22px;margin:16px 0;scroll-margin-top:24px"><h3>4. Prepare private access / Preparar acceso privado</h3>
 <p class="muted">First save the design, set prices and open hours, then approve the preview. Preparing access does not publish bookings or send the final delivery email. / No publica la página ni manda el correo final.</p>
-<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" id="buildRunPreflight" class="secondary">Verify privately — no email / Verificar sin enviar correo</button><button type="button" id="buildPrepare" class="secondary">Prepare system / Preparar sistema</button><button type="button" id="buildInvite" class="secondary">Send private account invitation / Invitar compradora</button></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" id="buildRunPreflight" class="secondary">Verify privately — no email / Verificar sin enviar correo</button><button type="button" id="buildPrepare" class="secondary">Prepare system / Preparar sistema</button><button type="button" id="buildInvite" class="secondary">Open Activation Email / Abrir activación</button></div>
 <p id="buildInviteStatus" role="status" class="muted"></p>
 <section id="buildPrivateCheckResult" aria-live="polite" style="margin:14px 0 0;max-width:720px"></section>
 </article>
@@ -1109,8 +1109,8 @@ function buildRenderStatus(){
  const prepared=order.status==='active'&&!!order.has_booking_link;
  $('buildPrepare').disabled=!reviewed||!order.intake_received||prepared;
  $('buildPrepare').textContent=prepared?buildLabel('✓ System prepared','✓ Sistema preparado'):buildLabel('Prepare system','Preparar sistema');
- $('buildInvite').disabled=!reviewed||!prepared||order.workspace_ready||!order.intake_received;
- $('buildInvite').textContent=buildLabel('Send private account invitation','Enviar invitación de acceso privado');
+ $('buildInvite').disabled=!reviewed||!prepared||!order.intake_received;
+ $('buildInvite').textContent=buildLabel('Open Activation Email','Abrir correo de activación');
  delete $('buildInvite').dataset.confirmFor;
  const reviewButton=$('buildMarkReviewed');
  reviewButton.disabled=!builderState.saved||reviewed;
@@ -1361,39 +1361,10 @@ $('buildPrepare').onclick=async()=>{
   btn.disabled=false;btn.textContent=buildLabel('Prepare system','Preparar sistema');
  }
 };
-$('buildInvite').onclick=async()=>{
- const note=$('buildInviteStatus'),btn=$('buildInvite');
- if(!builderState?.reviewed||builderState.order?.status!=='active'||!builderState.order?.has_booking_link){
-  note.textContent=buildLabel('Approve the design and prepare the booking page first.','Aprueba el diseño y prepara la página primero.');
-  return;
- }
- if(builderState.order.workspace_ready){
-  note.textContent=buildLabel('The buyer already has a linked private workspace. No duplicate invitation needed.','El cliente ya tiene su espacio privado enlazado. No hace falta otra invitación.');
-  return;
- }
- const email=String(builderState.order.intake?.email||'').trim();
- if(!email||!email.includes('@')){
-  note.textContent=buildLabel('A valid purchase email is required before inviting the buyer.','Se necesita el correo válido de compra para invitar al cliente.');
-  return;
- }
- // First click previews the recipient. Second explicit click sends one private invitation.
- if(btn.dataset.confirmFor!==ownerReviewAccount.id){
-  btn.dataset.confirmFor=ownerReviewAccount.id;
-  btn.textContent=buildLabel('Confirm: send private invitation','Confirmar: enviar invitación privada');
-  note.textContent=buildLabel('Recipient: ','Destinatario: ')+email+buildLabel('. Tap Confirm to send an account invitation. This does not send the final product delivery.','. Toca Confirmar para enviar el acceso. Esto NO envía la entrega final.');
-  return;
- }
- delete btn.dataset.confirmFor;
- btn.disabled=true;btn.textContent=buildLabel('Sending invitation…','Enviando invitación…');
- note.textContent=buildLabel('Sending private account activation to ','Enviando activación privada a ')+email+'…';
- try{
-  const result=await ownerStudioCall('invite');
-  await loadOwnerBuilder();
-  note.textContent=result.note||buildLabel('✓ Private workspace linked.','✓ Espacio privado enlazado.');
- }catch(error){
-  note.textContent=buildLabel('Invitation not confirmed: ','Invitación no confirmada: ')+error.message;
-  btn.disabled=false;btn.textContent=buildLabel('Send private account invitation','Enviar invitación de acceso privado');
- }
+$('buildInvite').onclick=()=>{
+ if(!workspace?.is_internal||!ownerReviewAccount?.id)return;
+ premiumNavigate('settings');
+ $('ownerDeliveryPanel').scrollIntoView({behavior:'smooth',block:'start'});
 };
 $('buildFinalChecks').onclick=()=>{premiumNavigate('settings');$('ownerDeliveryPanel').scrollIntoView({behavior:'smooth'})};
 
