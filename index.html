@@ -247,7 +247,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <strong style="display:block;margin-bottom:6px">Photos received / Fotos recibidas</strong>
 <p style="font-size:13px;color:#5c7380;line-height:1.6">Choose the logo and main photo from the files uploaded in the intake. No URLs needed. / Elige el logo y la foto principal de las imágenes recibidas. No necesitas enlaces.</p>
 <label style="display:block;border:1px dashed #74A8CC;background:white;border-radius:14px;padding:14px;margin:12px 0;font-weight:700">📷 Upload photos yourself / Subir fotos tú misma
-<input type="file" id="buildOwnerUpload" accept="image/jpeg,image/png,image/webp" multiple style="margin-top:10px;max-width:100%;font-weight:400"></label>
+<input type="file" id="buildOwnerUpload" accept="image/*" multiple style="margin-top:10px;max-width:100%;font-weight:400"></label>
 <p id="buildUploadStatus" role="status" aria-live="polite" class="muted" style="margin:8px 0;font-size:12px">Photos from your phone or computer · JPG, PNG, WebP · up to 10 per buyer. / Fotos del teléfono o computadora · hasta 10.</p>
 <div id="buildIntakePhotos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,145px),1fr));gap:11px;margin:12px 0"></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">
@@ -1112,7 +1112,7 @@ $('buildOpenCal').onclick=()=>{if(ownerReviewAccount?.id)openBuyerWorkCalendar(o
 $('buildEditPricing').onclick=()=>premiumNavigate('pricing');
 $('buildEditAvailability').onclick=()=>premiumNavigate('availability');
 async function buildPhotoPayload(file){
- if(!/^image\/(jpeg|png|webp)$/.test(file.type))throw Error('Use JPG, PNG or WebP. / Usa JPG, PNG o WebP.');
+ if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))throw Error('Choose a supported image / Escoge una imagen compatible.');
  const source=await new Promise((resolve,reject)=>{
   const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not read photo'));reader.readAsDataURL(file);
  });
