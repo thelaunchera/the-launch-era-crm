@@ -973,6 +973,15 @@ async function loadOwnerAiDeliveries(){
  }catch(e){if(version===aiDeliveryLoadVersion)status.textContent=(es?'No se pudieron consultar los pedidos. ':'Unable to load AI orders. ')+(e.message||String(e));}
 }
 $('ownerAiDeliveryRefresh').onclick=()=>loadOwnerAiDeliveries();
+async function sendOwnerActivationFor(accountId,kind,other=''){
+ if(!workspace?.is_internal)throw Error('Owner account required');
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw Error('Please sign in again');
+ const response=await fetch(ownerStudioEndpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({account_id:accountId,action:'send_activation',business_category:kind,business_category_other:other})});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(result.error||'Activation failed');
+ return result;
+}
 async function loadOwnerDeliveries(){
  const panel=$('ownerDeliveryPanel');if(!panel)return;
  panel.classList.toggle('hidden',!workspace?.is_internal);
@@ -996,7 +1005,34 @@ async function loadOwnerDeliveries(){
    if(a.booking_page_url&&/^https:\/\//.test(a.booking_page_url)){
     const link=deliveryNode('a','Review the personalized Booking Page ↗');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';item.appendChild(link)
    }
-   if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued previously / Entrega ya registrada. No duplicate will be sent.');state.style.fontWeight='700';item.appendChild(state);list.appendChild(item);continue}
+   
+    const activationReady=a.payment_status==='paid'&&!!a.intake_done&&!!a.booking_page_url&&a.status==='active';
+    const activation=deliveryNode('div');activation.style.cssText='padding:15px;border:1px solid #d4e7f4;background:#f6fafe;border-radius:16px;display:grid;gap:10px';
+    activation.append(deliveryNode('strong','✉ Command Center activation / Activación'));
+    const kindLabel=deliveryNode('label','Business type / Tipo de negocio');
+    const kind=document.createElement('select');kind.style.cssText='width:100%;margin:6px 0 0';
+    [['cleaning','Cleaning business'],['detailing','Car Detailing'],['other','Other service / Otro servicio']].forEach(([v,l])=>{const o=new Option(l,v);kind.add(o)});
+    kind.value=/detail|auto|cb depot/i.test(a.business_name||'')?'detailing':'cleaning';kindLabel.append(kind);activation.append(kindLabel);
+    const otherLabel=deliveryNode('label','Type of service / Tipo de servicio');otherLabel.style.display='none';
+    const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';otherLabel.append(other);
+    kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};activation.append(otherLabel);
+    const send=deliveryNode('button','Send Activation Email / Enviar activación');send.type='button';send.className='secondary';send.disabled=!activationReady;
+    const msg=deliveryNode('p',activationReady?'Uses the paid buyer email. Final delivery is separate. / Utiliza el correo de compra; entrega final aparte.':'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
+    msg.style.cssText='margin:0;font-size:12px;line-height:1.55';msg.setAttribute('role','status');
+    send.onclick=async()=>{
+      if(kind.value==='other'&&!other.value.trim()){msg.textContent='Name the service / Escribe el servicio';other.focus();return}
+      const to=String(a.owner_email||'').trim();
+      if(!to.includes('@')){msg.textContent='Invalid buyer email / Correo inválido';return}
+      if(!confirm('Send activation to '+to+' for '+(a.business_name||'this business')+' ('+kind.options[kind.selectedIndex].text+')? Final delivery will NOT be sent. / ¿Confirmas el envío?'))return;
+      send.disabled=true;msg.textContent='Requesting activation… / Enviando…';
+      try{
+        const result=await sendOwnerActivationFor(a.id,kind.value,kind.value==='other'?other.value.trim():'');
+        msg.textContent=result.already_sent?'✓ Activation already accepted recently; no duplicate. / No se envió duplicado.':'✓ Accepted by Resend for '+to+'. Inbox delivery pending. / Aceptado por Resend; entrega pendiente.';
+        send.textContent='✓ Activation requested / Activación solicitada';
+      }catch(e){send.disabled=false;msg.textContent='Not sent / No enviado: '+e.message}
+    };
+    activation.append(send,msg);item.append(activation);
+if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued previously / Entrega ya registrada. No duplicate will be sent.');state.style.fontWeight='700';item.appendChild(state);list.appendChild(item);continue}
    if(!ready){item.appendChild(deliveryNode('p','Complete the intake, private CRM workspace, personalized booking URL and activation before the final review. / Primero termina los accesos y la configuración.'));list.appendChild(item);continue}
    const checks=deliveryNode('div');checks.style.cssText='display:grid;gap:10px;margin:10px 0';
    const inputs={};
