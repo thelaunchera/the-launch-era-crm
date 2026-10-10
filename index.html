@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-ipad-startup-recovery-v26"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-ipad-startup-recovery-v27"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -412,7 +412,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 (function(){
  var spanish=false;try{spanish=localStorage.getItem('tle_crm_language')==='es'}catch(_){}
  var splashText=document.querySelector('#tleLoading > span');if(spanish&&splashText)splashText.textContent='Cargando tu espacio de trabajo…';
- var timer=window.setTimeout(function(){
+ function showRecovery(){
   var cover=document.getElementById('tleLoading');
   if(!cover||cover.classList.contains('tle-loading-hide')||window.__tleBootReady)return;
   var copy=cover.querySelector('span');
@@ -427,10 +427,12 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   browser.href='https://the-launch-era-crm.dailinsegura17.workers.dev/';
   browser.target='_blank';browser.rel='noopener noreferrer';
   browser.style.cssText='font-size:13px;color:#326d9f;text-decoration:underline;padding:6px';
-  var note=document.createElement('small');note.textContent=spanish?'No perderás datos de clientes ni cambiarás ninguna reserva.':'You will not lose your client data or change any bookings.';
+  var note=document.createElement('small');note.textContent=spanish?'Si estás en el navegador de ChatGPT, toca Compartir y elige abrirlo en Safari. No se modifica ningún dato.':'If this is opening inside ChatGPT, tap Share and choose Open in Safari. No data will be changed.';
   note.style.cssText='color:#667e8d;font-size:12px;line-height:1.5';
   actions.append(retry,browser,note);cover.append(actions);
- },14000);
+ }
+ var timer=window.setTimeout(showRecovery,9000);
+ window.addEventListener('tle-crm-startup-failed',showRecovery);
  window.addEventListener('tle-crm-ready',function(){clearTimeout(timer)},{once:true});
 })();
 </script><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section>
@@ -957,21 +959,29 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
  <button type="button" id="buyerDraftSave" class="secondary">Save email edits</button>
  <span role="status" id="buyerDraftStatus" style="font-size:12px;margin-left:8px"></span>
 </details><details class="lead-section" id="leadNotesSection"><summary><span>📝 Notes</span><small>Context and previous conversations</small></summary><label>Notes<textarea name="notes" maxlength="4000"></textarea></label></details><div class="lead-editor-actions"><button>Save changes</button> <button type="button" id="remove" class="danger">Delete</button> <button type="button" id="cancel">Cancel</button></div></form></dialog><script>(function(){function initLegal(){const info={faq:{title:'Frequently asked questions / Preguntas frecuentes',body:"<h3>How do I get started?</h3><p>Sign in with your purchase email and open your business workspace. Your leads and appointments are organized in the menu.</p><h3>Where is my Booking Page?</h3><p>When your personalized page is ready, you'll receive a delivery email with your Booking Page and Command Center links. You can save and share the Booking Page link.</p><h3>Can I change prices and services?</h3><p>Yes. Open Pricing & Services to update your services, add-ons and fixed-price or estimate options. Save, then review the Booking Page.</p><h3>How do I change available dates and times?</h3><p>Open Availability to set your weekly hours, blocked dates and appointment length. Save to update the available booking times.</p><h3>Do all requests confirm automatically?</h3><p>Not always. A service with an enabled fixed price can confirm when a time is available. Requests for estimates or special jobs can require your review.</p><h3>Where do my new leads go?</h3><p>Open Leads & pipeline or Incoming requests. You'll see contact details, status and follow-up activity for the leads in your business.</p><h3>How do automatic follow-ups work?</h3><p>Once you've connected and verified your business email, eligible contacts can receive the first two follow-up messages. The third follow-up is up to you. Replies and opt-outs stop further reminders. Only contact people who have authorized emails.</p><h3>Can I use Gmail?</h3><p>Yes, you can sign in with Gmail. Sending automatic messages from your own business requires a verified email connection, which is set up separately.</p><h3>Is the Cleaning App included?</h3><p>No. The Booking Page + Command Center works on its own. The Cleaning App is a separate service.</p><h3>How do I get help?</h3><p>Reply to your delivery email with your business name and what you need changed. Do not send passwords or private access keys.</p>"},privacy:{title:'Privacy',body:'<p>We use account details to provide sign-in and workspace access. Information you enter about your leads is stored for your workspace and used to provide the lead management features you choose.</p><p>Do not upload information you do not have permission to manage. You are responsible for ensuring that outreach to your contacts complies with applicable privacy and marketing rules.</p><p>For questions about access, correction, or deletion of account data, use Contact below.</p>'},terms:{title:'Terms of use',body:'<p>The Launch Era Command Center is a business tool for organizing leads, notes, and follow-up activity. You are responsible for the accuracy of information you enter and for obtaining appropriate permission before sending marketing or follow-up emails.</p><p>Do not use this service for unlawful messaging, spam, or unauthorized access to other businesses’ information.</p><p>For account or service questions, contact our team before continuing.</p>'},contact:{title:'Contact support',body:'<p>Need help signing in, accessing your workspace, or managing your account? Send a message to The Launch Era support team.</p><a class="public-contact-action" href="mailto:hello@thelaunchera.com?subject=Lead%20Command%20Center%20Support">Open email to contact us →</a><p>This opens your device’s email application.</p>'}};const infoEs={"faq": {"title": "Preguntas frecuentes", "body": "<h3>¿Cómo empiezo?</h3><p>Entra con el correo de tu compra y abre tu espacio de trabajo.</p><h3>¿Dónde está mi página de reservas?</h3><p>Recibirás ambos enlaces por correo cuando tu sistema esté listo.</p><h3>¿Puedo cambiar mis precios?</h3><p>Abre Precios y servicios, actualiza los datos y guarda.</p><h3>¿Cómo cambio mis horarios?</h3><p>En Disponibilidad puedes editar horarios, días libres y duración de los servicios.</p><h3>¿Todas las solicitudes se confirman solas?</h3><p>Las reservas con precio fijo pueden confirmarse; los estimados o trabajos especiales pueden necesitar revisión.</p><h3>¿Dónde veo mis solicitudes?</h3><p>Revisa Prospectos y embudo o Solicitudes recibidas.</p><h3>¿Cómo funcionan los seguimientos?</h3><p>Tras verificar el correo del negocio, los primeros dos seguimientos pueden enviarse automáticamente; el tercero es manual. Las respuestas y bajas cancelan los siguientes.</p><h3>¿Puedo usar Gmail?</h3><p>Puedes entrar con Gmail. Para enviar correos automáticos desde tu negocio, necesitas verificar el servicio de envío.</p><h3>¿Incluye la Cleaning App?</h3><p>No, es un producto independiente.</p><h3>¿Cómo pido ayuda?</h3><p>Responde al correo de entrega e indica tu negocio y qué necesitas ajustar. Nunca envíes contraseñas.</p>"}, "privacy": {"title": "Privacidad", "body": "<p>Utilizamos los datos de cuenta para permitir el acceso a tu espacio. La información de prospectos se guarda para ofrecer las funciones de gestión que elijas.</p><p>No añadas datos que no estés autorizada a administrar. Debes cumplir las normas aplicables de privacidad y comunicación comercial.</p><p>Para consultas sobre acceso, corrección o eliminación de datos, utiliza Contacto.</p>"}, "terms": {"title": "Términos de uso", "body": "<p>Command Center permite organizar prospectos, notas y seguimientos. Eres responsable de la exactitud de los datos y de obtener los permisos necesarios antes de enviar mensajes.</p><p>No utilices este servicio para spam, comunicaciones ilegales ni acceso no autorizado.</p>"}, "contact": {"title": "Contactar a soporte", "body": "<p>¿Necesitas ayuda con tu cuenta o espacio de trabajo? Comunícate con el equipo de The Launch Era.</p><a class='public-contact-action' href='mailto:hello@thelaunchera.com?subject=Lead%20Command%20Center%20Support'>Escribir a soporte →</a><p>Se abrirá la aplicación de correo de tu dispositivo.</p>"}};const dialog=document.getElementById('publicInfoDialog');const title=document.getElementById('publicInfoTitle');const body=document.getElementById('publicInfoBody');document.querySelectorAll('[data-public-info]').forEach(el=>{el.addEventListener('click',function(e){e.preventDefault();const entry=(localStorage.getItem('tle_crm_language')==='es'?infoEs:info)[el.dataset.publicInfo];if(!entry)return;title.textContent=entry.title;body.innerHTML=entry.body;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','')})});document.getElementById('publicInfoClose').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initLegal);else initLegal()})();</script><script type="module">
-// iPad Home Screen apps can intermittently fail to fetch one CDN.
-// Keep a second, pinned module host so authentication can still initialize.
+// Start both pinned providers together, with a hard limit for blocked embedded browsers.
 let createClient;
-try{
- const primary=import('https://esm.sh/@supabase/supabase-js@2.57.0');
- const raced=await Promise.race([
-  primary,
-  new Promise((_,reject)=>setTimeout(()=>reject(new Error('Primary module timeout')),8500))
+try {
+ const providers=[
+  'https://esm.sh/@supabase/supabase-js@2.57.0',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/+esm'
+ ];
+ const candidates=providers.map(async url=>{
+  const loaded=await import(url);
+  if(typeof loaded.createClient!=='function')throw new Error('Authentication provider unavailable');
+  return loaded.createClient;
+ });
+ createClient=await Promise.race([
+  Promise.any(candidates),
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error('Authentication loading timed out')),11000))
  ]);
- if(typeof raced.createClient!=='function')throw Error('Primary auth module invalid');
- createClient=raced.createClient;
-}catch(primaryError){
- console.warn('Trying the backup authentication module',String(primaryError?.message||primaryError));
- const backup=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/+esm');
- createClient=backup.createClient;
+} catch(startupError) {
+ console.error('Command Center could not load its authentication module',startupError);
+ const cover=document.getElementById('tleLoading');
+ const message=cover?.querySelector('span');
+ if(message)message.textContent='Unable to connect. Please open this page directly in Safari or try again.';
+ window.dispatchEvent(new Event('tle-crm-startup-failed'));
+ throw startupError;
 }
 const db=createClient('https://bowacxhmjvrqixtwaikv.supabase.co','sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'tle-crm-auth'}});
 const $=id=>document.getElementById(id);
