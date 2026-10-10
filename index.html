@@ -1346,7 +1346,7 @@ const buyerMailUrl="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-cr
 let buyerMailState=null;
 const buyerEs=()=>localStorage.getItem("tle_crm_language")==="es";
 async function buyerMailCall(action,extra={}){
- if(!workspace||workspace.is_internal)throw Error("Buyer workspace required / Solo para compradoras");
+ if(!workspace||workspace.is_internal)throw Error(crmLocaleText('Buyer account required.','Se requiere una cuenta de cliente.'));
  const {data:{session}}=await db.auth.getSession();
  if(!session)throw Error(buyerEs()?"Inicia sesión nuevamente.":"Please sign in again.");
  const method=action==="status"?"GET":"POST";
@@ -1550,7 +1550,7 @@ async function loadOwnerDeliveries(){
   const entries=Array.isArray(data)?data:[];
   if(!entries.length){status.textContent=crmLocaleText("No paid accounts waiting for delivery","No hay compras pendientes");return}
   const deliveredCount=entries.filter(a=>a.activation_email_delivery_status==='delivered'&&a.activation_email_link_version==='handoff-v2').length;
-  status.textContent=entries.length+' paid account(s) / compra(s) · '+deliveredCount+' verified activation email(s) delivered. Final delivery requires your approval. / Activaciones entregadas verificadas: '+deliveredCount+'.';
+  status.textContent=crmLocaleText(entries.length+' paid account(s) · '+deliveredCount+' activation email(s) verified as delivered. Final delivery requires your approval.',entries.length+' compra(s) · '+deliveredCount+' correo(s) de activación verificados como entregados. La entrega final requiere tu aprobación.');
   for(const a of entries){
    const item=deliveryNode('div');item.className='delivery-order-card';item.style.cssText='border:1px solid #e6e7e7;border-radius:18px;padding:19px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr);min-width:0;width:100%;box-sizing:border-box;gap:9px';
    const h=deliveryNode('h3',a.business_name||'Cleaning Business');h.style.margin='0';item.appendChild(h);
@@ -1577,11 +1577,11 @@ async function loadOwnerDeliveries(){
     const activationReady=a.payment_status==='paid'&&!!a.intake_done&&!!a.booking_page_url&&a.status==='active';
     const activation=deliveryNode('div');activation.style.cssText='padding:15px;border:1px solid #d4e7f4;background:#f6fafe;border-radius:16px;display:grid;gap:10px';
     activation.append(deliveryNode('strong','✉ Command Center activation / Activación'));
-    const kindLabel=deliveryNode('label','Business type / Tipo de negocio');
+    const kindLabel=deliveryNode('label',crmLocaleText('Business type','Tipo de negocio'));
     const kind=document.createElement('select');kind.style.cssText='width:100%;margin:6px 0 0';
     [['cleaning','Cleaning business'],['detailing','Car Detailing'],['other','Other service / Otro servicio']].forEach(([v,l])=>{const o=new Option(l,v);kind.add(o)});
     kind.value=a.business_category||(/detail|auto|cb depot/i.test(a.business_name||'')?'detailing':'cleaning');kindLabel.append(kind);activation.append(kindLabel);
-    const otherLabel=deliveryNode('label','Type of service / Tipo de servicio');otherLabel.style.display='none';
+    const otherLabel=deliveryNode('label',crmLocaleText('Type of service','Tipo de servicio'));otherLabel.style.display='none';
     const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';other.value=a.business_category_other||'';otherLabel.append(other);
     kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};kind.onchange();activation.append(otherLabel);
     const accessDelivered=a.activation_email_link_version==='handoff-v2'&&a.activation_email_delivery_status==='delivered';
@@ -1601,7 +1601,7 @@ async function loadOwnerDeliveries(){
       send.disabled=true;msg.textContent=crmLocaleText("Requesting activation…","Enviando activación…");
       try{
         const result=await sendOwnerActivationFor(a.id,kind.value,kind.value==='other'?other.value.trim():'');
-        msg.textContent=result.already_sent?'✓ Activation already accepted recently; no duplicate. / No se envió duplicado.':'✓ Accepted by Resend for '+to+'. Inbox delivery pending. / Aceptado por Resend; entrega pendiente.';
+        msg.textContent=result.already_sent?crmLocaleText('✓ Activation already accepted recently; no duplicate sent.','✓ Activación aceptada anteriormente; no se envió duplicado.'):crmLocaleText('✓ Resend accepted the email for '+to+'. Inbox delivery pending.','✓ Resend aceptó el correo para '+to+'. Entrega en bandeja pendiente.');
         send.textContent=crmLocaleText("✓ Activation requested","✓ Activación solicitada");
       }catch(e){send.disabled=false;msg.textContent=crmLocaleText('Not sent: ','No enviado: ')+e.message}
     };
@@ -1615,7 +1615,7 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
    qaDescription.style.cssText='font-size:12px;line-height:1.5;margin:0';
    qaBox.append(qaDescription);
    const qaButton=deliveryNode('button','Run private lead test / Probar entrada de lead');qaButton.type='button';qaButton.className='secondary';qaButton.style.cssText='max-width:100%;white-space:normal';
-   const qaStatus=deliveryNode('p','Not yet tested / Pendiente de prueba');qaStatus.style.cssText='font-size:12px;margin:0';qaStatus.setAttribute('role','status');qaStatus.setAttribute('aria-live','polite');
+   const qaStatus=deliveryNode('p',crmLocaleText('Not yet tested','Pendiente de prueba'));qaStatus.style.cssText='font-size:12px;margin:0';qaStatus.setAttribute('role','status');qaStatus.setAttribute('aria-live','polite');
    qaButton.onclick=async()=>{
      qaButton.disabled=true;qaStatus.textContent=crmLocaleText("Testing private lead routing…","Comprobando conexión privada de contactos…");
      try{
@@ -1631,7 +1631,7 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
      finally{qaButton.disabled=false}
    };
    qaBox.append(qaButton,qaStatus);item.append(qaBox);
-   const checks=deliveryNode('div');checks.className='delivery-qa-list';checks.setAttribute('role','group');checks.setAttribute('aria-label','Final delivery quality checks / Comprobaciones finales');
+   const checks=deliveryNode('div');checks.className='delivery-qa-list';checks.setAttribute('role','group');checks.setAttribute('aria-label',crmLocaleText('Final delivery quality checks','Comprobaciones finales'));
    const inputs={};
    for(const [key,caption] of reviewNames){
     const label=deliveryNode('label');label.className='delivery-qa-row';
@@ -1651,7 +1651,7 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
      const review=Object.fromEntries(Object.entries(inputs).map(([key,input])=>[key,input.checked]));
      const {data,error}=await db.rpc('tle_booking_flow_owner_finalize',{p_account_id:a.id,p_checks:review});
      if(error)throw error;
-     status.textContent=data?.queued?'Delivery queued. Check Make/Resend for final delivery confirmation. / Envío en cola. Revisa Make/Resend.':'Already queued; no duplicate sent.';
+     status.textContent=data?.queued?crmLocaleText('Delivery queued. Check email status before marking as delivered.','Entrega en cola. Revisa el estado del correo antes de marcarla como entregada.'):crmLocaleText('Already queued; no duplicate sent.','Ya estaba en cola; no se envió ningún duplicado.');
      await loadOwnerDeliveries();
     }catch(error){action.disabled=false;status.textContent='No delivery sent: '+error.message}
    };
@@ -1915,7 +1915,7 @@ $('buildOpenCal').onclick=()=>{if(ownerReviewAccount?.id)openBuyerWorkCalendar(o
 $('buildEditPricing').onclick=()=>premiumNavigate('pricing');
 $('buildEditAvailability').onclick=()=>premiumNavigate('availability');
 async function buildPhotoPayload(file){
- if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))throw Error('Choose a supported image / Escoge una imagen compatible.');
+ if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))throw Error(crmLocaleText('Choose a supported image.','Selecciona una imagen compatible.'));
  const source=await new Promise((resolve,reject)=>{
   const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not read photo'));reader.readAsDataURL(file);
  });
@@ -1928,7 +1928,7 @@ async function buildPhotoPayload(file){
  const mime=file.type==='image/png'?'image/png':'image/jpeg';
  let blob=await new Promise(res=>canvas.toBlob(res,mime,mime==='image/jpeg'?0.83:undefined));
  if(!blob||blob.size>3900000){blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.76))}
- if(!blob||blob.size>3900000)throw Error('Photo is too large after resizing / Foto demasiado grande.');
+ if(!blob||blob.size>3900000)throw Error(crmLocaleText('Photo is too large after resizing.','La foto sigue siendo demasiado grande después de ajustar su tamaño.'));
  const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';
  for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
  return {filename:file.name.replace(/\.(heic|heif)$/i,'.jpg'),mime:blob.type,base64:btoa(binary)};
@@ -1961,7 +1961,7 @@ $('buildBrandForm').onsubmit=async e=>{
    delete formData['service_photo_'+k];
   }
   const reviews=[1,2,3].map(n=>({name:String(formData['review_'+n+'_name']||'').trim(),text:String(formData['review_'+n+'_text']||'').trim(),rating:formData['review_'+n+'_rating']===''?null:Number(formData['review_'+n+'_rating'])})).filter(r=>r.name||r.text);
-  if(reviews.some(r=>!r.name||!r.text))throw Error('Complete each review name and text / Completa nombre y texto');
+  if(reviews.some(r=>!r.name||!r.text))throw Error(crmLocaleText('Complete the name and text of each review.','Completa el nombre y el texto de cada reseña.'));
   for(let n=1;n<=3;n++)for(const key of ['name','text','rating'])delete formData['review_'+n+'_'+key];
   await ownerStudioCall('save',{branding:{...formData,reviews,service_photo_paths}});
   await loadOwnerBuilder();
@@ -3050,7 +3050,7 @@ $('buyerReviewMobileOpen').onclick=()=>{
   if(panel.classList.contains('hidden'))return;
   const open=panel.classList.toggle('review-sheet-open');
   trigger.setAttribute('aria-expanded',open?'true':'false');
-  trigger.textContent=open?'Close / Cerrar':'Review / Revisar';
+  trigger.textContent=open?crmLocaleText('Close','Cerrar'):crmLocaleText('Review','Revisar');
  };
  $('buyerReviewChange').onclick=()=>{$('buyerReviewFeedbackForm').classList.remove('hidden');$('buyerReviewFeedback').focus()};
 $('buyerReviewCancel').onclick=()=>$('buyerReviewFeedbackForm').classList.add('hidden');
