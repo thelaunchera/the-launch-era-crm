@@ -1014,10 +1014,10 @@ async function loadOwnerDeliveries(){
     [['cleaning','Cleaning business'],['detailing','Car Detailing'],['other','Other service / Otro servicio']].forEach(([v,l])=>{const o=new Option(l,v);kind.add(o)});
     kind.value=a.business_category||(/detail|auto|cb depot/i.test(a.business_name||'')?'detailing':'cleaning');kindLabel.append(kind);activation.append(kindLabel);
     const otherLabel=deliveryNode('label','Type of service / Tipo de servicio');otherLabel.style.display='none';
-    const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';otherLabel.append(other);
-    kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};activation.append(otherLabel);
+    const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';other.value=a.business_category_other||'';otherLabel.append(other);
+    kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};kind.onchange();activation.append(otherLabel);
     const send=deliveryNode('button','Send Activation Email / Enviar activación');send.type='button';send.className='secondary';send.disabled=!activationReady;
-    const msg=deliveryNode('p',activationReady?'Uses the paid buyer email. Final delivery is separate. / Utiliza el correo de compra; entrega final aparte.':'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
+    const msg=deliveryNode('p',a.activation_email_sent_at?'✓ Activation last requested on '+new Date(a.activation_email_sent_at).toLocaleString()+'. / Última activación registrada.':activationReady?'Uses the paid buyer email. Final delivery is separate. / Utiliza el correo de compra; entrega final aparte.':'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
     msg.style.cssText='margin:0;font-size:12px;line-height:1.55';msg.setAttribute('role','status');
     send.onclick=async()=>{
       if(kind.value==='other'&&!other.value.trim()){msg.textContent='Name the service / Escribe el servicio';other.focus();return}
@@ -1118,7 +1118,7 @@ function buildRenderStatus(){
  const reviewMessage=$('buildReviewStatus');
  reviewMessage.textContent=reviewed?buildLabel('✓ Approval saved. Continue with private access below.','✓ Aprobación guardada. Continúa con el acceso privado abajo.'):builderState.saved?buildLabel('Check the preview, then approve here.','Revisa la vista previa y aprueba aquí.'):buildLabel('Save the design first.','Primero guarda el diseño.');
  const accessMessage=$('buildInviteStatus');
- accessMessage.textContent=order.workspace_ready?buildLabel('✓ Private account linked. Continue with testing; do not send a second invitation.','✓ Cuenta privada enlazada. Continúa con las pruebas; no envíes otra invitación.'):prepared&&reviewed?buildLabel('✓ Design and booking page are prepared. Send the private access invitation when ready.','✓ Diseño y página preparados. Puedes enviar la invitación de acceso privado.'):reviewed?buildLabel('Design approved. Prepare the system to enable the invitation.','Diseño aprobado. Prepara el sistema para habilitar la invitación.'):buildLabel('Approve the design before preparing private access.','Aprueba el diseño antes de preparar el acceso privado.');
+ accessMessage.textContent=order.workspace_ready?buildLabel('✓ Private workspace linked. Manage its activation email in Owner Settings.','✓ Espacio privado conectado. Gestiona la activación desde Owner Settings.'):prepared&&reviewed?buildLabel('✓ Design and booking page are prepared. Send the private access invitation when ready.','✓ Diseño y página preparados. Puedes enviar la invitación de acceso privado.'):reviewed?buildLabel('Design approved. Prepare the system to enable the invitation.','Diseño aprobado. Prepara el sistema para habilitar la invitación.'):buildLabel('Approve the design before preparing private access.','Aprueba el diseño antes de preparar el acceso privado.');
  $('buildBuyerTitle').textContent=order.business_name||ownerReviewAccount.business_name;
  $('buildStatus').textContent=order.delivered?buildLabel('System delivered. Updates to pricing and design remain available.','Sistema entregado. Puedes seguir editando el diseño y los precios.'):
   !order.intake_received?buildLabel('Waiting for the buyer to complete the intake. No delivery or invitation will be sent.','Esperando el intake. No se enviará ningún acceso.'):
