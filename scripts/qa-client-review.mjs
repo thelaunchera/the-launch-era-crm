@@ -109,4 +109,20 @@ assert(!html.includes("setInterval(()=>ownerClientReviewRequest('owner_send_revi
   "The client approval reminder must not send itself automatically");
 console.log("PASS: 12-hour approval reminder requires an explicit owner click and is hidden after buyer decision");
 
+
+// Per-client testing must remain on the authenticated owner's delivery card.
+for(const marker of [
+ "Owner QA Center",
+ "qa_simulate_lifecycle",
+ "Simulate request → alert → reply",
+ "Simular solicitud → aviso → respuesta",
+ "Send TEST email to my inbox",
+ "Inspect setup & automation"
+]){
+ assert(html.includes(marker),"Owner-only buyer QA action missing: "+marker);
+}
+assert(html.includes("ownerQARequest('qa_simulate_lifecycle')"),
+  "Workflow simulation is not routed through authenticated owner endpoint");
+console.log("PASS: agency-only test console and simulated follow-up cancellation controls present");
+
 console.log("PASS: client-approval and revision controls are present; all inline scripts parse");
