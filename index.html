@@ -209,8 +209,21 @@ body.cb-depot-buyer .cb-settings-signals strong{padding:8px 11px;border-radius:9
  /* During initial setup only, customer approval is available as a compact,
     dismissible sheet. It disappears as soon as approval is recorded. */
  body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewClose{
-  right:147px!important;width:calc(100% - 147px)!important;
+  right:228px!important;width:calc(100% - 228px)!important;
   font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewMobileRefresh{
+  display:flex!important;position:absolute;z-index:10;top:6px;right:145px;
+  width:77px!important;min-height:46px!important;max-height:46px!important;
+  align-items:center;justify-content:center;text-align:center;padding:8px 4px;
+  border-radius:999px!important;background:#e5f2fc;color:#191919;
+  border:1px solid #b6d9ec;font-size:11px;white-space:normal;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden):has(#buyerReviewMobileOpen.hidden) #buyerBookingPreviewClose{
+  right:105px!important;width:calc(100% - 105px)!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden):has(#buyerReviewMobileOpen.hidden) #buyerBookingPreviewMobileRefresh{
+  right:8px;width:90px!important;font-size:12px;
  }
  body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerReviewMobileOpen:not(.hidden){
   display:flex!important;position:absolute;z-index:10;top:6px;right:8px;
@@ -786,7 +799,8 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 </section>
 
 <section id="buyerBookingPreviewHub" class="hidden premium-emailhub" aria-label="Private Booking Page preview">
- <button id="buyerBookingPreviewClose" type="button" class="secondary" aria-label="Close full-screen Booking Page preview">← Back to Command Center</button>
+ <button id="buyerBookingPreviewClose" type="button" class="secondary" aria-label="Back to Command Center">← Back</button>
+ <button id="buyerBookingPreviewMobileRefresh" type="button" class="secondary" aria-label="Refresh private Booking Page with latest services and prices" style="display:none">↻ Refresh</button>
  <button id="buyerReviewMobileOpen" type="button" class="secondary hidden" aria-expanded="false" aria-controls="buyerClientReview" aria-label="Open customer approval" style="display:none">Review / Revisar</button>
  <div class="section-title">My Booking Page · Private Preview</div>
  <p class="muted">Test your real services, prices and quote form. Complete a sample request and tap Submit to verify it reaches your private Command Center. Sample data is deleted afterward; no real booking, email or charge is created.</p>
@@ -3183,6 +3197,7 @@ $('cbDashRefresh').onclick=()=>{if(isDetailingWorkspace())void loadBuyerRequests
 $('buyerDashboardOpenBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerShortcutBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerBookingPreviewRefresh').onclick=()=>loadBuyerBookingPreview();
+$('buyerBookingPreviewMobileRefresh').onclick=()=>loadBuyerBookingPreview();
 $('buyerClientReview').classList.add('hidden');
 $('buyerBookingPreviewClose').onclick=()=>premiumNavigate('home');
 $('buyerBookingPreviewPhone').onclick=()=>{$('buyerBookingPreviewShell').style.width='min(100%,390px)';$('buyerBookingPreviewFrame').style.height='980px'};
