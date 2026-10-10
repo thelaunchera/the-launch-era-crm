@@ -94,7 +94,24 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerRequestsHub .request-value{font-size:14px;overflow-wrap:anywhere}
 @media(max-width:850px){#buyerRequestsHub .request-layout{grid-template-columns:minmax(0,1fr)}#buyerRequestsHub .request-detail-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){#buyerRequestsHub .request-detail-grid{grid-template-columns:1fr}}
-</style><meta name="tle-command-center-release" content="2026-10-10-activation-delivery-v2"></head><body><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section><section id="app" class="hidden"><div id="sidebarScrim" class="sidebar-scrim" aria-hidden="true"></div><aside class="premium-sidebar" id="premiumSidebar" aria-label="Workspace navigation">
+#privateActivationSplash{position:fixed;inset:0;z-index:999999;background:radial-gradient(ellipse at 50% 10%,#103f62 0%,#071522 58%,#030b14 100%);color:#f5fbff;display:grid;place-items:center;padding:22px}
+#privateActivationSplash .pa-card{width:min(100%,450px);padding:clamp(26px,6vw,42px);background:linear-gradient(150deg,#12283b,#091622);border:1px solid #2a4e69;border-radius:24px;box-shadow:0 24px 70px #0008;text-align:center}
+#privateActivationSplash .pa-logo{width:66px;height:66px;border-radius:18px;object-fit:cover;margin:0 auto 20px;display:block}
+#privateActivationSplash h2{font-size:clamp(26px,6vw,34px);line-height:1.16;color:#f7fbff;margin:6px 0 14px;letter-spacing:-.025em}
+#privateActivationSplash p{font-size:15px;color:#bed5e8;line-height:1.6}
+#privateActivationSplash .pa-mark{font-size:11px;font-weight:750;letter-spacing:.17em;color:#71baff;margin-bottom:13px}
+#privateActivationSplash .pa-spin{width:31px;height:31px;border-radius:100%;margin:24px auto 6px;border:3px solid #28516e;border-top-color:#1ca0ff;animation:tleActivationSpin .8s linear infinite}
+#privateActivationSplash #paReturn{margin-top:15px;background:#1688e5;border-radius:50px;padding:13px 23px;color:white;display:none}
+@keyframes tleActivationSpin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#privateActivationSplash .pa-spin{animation:none}}
+</style><meta name="tle-command-center-release" content="2026-10-10-activation-delivery-v2"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+<div class="pa-card">
+<img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
+<div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
+<h2 id="paTitle">Opening your Command Center</h2>
+<p id="paMessage">Verifying your private access securely…</p>
+<div class="pa-spin" id="paSpin" aria-hidden="true"></div>
+<button type="button" id="paReturn">Go to sign in →</button>
+</div></div><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section><section id="app" class="hidden"><div id="sidebarScrim" class="sidebar-scrim" aria-hidden="true"></div><aside class="premium-sidebar" id="premiumSidebar" aria-label="Workspace navigation">
 <div class="premium-brand"><img class="brand-symbol" id="crm-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" style="display:block;width:36px;height:36px;object-fit:cover;border-radius:10px;flex-shrink:0;padding:0;"><span>THE LAUNCH ERA<small id="sidebarWorkspaceLabel">WORKSPACE</small></span></div>
 <div id="ownerPrivateSection" class="hidden" aria-label="The Launch Era private admin navigation">
  <div class="nav-caption" id="ownerOrdersCaption">THE LAUNCH ERA · PRIVATE</div>
@@ -2658,29 +2675,44 @@ if(workspace?.is_internal){
 if(data.email_consent_status!=='authorized')data.email_followup_enabled=false;if(data.email_consent_status==='authorized'&&!data.email_consent_source?.trim())throw Error('Record the permission source before marking this contact authorized.');if(!data.followup)data.followup=null;data.workspace_id=workspace.id;let saved;if(editing)saved=await check(await db.from('tle_crm_leads').update(data).eq('id',editing.id).eq('workspace_id',workspace.id).select('id').single());else saved=await check(await db.from('tle_crm_leads').insert(data).select('id').single());$('editor').close();await load();say('✓ Lead saved successfully')}catch(err){$('leadSaveStatus').textContent='Could not save lead: '+err.message;console.error('CRM lead save failed',err)}finally{saveButton.disabled=false}};
 $('remove').onclick=async()=>{if(!editing||!confirm('Delete this lead?'))return;try{await check(await db.from('tle_crm_leads').delete().eq('id',editing.id).eq('workspace_id',workspace.id));$('editor').close();await load()}catch(e){say(e.message)}};
 function updateAnalytics(){const won=leads.filter(x=>x.stage==='Won').length;const sent=leads.filter(x=>emailSentByLead.has(x.id)).length;const today=new Date().toLocaleDateString('en-CA');$('analyticsConversion').textContent=leads.length?Math.round(100*won/leads.length)+'%':'0%';$('analyticsSent').textContent=String(sent);$('analyticsInbound').textContent=String(inboundRequests.length);$('analyticsOverdue').textContent=String(leads.filter(x=>x.followup&&x.followup<today&&x.stage!=='Won').length)}function refreshAlerts(){if(!workspace)return;updateAnalytics();const today=new Date().toLocaleDateString('en-CA');const due=leads.filter(x=>x.followup&&x.followup<=today&&x.stage!=='Won'&&!blockedLead(x));const count=inboundRequests.length+due.length;$('bellCount').textContent=String(count);const list=$('notificationList');list.replaceChildren();for(const x of inboundRequests.slice(0,20)){const p=document.createElement('p');p.textContent='New '+x.source_type+' request · '+(x.business_name||x.request_name||x.email||'Customer');list.append(p)}for(const x of due.slice(0,20)){const p=document.createElement('p');p.textContent='Follow-up due · '+x.business+' · '+x.followup;list.append(p)}if(!count)list.textContent='All caught up.'}async function loadStoredNotifications(){if(!workspace)return;const wsId=workspace.id;const {data,error}=await db.from('tle_crm_notifications').select('id,kind,title,body,created_at,read_at').eq('workspace_id',wsId).order('created_at',{ascending:false}).limit(50);if(!workspace||workspace.id!==wsId)return;if(error){console.warn('Notification loading failed',error.message);return}const unread=(data||[]).filter(n=>!n.read_at);$('bellCount').textContent=String(unread.length);const list=$('notificationList');list.replaceChildren();for(const n of data||[]){const row=document.createElement('div');row.className='inbound-item';const title=document.createElement('strong');title.textContent=(n.read_at?'':'● ')+n.title;const body=document.createElement('p');body.textContent=n.body+' · '+new Date(n.created_at).toLocaleString();row.append(title,body);if(!n.read_at){const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='Mark read';btn.onclick=async()=>{const {error}=await db.from('tle_crm_notifications').update({read_at:new Date().toISOString()}).eq('id',n.id).eq('workspace_id',workspace.id);if(error)say(error.message);else await loadStoredNotifications()};row.append(btn)}list.append(row)}if(!data?.length)list.textContent='All caught up.'}$('bellButton').onclick=()=>{$('notificationPanel').classList.toggle('hidden');if(!$('notificationPanel').classList.contains('hidden')){$('notificationPanel').scrollIntoView({behavior:'smooth'});loadStoredNotifications()}};setInterval(()=>{if(workspace)loadStoredNotifications()},45000);async function bootAfterPrivateEmailConfirmation(){
- // Private activation emails use a one-time token hash in the URL fragment to avoid
- // Supabase's legacy Site URL redirect fallback. Never expose the token in the address bar after capture.
+ // Redeem the one-time token inside the private Command Center; it never
+ // appears in a URL query, analytics event, web-server request or email preview.
  const confirmation=new URLSearchParams(location.hash.replace(/^#/,''));
- const tokenHash=confirmation.get('token_hash');
- const type=confirmation.get('type');
- let activationError='';
- if(tokenHash!==null){
+ const tokenHash=confirmation.get('token_hash'),type=confirmation.get('type');
+ const splash=$('privateActivationSplash');
+ const isPrivateActivation=tokenHash!==null;
+ if(isPrivateActivation){
+  splash.classList.remove('hidden');
+  const isCBD=new URLSearchParams(location.search).get('app')==='cb-depot';
+  $('paBrand').textContent=isCBD?'CB DEPOT · PRIVATE CLIENT ACCESS':'THE LAUNCH ERA · PRIVATE CLIENT ACCESS';
+  $('paTitle').textContent='Opening your Command Center';
   history.replaceState(history.state,'',location.pathname+location.search);
+ }
+ let activationError='';
+ if(isPrivateActivation){
   if(!/^(?:pkce_)?[a-f0-9]{56,64}$/i.test(tokenHash)||!['invite','magiclink'].includes(type)){
-   activationError='This activation link is invalid. Ask the business that sent it to request a new secure link.';
+   activationError='This private link is incomplete. Request a new activation email from The Launch Era.';
   }else{
    try{
-    const {error}=await db.auth.verifyOtp({token_hash:tokenHash,type});
-    if(error)throw error;
+    const {data,error}=await db.auth.verifyOtp({token_hash:tokenHash,type});
+    if(error||!data?.session)throw error||new Error('No session');
    }catch(error){
-    activationError='This access link could not be confirmed. It may have expired or already been used. Request a new activation email.';
+    activationError='This secure link has expired or has already been used. Please request a new activation email from The Launch Era.';
    }
   }
  }
  await boot();
- if(activationError){
-  const status=$('authMessage');
-  if(status)status.textContent=activationError;
+ if(isPrivateActivation){
+  if(activationError){
+   $('paTitle').textContent='This link is no longer available';
+   $('paMessage').textContent=activationError;
+   $('paSpin').style.display='none';
+   $('paReturn').style.display='inline-block';
+   $('paReturn').onclick=()=>{splash.classList.add('hidden');};
+   const status=$('authMessage');if(status)status.textContent=activationError;
+  }else{
+   splash.classList.add('hidden');
+  }
  }
 }
 bootAfterPrivateEmailConfirmation();
