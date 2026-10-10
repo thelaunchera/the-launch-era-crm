@@ -711,11 +711,49 @@ function clearAdminClientState(){
   else if(node.tagName==='DIV' || node.tagName==='P')node.replaceChildren();
  }
 }
+
+function isDetailingWorkspace(){return !!workspace&&!workspace.is_internal&&workspace.business_category==='detailing'}
+function isOtherServiceWorkspace(){return !!workspace&&!workspace.is_internal&&workspace.business_category==='other'}
+function applyBuyerIndustryLabels(){
+ if(!workspace||workspace.is_internal)return;
+ const detailing=isDetailingWorkspace(),other=isOtherServiceWorkspace();
+ if(!detailing&&!other)return;
+ const es=localStorage.getItem('tle_crm_language')==='es';
+ const set=(selector,en,spanish)=>{const el=document.querySelector(selector);if(el)el.textContent=es?spanish:en};
+ set('#mainNavCaption',detailing?'CAR DETAILING BUSINESS':'SERVICE BUSINESS',detailing?'NEGOCIO DE DETAILING':'NEGOCIO DE SERVICIOS');
+ set('#buyerDashboardHub > .section-title',detailing?'Car Detailing Command Center':'Service Command Center',detailing?'CENTRO DE DETAILING':'CENTRO DE SERVICIOS');
+ set('#buyerDashboardHub > p.muted',detailing?'Vehicle inquiries, detailing quotes and appointments — all in one place.':'Service inquiries, quotes and appointments — all in one place.',detailing?'Consultas de vehículos, cotizaciones de detailing y citas, en un solo lugar.':'Consultas, cotizaciones y citas, en un solo lugar.');
+ set('#buyerDashboardHub .panel:last-child > p.muted',detailing?'Review vehicle details and prepare personalized detailing quotes in Inbox. A quote request is not a confirmed appointment.':'Review service details and personalized quotes in Inbox. A quote request is not a confirmed appointment.',detailing?'Revisa los detalles del vehículo y prepara cotizaciones. Una solicitud no es una cita confirmada.':'Revisa los detalles y prepara cotizaciones. Una solicitud no es una cita confirmada.');
+ set('#buyerRequestsHub > p.muted',detailing?'Car detailing inquiries, vehicle quotes and confirmed appointments.':'Service inquiries, quotes and confirmed appointments.',detailing?'Consultas de detailing, cotizaciones de vehículos y citas confirmadas.':'Consultas, cotizaciones y citas confirmadas.');
+ set('#buyerFollowupsIntro > p.muted',detailing?'Two optional follow-up emails for detailing customers, only with verified sender, reply inbox and customer consent.':'Two optional service follow-ups, only with verified sender and consent.',detailing?'Dos seguimientos opcionales de detailing. Requieren remitente, buzón y permiso verificados.':'Dos seguimientos opcionales con remitente y permiso verificados.');
+ const form=document.getElementById('buyerEmailForm');
+ if(form){
+  const from=form.elements.namedItem('sender_email'),sender=form.elements.namedItem('sender_name'),reply=form.elements.namedItem('reply_to');
+  if(from)from.placeholder=detailing?'hello@yourdetailingbusiness.com':'hello@yourbusiness.com';
+  if(sender)sender.placeholder=workspace.name||'Your Business';
+  if(reply)reply.placeholder=detailing?'replies@yourdetailingbusiness.com':'replies@yourbusiness.com';
+ }
+ const faq=document.querySelector('#helpHub .panel');
+ if(faq){
+  for(const heading of faq.querySelectorAll('h3')){
+   if(/cleaning app|aplicación de limpieza/i.test(heading.textContent||'')){
+    heading.hidden=true;if(heading.nextElementSibling?.tagName==='P')heading.nextElementSibling.hidden=true;
+   }
+   if(/where can i edit services|dónde edito los servicios/i.test(heading.textContent||'')){
+    const p=heading.nextElementSibling;
+    if(p?.tagName==='P')p.textContent=detailing?(es?'En Configuración puedes administrar los servicios de detailing, precios, extras y horarios.':'Use Business Settings to manage detailing services, custom quotes, extras and appointment availability.'):(es?'Administra servicios, precios y horarios en Configuración.':'Manage services, prices and availability in Business Settings.');
+   }
+  }
+ }
+}
+
 function applyCRMRoleInterface(){
  const owner=!!workspace?.is_internal,buyer=!!workspace&&!owner;
  if(workspace){document.body.dataset.languageWorkspace=workspace.id;const saved=localStorage.getItem('tle_crm_language_'+workspace.id);const selected=saved==='es'?'es':saved==='en'?'en':owner?(localStorage.getItem('tle_crm_owner_language')||'en'):'en';document.dispatchEvent(new CustomEvent('tle-crm-language',{detail:{language:selected}}))}else delete document.body.dataset.languageWorkspace;
  document.body.classList.toggle('crm-owner-view',owner);
- document.body.classList.toggle('crm-buyer-view',buyer);document.body.classList.toggle('cb-depot-buyer',buyer&&String(workspace?.name||'').trim().toLowerCase()==='cb depot');document.body.classList.remove('crm-followups-focus');
+ document.body.classList.toggle('crm-buyer-view',buyer);document.body.classList.toggle('cb-depot-buyer',buyer&&workspace?.business_category==='detailing'&&String(workspace?.name||'').trim().toLowerCase()==='cb depot');document.body.classList.remove('crm-followups-focus');
+ document.body.classList.toggle('crm-detailing-buyer',buyer&&workspace?.business_category==='detailing');
+ applyBuyerIndustryLabels();
  $('ownerPagesNav').classList.toggle('hidden',!owner);
  $('ownerCalendarNav').classList.toggle('hidden',!owner);$('ownerHelpNav').classList.toggle('hidden',!owner);if(!owner)$('ownerHelpHub').classList.add('hidden');
  $('ownerOrdersCaption').classList.toggle('hidden',!owner);
@@ -764,7 +802,7 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
  $('ownerPagesNav').classList.add('hidden');$('ownerCalendarNav').classList.add('hidden');$('ownerInsightsNav').classList.add('hidden');$('ownerWebsiteInboxNav').classList.add('hidden');$('ownerSettingsNav').classList.add('hidden');$('buyerSettingsNav').classList.add('hidden');$('buyerFollowupsNav').classList.add('hidden');$('buyerRequestsNav').classList.add('hidden');
  $('buyerEmailSetup').classList.add('hidden');$('ownerDeliveryPanel').classList.add('hidden');
  leads=[];accountEmail='';emailSentByLead=new Map();return
-}accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){
+}accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,business_category,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){
  $('workspaceName').textContent=workspace.name;
  $('ownerOrdersCaption').classList.toggle('hidden',!workspace.is_internal);
  $('ownerProspectsCaption').classList.add('hidden');
