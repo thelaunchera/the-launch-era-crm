@@ -33,6 +33,9 @@ for(const marker of permanentTestCenter){
  assert(html.includes(marker),"Permanent test center or temporary approval separation missing: "+marker);
 }
 assert(html.includes("void loadBuyerClientReview()"),"Review controls must load only during pre-delivery setup");
+assert(html.includes('id="buyerBookingPreviewBusiness"'),"Every buyer needs a dynamic business label in their Test Center");
+assert(html.includes("config.business_name||workspace?.name"),"Test Center must render the authenticated buyer's business name");
+assert(!html.includes("<strong>CB Depot · Test mode</strong>"),"Never hardcode a previous buyer's brand in the shared Test Center");
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 assert(scripts.length>=3,"Expected the current CRM script layout");
