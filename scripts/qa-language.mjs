@@ -53,7 +53,7 @@ for(const mixed of ['Mobile / Móvil','Desktop / Computadora','Review / Revisar'
 
 assert(source.includes('const englishBySpanish=new Map()'),'Reverse dictionary missing');
 assert(source.includes('englishBySpanish.set(es,en)'),'Reverse translation initialization missing');
-assert(source.includes('tle_crm_language_'+String.fromCharCode(34)+'+workspace.id'),'Workspace-scoped locale storage missing');
+assert(/tle_crm_language_['\"]\s*\+\s*workspace\.id/.test(source),'Workspace-scoped locale storage missing');
 assert(source.includes('buyerText(\'✓ TEST PASSED'),'QA result does not follow selected language');
 assert(source.includes('picker.setAttribute("aria-label",lang==="es"?"Idioma":"Language")'),'Language picker accessibility label not localized');
 assert(source.includes('2026-10-10-language-separation-v20'),'Unexpected release marker');
