@@ -806,7 +806,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
  <p class="muted">Test your real services, prices and quote form. Complete a sample request and tap Submit to verify it reaches your private Command Center. Sample data is deleted afterward; no real booking, email or charge is created.</p>
  <div class="panel" style="max-width:none;padding:16px;margin:18px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-   <strong>CB Depot · Test mode</strong>
+   <strong id="buyerBookingPreviewBusiness">Your business · Test mode</strong>
    <button type="button" id="buyerBookingPreviewRefresh" class="secondary">↻ Refresh prices & preview</button>
   </div>
   <p id="buyerBookingPreviewStatus" role="status" aria-live="polite" class="muted">Load your Booking Page to test a sample request and verify lead routing without contacting a customer.</p>
@@ -3160,6 +3160,7 @@ async function loadBuyerBookingPreview(){
   if(workspace?.id!==id||workspace.is_internal)return;
   const config=payload.config;
   if(typeof config.qa_nonce!=='string'||!config.qa_nonce)throw Error('Private QA is not ready. Refresh the preview.');
+  $('buyerBookingPreviewBusiness').textContent=(String(config.business_name||workspace?.name||'Your business').slice(0,110))+' · Test mode';
   buyerPreviewQaNonce=config.qa_nonce;buyerPreviewQaWorkspace=id;
   frame.onload=()=>{if(frame.contentWindow&&workspace?.id===id)frame.contentWindow.postMessage(
    {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
