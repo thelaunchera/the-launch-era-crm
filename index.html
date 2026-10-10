@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-manual-review-reminder-v21"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-delivery-pipeline-v22"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -1558,6 +1558,26 @@ async function loadOwnerDeliveries(){
    const ready=a.payment_status==='paid'&&!!a.intake_done&&!!a.crm_ready&&!!a.booking_page_url&&a.status==='active';
    const detail=deliveryNode('p','Paid: '+(a.payment_status==='paid'?'✓':'—')+' · Intake: '+(a.intake_done?'✓':'—')+' · Booking: '+(a.booking_page_url?'✓':'—')+' · CRM: '+(a.crm_ready?'✓':'—')+' · Active: '+(a.status==='active'?'✓':'—'));
    detail.className='muted';item.appendChild(detail);
+   // Lifecycle is read from the secure owner-only release state; nothing auto-sends.
+   const esOwner=localStorage.getItem('tle_crm_language')==='es';
+   const timeline=deliveryNode('div');timeline.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:10px;border:1px solid #dce8f1;border-radius:15px;background:#f6fafe';
+   const buyerApproved=a.buyer_review_status==='approved';
+   const qaDone=Number(a.qa_pass_count||0);
+   const milestones=[
+    [esOwner?'Pago y formulario':'Payment + intake',a.payment_status==='paid'&&!!a.intake_done],
+    [esOwner?'Personalización':'Personalization',!!a.design_reviewed&&!!a.booking_page_url&&!!a.crm_ready],
+    [esOwner?'Acceso privado':'Private activation',a.activation_email_delivery_status==='delivered'&&!!a.buyer_signed_in_after_email],
+    [esOwner?'Aprobación cliente':'Buyer approval',buyerApproved],
+    [(esOwner?'Pruebas finales ':'Final QA ')+qaDone+'/6',qaDone===6],
+    [esOwner?'Entrega final':'Final delivery',!!a.already_queued]
+   ];
+   for(const [label,done] of milestones){
+    const progress=deliveryNode('div',(done?'✓ ':'○ ')+label);
+    progress.style.cssText='font-size:12px;line-height:1.4;font-weight:600;color:'+(done?'#245f43':'#506779')+';padding:6px 7px;border-radius:8px;background:'+(done?'#eaf5ed':'#ffffff');
+    timeline.append(progress);
+   }
+   timeline.setAttribute('aria-label',esOwner?'Estado de preparación y entrega':'Preparation and delivery progress');
+   item.append(timeline);
    void addOwnerClientReview('booking',a.id,item);
    if(a.booking_page_url&&/^https:\/\//.test(a.booking_page_url)){
     if(a.already_queued){
