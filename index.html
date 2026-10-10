@@ -285,7 +285,7 @@ body.cb-depot-buyer .cb-greeting-chip{
 @media(prefers-reduced-motion:reduce){
  body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{transition:none;transform:none!important}
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-cb-greeting-panorama-v11"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-buyer-sidebar-activation-v12"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -324,13 +324,13 @@ body.cb-depot-buyer .cb-greeting-chip{
  <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox</span></button>
 <button type="button" class="nav-link hidden" id="buyerBookingPreviewNav" data-target="buyer-booking-preview">◇ <span>My Booking Page</span></button>
  <button type="button" class="nav-link" id="buyerClientsNav" data-target="clients">♧ <span>Customers</span></button>
+ <button type="button" class="nav-link hidden" id="buyerPricingNav" data-target="pricing">◇ <span>Pricing &amp; Services</span></button>
+ <button type="button" class="nav-link hidden" id="buyerAvailabilityNav" data-target="availability">◷ <span>Availability</span></button>
+ <button type="button" class="nav-link hidden" id="buyerFollowupsNav" data-target="buyer-followups">✉ <span>Email Automation</span></button>
+ <button type="button" class="nav-link hidden" id="buyerEmailsNav" data-target="emails">▤ <span>Email History</span></button>
  <div class="hidden" aria-hidden="true" style="display:none">
   <button type="button" class="nav-link" id="buyerLeadsNav" data-target="leads">Customer Inquiries</button>
   <button type="button" class="nav-link" id="leadCalendarNav" data-target="calendar">Customer Follow-ups</button>
-  <button type="button" class="nav-link" id="buyerEmailsNav" data-target="emails">Email History</button>
-  <button type="button" class="nav-link" id="buyerFollowupsNav" data-target="buyer-followups">Email Automation</button>
-  <button type="button" class="nav-link" id="buyerPricingNav" data-target="pricing">Pricing & Services</button>
-  <button type="button" class="nav-link" id="buyerAvailabilityNav" data-target="availability">Availability</button>
   <button type="button" class="nav-link" id="navAdd">Add inquiry</button>
  </div>
 </div>
@@ -1018,6 +1018,7 @@ function applyBuyerIndustryLabels(){
 }
 
 document.addEventListener('tle-crm-language',()=>queueMicrotask(applyBuyerIndustryLabels));
+let buyerDeliveryReady=false;
 function applyCRMRoleInterface(){
  const owner=!!workspace?.is_internal,buyer=!!workspace&&!owner;
  if(workspace){document.body.dataset.languageWorkspace=workspace.id;const saved=localStorage.getItem('tle_crm_language_'+workspace.id);const selected=saved==='es'?'es':saved==='en'?'en':owner?(localStorage.getItem('tle_crm_owner_language')||'en'):'en';document.dispatchEvent(new CustomEvent('tle-crm-language',{detail:{language:selected}}))}else delete document.body.dataset.languageWorkspace;
@@ -1028,7 +1029,11 @@ function applyCRMRoleInterface(){
  $('ownerPagesNav').classList.toggle('hidden',!owner);
  $('ownerCalendarNav').classList.toggle('hidden',!owner);$('ownerHelpNav').classList.toggle('hidden',!owner);if(!owner)$('ownerHelpHub').classList.add('hidden');
  $('ownerOrdersCaption').classList.toggle('hidden',!owner);
- $('ownerProspectsCaption').classList.add('hidden');$('ownerPrivateSection').classList.toggle('hidden',!owner);$('buyerBusinessSection').classList.toggle('hidden',!buyer);$('sidebarWorkspaceLabel').textContent=owner?'OWNER COMMAND':buyer?(workspace.name||'BUSINESS WORKSPACE'):'WORKSPACE';$('ownerInsightsNav').classList.toggle('hidden',!owner);$('ownerContactDecision').classList.toggle('hidden',!owner);$('buyerFollowupsNav').classList.toggle('hidden',!buyer);$('buyerRequestsNav').classList.toggle('hidden',!buyer);$('buyerBookingPreviewNav').classList.toggle('hidden',!buyer);$('ownerWebsiteInboxNav').classList.toggle('hidden',!owner);$('ownerSettingsNav').classList.toggle('hidden',!owner);$('buyerSettingsNav').classList.toggle('hidden',!buyer);
+ $('ownerProspectsCaption').classList.add('hidden');$('ownerPrivateSection').classList.toggle('hidden',!owner);$('buyerBusinessSection').classList.toggle('hidden',!buyer);$('sidebarWorkspaceLabel').textContent=owner?'OWNER COMMAND':buyer?(workspace.name||'BUSINESS WORKSPACE'):'WORKSPACE';$('ownerInsightsNav').classList.toggle('hidden',!owner);$('ownerContactDecision').classList.toggle('hidden',!owner);$('buyerFollowupsNav').classList.toggle('hidden',!(buyer&&buyerDeliveryReady));
+ $('buyerPricingNav').classList.toggle('hidden',!(buyer&&buyerDeliveryReady));
+ $('buyerAvailabilityNav').classList.toggle('hidden',!(buyer&&buyerDeliveryReady));
+ $('buyerEmailsNav').classList.toggle('hidden',!(buyer&&buyerDeliveryReady));
+ $('buyerRequestsNav').classList.toggle('hidden',!buyer);$('buyerBookingPreviewNav').classList.toggle('hidden',!buyer);$('ownerWebsiteInboxNav').classList.toggle('hidden',!owner);$('ownerSettingsNav').classList.toggle('hidden',!owner);$('buyerSettingsNav').classList.toggle('hidden',!buyer);
  $('navOverview').classList.toggle('hidden',owner);
  $('mainNavCaption').classList.remove('hidden');
  /* Legacy calendar link is intentionally hidden; the buyer uses Inbox and the owner uses Prospect Follow-ups. */
@@ -1045,7 +1050,7 @@ function applyCRMRoleInterface(){
 }
 function lockCommandCenterSession(){
  bootGeneration++;
- workspace=null;activeAuthUserId=null;leads=[];editing=null;accountEmail='';
+ workspace=null;activeAuthUserId=null;buyerDeliveryReady=false;leads=[];editing=null;accountEmail='';
  emailSentByLead=new Map();emailBouncedByLead=new Map();
  buyerRequests=[];buyerSelectedRequest=null;buyerRequestBusy=false;buyerDraftEditingValues=null;
  delete document.body.dataset.leadsLoaded;
@@ -1082,6 +1087,7 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
  // before fetching workspace data, and RLS blocks buyer data until password login.
  const {data:security,error:securityError}=await db.rpc('tle_crm_buyer_auth_state');
  if(securityError)throw securityError;
+ buyerDeliveryReady=!!security?.system_delivered;
  if(generation!==bootGeneration)return;
  if(security?.password_required){
    if(security.password_setup_complete&&!security.signed_in_with_password){
