@@ -1111,6 +1111,84 @@ function buildIntakeRows(intake){
  }
  if(!box.children.length)box.append(ownerPageElem('p',buildLabel('Waiting for intake details.','Esperando el formulario de la compradora.')));
 }
+let privateEmailDraft=null,privateEmailConfirm='';
+function privateEmailChoice(){
+ return {business_category:$('buildClientEmailCategory').value,business_category_other:$('buildClientEmailOther').value.trim()};
+}
+async function prepareBuyerClientEmail(){
+ if(!workspace?.is_internal||!ownerReviewAccount?.id||!builderState)return;
+ const id=ownerReviewAccount.id,selection=privateEmailChoice();
+ const send=$('buildClientEmailSend'),status=$('buildClientEmailStatus');
+ privateEmailDraft=null;privateEmailConfirm='';
+ send.disabled=true;send.textContent=buildLabel('Review & send access','Revisar y enviar acceso');
+ $('buildClientEmailTo').value=builderState.order.owner_email||'';
+ $('buildClientEmailFrom').value='The Launch Era <hello@thelaunchera.com>';
+ $('buildClientEmailSubject').value='';
+ $('buildClientEmailPreviewFrame').srcdoc='';
+ if(selection.business_category==='other'&&!selection.business_category_other){status.textContent=buildLabel('Enter a business type first.','Escribe primero el tipo de servicio.');return}
+ status.textContent=buildLabel('Preparing personalized email preview…','Preparando el correo personalizado…');
+ try{
+  const data=await ownerStudioCall('activation_preview',selection);
+  if(!workspace?.is_internal||ownerReviewAccount?.id!==id)return;
+  privateEmailDraft=data;
+  $('buildClientEmailTo').value=data.to||'';
+  $('buildClientEmailSubject').value=data.subject||'';
+  $('buildClientEmailFrom').value=data.from||'';
+  $('buildClientEmailPreviewFrame').srcdoc=data.html||'';
+  const permitted=!!builderState.reviewed&&!!builderState.order.has_booking_link&&builderState.order.status==='active';
+  send.disabled=!permitted||data.status!=='ready_to_send';
+  if(data.status==='previously_sent'){
+   send.textContent=buildLabel('✓ Activation already sent','✓ Activación ya enviada');
+   status.textContent=buildLabel('An activation has already been sent; do not duplicate it.','Ya se envió una activación; evita duplicarla.');
+  }else if(permitted){
+   status.textContent=buildLabel('✓ Email prepared, not sent. The preview URL is not an activation link.','✓ Correo preparado, sin enviar. El enlace de vista no activa ninguna cuenta.');
+  }else{
+   status.textContent=buildLabel('Approve the design and prepare the booking page before sending.','Aprueba el diseño y prepara la página antes de enviar.');
+  }
+ }catch(error){privateEmailDraft=null;status.textContent=buildLabel('Email preview unavailable: ','Vista previa no disponible: ')+(error.message||String(error))}
+}
+$('buildClientEmailCategory').onchange=()=>{
+ $('buildClientEmailOtherLabel').style.display=$('buildClientEmailCategory').value==='other'?'block':'none';
+ prepareBuyerClientEmail();
+};
+$('buildClientEmailOther').onchange=prepareBuyerClientEmail;
+$('buildClientEmailRefresh').onclick=prepareBuyerClientEmail;
+$('buildClientEmailSend').onclick=async()=>{
+ const btn=$('buildClientEmailSend'),status=$('buildClientEmailStatus');
+ if(!workspace?.is_internal||!ownerReviewAccount?.id||!privateEmailDraft||privateEmailDraft.status!=='ready_to_send'){
+  status.textContent=buildLabel('Refresh the email preview first.','Actualiza primero la vista del correo.');return;
+ }
+ const id=ownerReviewAccount.id,to=privateEmailDraft.to,selection=privateEmailChoice();
+ if(!to||!to.includes('@')){status.textContent=buildLabel('Buyer email is missing.','Falta el correo del cliente.');return}
+ if(privateEmailConfirm!==id){
+  privateEmailConfirm=id;
+  btn.textContent=buildLabel('Confirm: send to '+to,'Confirmar: enviar a '+to);
+  status.textContent=buildLabel('A second click sends ONE real private account email; it does not deliver the Booking Page.','El segundo toque envía UN correo real de acceso; no entrega la Booking Page.');
+  return;
+ }
+ privateEmailConfirm='';btn.disabled=true;btn.textContent=buildLabel('Sending secure access…','Enviando acceso seguro…');
+ status.textContent=buildLabel('Generating one-time access link…','Generando enlace privado de un solo uso…');
+ try{
+  const result=await ownerStudioCall('send_activation',selection);
+  if(ownerReviewAccount?.id!==id)return;
+  status.textContent=result.already_sent?buildLabel('No duplicate was sent; the previous email was accepted.','No se envió duplicado. El anterior ya fue aceptado.'):
+   buildLabel('✓ Resend accepted the access email. Verify inbox delivery before final handoff.','✓ Resend aceptó el correo. Confirma su entrega antes de finalizar.');
+  await loadOwnerBuilder();
+ }catch(error){
+  status.textContent=buildLabel('Access email not sent: ','No se envió el acceso: ')+(error.message||String(error));
+  btn.disabled=false;btn.textContent=buildLabel('Review & send access','Revisar y enviar acceso');
+ }
+};
+function setBuyerClientEmailChoice(){
+ if(!builderState)return;
+ const order=builderState.order||{},name=String(order.business_name||'');
+ const kind=['cleaning','detailing','other'].includes(order.business_category)?order.business_category:
+  /CB Depot|detail|auto/i.test(name)?'detailing':'cleaning';
+ $('buildClientEmailCategory').value=kind;
+ $('buildClientEmailOther').value=order.business_category_other||'';
+ $('buildClientEmailOtherLabel').style.display=kind==='other'?'block':'none';
+ prepareBuyerClientEmail();
+}
 function buildRenderStatus(){
  if(!builderState)return;
  const order=builderState.order,reviewed=builderState.reviewed;
@@ -1196,6 +1274,7 @@ async function loadOwnerBuilder(){
   renderBuildPhotos(data.uploaded_photos||[],brand);
   for(let n=1;n<=3;n++){const r=brand.reviews?.[n-1]||{};for(const key of ['name','text','rating'])buildField(form,'review_'+n+'_'+key,r[key]??'')}
   buildRenderStatus();
+  setBuyerClientEmailChoice();
  }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
 }
 $('buildBack').onclick=()=>premiumNavigate('owner-pages');
@@ -1383,8 +1462,7 @@ $('buildPrepare').onclick=async()=>{
 };
 $('buildInvite').onclick=()=>{
  if(!workspace?.is_internal||!ownerReviewAccount?.id)return;
- premiumNavigate('settings');
- $('ownerDeliveryPanel').scrollIntoView({behavior:'smooth',block:'start'});
+ $('buildClientEmailPanel').scrollIntoView({behavior:'smooth',block:'start'});
 };
 $('buildFinalChecks').onclick=()=>{premiumNavigate('settings');$('ownerDeliveryPanel').scrollIntoView({behavior:'smooth'})};
 
