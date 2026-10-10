@@ -238,7 +238,54 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-qa-bridge-v10"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+
+/* Shared panoramic greeting treatment; swap per-client photograph and colors on intake. */
+body.cb-depot-buyer .cb-detailing-heading{
+ position:relative;display:flex;align-items:flex-end;isolation:isolate;
+ width:100%;max-width:100%;min-height:clamp(315px,36vw,465px);
+ overflow:hidden;border-radius:clamp(19px,2.6vw,30px);
+ background:#192127;box-shadow:0 23px 55px #12141430;
+ padding:clamp(26px,4.5vw,52px);
+}
+body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo{
+ position:absolute;inset:0;display:block;width:100%;height:100%;z-index:-2;
+}
+body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{
+ display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 47%;
+ border:0;border-radius:0;box-shadow:none;transform:scale(1.005);
+ transition:transform .85s cubic-bezier(.2,.8,.2,1);
+}
+body.cb-depot-buyer .cb-detailing-heading:hover .cb-greeting-photo img{transform:scale(1.035)}
+body.cb-depot-buyer .cb-detailing-heading .cb-greeting-overlay{
+ position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,rgba(10,13,16,.91) 0%,rgba(12,17,22,.76) 33%,rgba(12,18,24,.2) 78%),
+ linear-gradient(0deg,rgba(6,9,13,.55),transparent 56%);
+}
+body.cb-depot-buyer .cb-greeting-copy{position:relative;max-width:min(90%,525px);width:100%;min-width:0}
+body.cb-depot-buyer .cb-detailing-heading h2{font-size:clamp(32px,5.1vw,57px);max-width:550px;margin:12px 0 14px}
+body.cb-depot-buyer .cb-detailing-heading p{font-size:clamp(14px,1.45vw,17px);max-width:450px;color:#F0EDE6;line-height:1.6}
+body.cb-depot-buyer .cb-greeting-chip{
+ display:inline-flex;align-items:center;margin-top:22px;padding:9px 13px;
+ border-radius:999px;color:#F7EDD8;background:rgba(33,37,39,.64);
+ border:1px solid rgba(234,207,155,.46);font-size:12px;font-weight:700;
+}
+@media(max-width:660px){
+ body.cb-depot-buyer .cb-detailing-heading{
+  min-height:clamp(360px,108vw,520px);align-items:flex-end;
+  padding:25px 22px;border-radius:23px
+ }
+ body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{object-position:center 40%}
+ body.cb-depot-buyer .cb-detailing-heading .cb-greeting-overlay{
+  background:linear-gradient(0deg,rgba(9,13,17,.96) 0%,rgba(9,13,17,.76) 34%,rgba(9,13,17,.09) 84%)
+ }
+ body.cb-depot-buyer .cb-greeting-copy{max-width:100%}
+ body.cb-depot-buyer .cb-detailing-heading h2{font-size:clamp(31px,8vw,45px)}
+ body.cb-depot-buyer .cb-detailing-heading p{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{transition:none;transform:none!important}
+}
+</style><meta name="tle-command-center-release" content="2026-10-10-cb-greeting-panorama-v11"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -589,9 +636,17 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 </article><button type="button" id="settingsSignOut" class="secondary">Sign out</button></section><section id="notificationPanel" class="hidden premium-emailhub"><div class="section-title">Notifications</div><p class="muted">Incoming requests and follow-ups requiring attention.</p><div id="notificationList"></div></section><section class="premium-emailhub" id="analyticsHub"><div class="section-title">Your analytics</div><div class="metrics premium-metrics"><div class="metric"><small>Conversion rate</small><strong id="analyticsConversion">0%</strong></div><div class="metric"><small>Emails recorded</small><strong id="analyticsSent">0</strong></div><div class="metric"><small>Incoming requests</small><strong id="analyticsInbound">—</strong></div><div class="metric"><small>Overdue follow-ups</small><strong id="analyticsOverdue">0</strong></div></div></section><div class="toolbar" id="leadToolbar"><div class="section-title">Your pipeline</div><div class="actionbar"><button type="button" id="exportCsv" class="secondary">Export CSV</button><button id="add">+ Add lead</button></div></div><div class="filters" id="leadFilters"><input id="search" placeholder="Search by business or contact" aria-label="Search leads"><select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select><select id="dueFilter" aria-label="Filter by follow-up"><option value="">All follow-ups</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="none">No follow-up date</option></select><select id="outreachFilter" aria-label="Filter by outreach status"><option value="">All outreach</option><option value="sent">Already emailed</option><option value="pending">No recorded email — review</option><option value="bounced">Bounced — do not email</option></select></div><div class="viewtabs" id="premiumViews"><button type="button" id="pipelineView" class="active">Pipeline</button><button type="button" id="calendarView">Follow-up calendar</button><button type="button" id="clientView">Won clients</button></div><div id="board" class="grid"></div><section id="inboundHub" class="hidden premium-emailhub"><div class="section-title">Incoming requests <span id="inboundCount" class="lead-profile-badge"></span></div><p class="muted">Freebie downloads, website messages, and personalized demo requests — together in one place.</p><div class="inbound-filters"><button type="button" class="active" data-inbound="all">All</button><button type="button" data-inbound="freebie">Freebies</button><button type="button" data-inbound="website">Website</button><button type="button" data-inbound="demo">Demo requests</button></div><div id="inboundList" aria-live="polite"></div></section><section id="buyerDashboardHub" class="hidden premium-emailhub" aria-label="Business Dashboard">
  <div id="cbDetailingTop" class="hidden">
   <div class="cb-detailing-heading">
-   <div><small>CB DEPOT · PRIVATE WORKSPACE</small><h2>Detailing, organized.</h2>
-   <p>Vehicle requests, quotes, appointments and follow-ups — all in one place.</p></div>
-   <img src="./app-icons/cb-depot-192.png?v=20261010" alt="CB Depot logo" width="64" height="64">
+   <picture class="cb-greeting-photo">
+    <source media="(max-width: 660px)" srcset="https://thelaunchera.com/assets/clients/cb-depot/photos/hero-mobile.webp">
+    <img src="https://thelaunchera.com/assets/clients/cb-depot/photos/hero-desktop.webp" alt="CB Depot signature car detailing hero photograph" loading="eager" fetchpriority="high">
+   </picture>
+   <div class="cb-greeting-overlay" aria-hidden="true"></div>
+   <div class="cb-greeting-copy">
+    <small>CB DEPOT · PRIVATE COMMAND CENTER</small>
+    <h2>Detailing, organized.</h2>
+    <p>Vehicle requests, quotes, appointments and follow-ups — all in one place.</p>
+    <span class="cb-greeting-chip">Your business. Your workspace.</span>
+   </div>
   </div>
   <div class="cb-detailing-actions" aria-label="Quick actions">
    <button type="button" id="cbDashInbox">↗ Open Inbox <small>View customer requests</small></button>
