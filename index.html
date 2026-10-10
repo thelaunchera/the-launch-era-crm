@@ -1058,7 +1058,8 @@ async function loadOwnerDeliveries(){
   if(!workspace?.is_internal||workspace.id!==startedWith)return;
   const entries=Array.isArray(data)?data:[];
   if(!entries.length){status.textContent='No paid accounts waiting for delivery / No hay compras pendientes';return}
-  status.textContent=entries.length+' paid account(s) / compra(s). No email will be sent until you confirm.';
+  const deliveredCount=entries.filter(a=>a.activation_email_delivery_status==='delivered'&&a.activation_email_link_version==='handoff-v2').length;
+  status.textContent=entries.length+' paid account(s) / compra(s) · '+deliveredCount+' verified activation email(s) delivered. Final delivery requires your approval. / Activaciones entregadas verificadas: '+deliveredCount+'.';
   for(const a of entries){
    const item=deliveryNode('div');item.style.cssText='border:1px solid #e6e7e7;border-radius:18px;padding:19px;background:#fff;display:grid;gap:9px';
    const h=deliveryNode('h3',a.business_name||'Cleaning Business');h.style.margin='0';item.appendChild(h);
@@ -1080,8 +1081,14 @@ async function loadOwnerDeliveries(){
     const otherLabel=deliveryNode('label','Type of service / Tipo de servicio');otherLabel.style.display='none';
     const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';other.value=a.business_category_other||'';otherLabel.append(other);
     kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};kind.onchange();activation.append(otherLabel);
-    const send=deliveryNode('button','Send Activation Email / Enviar activación');send.type='button';send.className='secondary';send.disabled=!activationReady;
-    const msg=deliveryNode('p',a.activation_email_sent_at?'✓ Activation last requested on '+new Date(a.activation_email_sent_at).toLocaleString()+'. / Última activación registrada.':activationReady?'Uses the paid buyer email. Final delivery is separate. / Utiliza el correo de compra; entrega final aparte.':'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
+    const accessDelivered=a.activation_email_link_version==='handoff-v2'&&a.activation_email_delivery_status==='delivered';
+    const buyerLoggedInAfterEmail=!!a.buyer_signed_in_after_email;
+    const send=deliveryNode('button',accessDelivered?'✓ Activation email delivered / Activación entregada':'Send Activation Email / Enviar activación');send.type='button';send.className='secondary';send.disabled=!activationReady||accessDelivered;
+    const msg=deliveryNode('p',accessDelivered?
+       '✓ Resend verified delivery on '+new Date(a.activation_email_sent_at).toLocaleString()+'. / Correo entregado. '+(buyerLoggedInAfterEmail?'✓ Buyer signed in after this email / El cliente entró después del envío.':'Awaiting buyer sign-in / Esperando que el cliente abra su Command Center.')+(a.already_queued?' Final delivery recorded.':' Final Booking Page delivery still pending / Entrega final pendiente.'):
+       a.activation_email_sent_at?'Activation email requested on '+new Date(a.activation_email_sent_at).toLocaleString()+'. Provider delivery is not verified yet. / Envío registrado; entrega por verificar.':
+       activationReady?'Uses the paid buyer email. Final delivery is separate. / Utiliza el correo de compra; entrega final aparte.':
+       'Complete intake, design approval and booking setup first. / Termina antes la configuración.');
     msg.style.cssText='margin:0;font-size:12px;line-height:1.55';msg.setAttribute('role','status');
     send.onclick=async()=>{
       if(kind.value==='other'&&!other.value.trim()){msg.textContent='Name the service / Escribe el servicio';other.focus();return}
@@ -1181,8 +1188,14 @@ async function prepareBuyerClientEmail(){
   $('buildClientEmailPreviewFrame').srcdoc=data.html||'';
   const permitted=!!builderState.reviewed&&!!builderState.order.has_booking_link&&builderState.order.status==='active';
   send.disabled=!permitted||!['ready_to_send','legacy_link_needs_replacement'].includes(data.status);
-  if(data.status==='previously_sent'){
-   send.textContent=buildLabel('✓ Activation recently sent','✓ Activación enviada recientemente');
+  if(data.status==='delivered'){
+   send.textContent=buildLabel('✓ Activation email delivered','✓ Correo de activación entregado');
+   status.textContent=(data.buyer_signed_in_after_email?
+     buildLabel('✓ Resend confirms delivery, and the buyer signed in after this invitation. Final Booking Page handoff is separate.','✓ Resend confirma la entrega y el cliente ya entró después de la invitación. La entrega final es aparte.'):
+     buildLabel('✓ Resend confirms delivery to the buyer. Waiting for the buyer to sign in; no duplicate email is needed. Final Booking Page handoff is pending.','✓ Resend confirmó la entrega al cliente. Esperamos su acceso; no necesitas reenviar. La entrega final está pendiente.'));
+  }else if(data.status==='previously_sent'){
+   send.textContent=buildLabel('✓ Activation sent · delivery pending','✓ Activación enviada · pendiente');
+
    status.textContent=buildLabel('The corrected private access was sent. Request another link later only if necessary.','El acceso privado corregido ya fue enviado. Pide otro más tarde solo si es necesario.');
   }else if(data.status==='legacy_link_needs_replacement'&&permitted){
    send.textContent=buildLabel('Send corrected activation','Enviar activación corregida');
@@ -1244,7 +1257,7 @@ function buildRenderStatus(){
   ['1. Intake',order.intake_received],
   ['2. Customize',builderState.saved],
   ['3. Preview',reviewed],
-  ['4. Access',order.workspace_ready],
+  ['4. Workspace',order.workspace_ready],
   ['5. Test',false],
   ['6. Deliver',order.delivered]];
  for(const [label,done] of statuses){
@@ -1263,7 +1276,10 @@ function buildRenderStatus(){
  const reviewMessage=$('buildReviewStatus');
  reviewMessage.textContent=reviewed?buildLabel('✓ Approval saved. Continue with private access below.','✓ Aprobación guardada. Continúa con el acceso privado abajo.'):builderState.saved?buildLabel('Check the preview, then approve here.','Revisa la vista previa y aprueba aquí.'):buildLabel('Save the design first.','Primero guarda el diseño.');
  const accessMessage=$('buildInviteStatus');
- accessMessage.textContent=order.workspace_ready?buildLabel('✓ Private workspace linked. Manage its activation email in Owner Settings.','✓ Espacio privado conectado. Gestiona la activación desde Owner Settings.'):prepared&&reviewed?buildLabel('✓ Design and booking page are prepared. Send the private access invitation when ready.','✓ Diseño y página preparados. Puedes enviar la invitación de acceso privado.'):reviewed?buildLabel('Design approved. Prepare the system to enable the invitation.','Diseño aprobado. Prepara el sistema para habilitar la invitación.'):buildLabel('Approve the design before preparing private access.','Aprueba el diseño antes de preparar el acceso privado.');
+ accessMessage.textContent=order.activation_email_delivery_status==='delivered'&&order.activation_email_link_version==='handoff-v2'?
+   (order.buyer_signed_in_after_email?buildLabel('✓ Activation email delivered and buyer signed in. Final Booking Page delivery requires approval.','✓ Correo entregado y cliente ingresó. La entrega final requiere aprobación.'):
+    buildLabel('✓ Activation email delivered. Waiting for client sign-in; final delivery remains pending.','✓ Correo de activación entregado. Esperando que el cliente ingrese; la entrega final sigue pendiente.')):
+   order.workspace_ready?buildLabel('✓ Private workspace linked. Manage its activation email in Owner Settings.','✓ Espacio privado conectado. Gestiona la activación desde Owner Settings.'):prepared&&reviewed?buildLabel('✓ Design and booking page are prepared. Send the private access invitation when ready.','✓ Diseño y página preparados. Puedes enviar la invitación de acceso privado.'):reviewed?buildLabel('Design approved. Prepare the system to enable the invitation.','Diseño aprobado. Prepara el sistema para habilitar la invitación.'):buildLabel('Approve the design before preparing private access.','Aprueba el diseño antes de preparar el acceso privado.');
  $('buildBuyerTitle').textContent=order.business_name||ownerReviewAccount.business_name;
  $('buildStatus').textContent=order.delivered?buildLabel('System delivered. Updates to pricing and design remain available.','Sistema entregado. Puedes seguir editando el diseño y los precios.'):
   !order.intake_received?buildLabel('Waiting for the buyer to complete the intake. No delivery or invitation will be sent.','Esperando el intake. No se enviará ningún acceso.'):
