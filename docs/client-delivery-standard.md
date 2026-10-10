@@ -52,3 +52,11 @@
 - See the matching Notion reusable delivery standard under **04 — CLIENT DELIVERY — PAID CLIENTS**.
 
 **Always prefer verified customer facts to marketing guesses.**
+
+## Evidence-based release QA (October 2026)
+
+- **Never send final delivery based only on checked boxes.** The private sample-lead routing test must actually pass and produce a server-side QA record before the owner can finalize delivery. This is enforced by `tle_booking_flow_owner_finalize` and applies to every buyer.
+- Check booking page rendering on a real phone, actual buyer password login, active service/availability setup, CRM tenant isolation, and owner/customer notifications. A simulated email delivery test alone is **not** a full booking test.
+- Treat automatic follow-ups as **pending**, not active, until the buyer's sender, reply handling, consent/stop conditions and verification are complete. Never imply that a customer-facing workflow is active when its controls show it is paused.
+- The sign-off system stays **blocked** when required evidence is missing. Do not use production bookings or reach out to genuine customers as substitutes for QA; use synthetic records and clean them up.
+- After owner and buyer approvals, carry out one controlled post-delivery booking/email smoke test, then confirm that the client can manage new requests. Fix any failure before encouraging the buyer to share their link.
