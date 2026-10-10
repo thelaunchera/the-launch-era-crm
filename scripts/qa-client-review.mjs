@@ -56,7 +56,12 @@ function checkReviewUI(input,expected){
    elements.set(id,{id,textContent:"",disabled:false,classList:{
     contains(x){return classes.has(x)},
     add(...names){names.forEach(x=>classes.add(x))},
-    remove(...names){names.forEach(x=>classes.delete(x))}
+    remove(...names){names.forEach(x=>classes.delete(x))},
+    toggle(name,force){
+     const nextValue=force===undefined?!classes.has(name):!!force;
+     if(nextValue)classes.add(name);else classes.delete(name);
+     return nextValue;
+    }
    },setAttribute(k,v){attrs[k]=v},getAttribute(k){return attrs[k]}});
   }
   return elements.get(id);
