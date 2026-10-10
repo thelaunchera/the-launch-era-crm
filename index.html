@@ -3096,6 +3096,47 @@ async function addOwnerClientReview(kind,id,item,previewInput){
   };
   status.textContent=(labels[data.status]||data.status)+' · '+data.revisions_remaining+'/'+data.revisions_limit+' '+(es?'revisiones disponibles':'revisions remaining');
   if(data.feedback)notes.textContent=(es?'Solicitud del cliente: ':'Buyer feedback: ')+data.feedback;
+  // Booking design reviews only. The owner alone decides when to send a reminder.
+  // Show it after 12 hours of waiting; never auto-send, reset revisions or send final access.
+  if(kind==='booking'&&!['approved','changes_requested'].includes(data.status)&&data.manual_reminder_due_at){
+   const reminder=document.createElement('div');
+   reminder.style.cssText='display:grid;gap:8px;padding:12px;border-radius:12px;border:1px solid #cadce9;background:#fff';
+   const hint=document.createElement('p');hint.style.cssText='margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere';
+   const btn=document.createElement('button');btn.type='button';btn.className='secondary';
+   btn.style.cssText='width:100%;white-space:normal;min-height:42px';
+   if(data.manual_reminder_sent_at){
+    hint.textContent=es?'✓ Recordatorio solicitado y aceptado por el proveedor de correo. La entrega en bandeja no está confirmada.':'✓ Reminder accepted by the email provider. Inbox delivery is not yet confirmed.';
+    btn.remove();
+   }else if(data.manual_reminder_attempted){
+    hint.textContent=es?'Recordatorio ya solicitado. Revisa el estado del envío antes de reintentarlo para evitar duplicados.':'Reminder already attempted. Check delivery status before retrying to avoid duplicates.';
+   }else if(!data.manual_reminder_available){
+    const due=new Date(data.manual_reminder_due_at);
+    const time=due.toLocaleString(es?'es-US':'en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    hint.textContent=es?'Si el cliente no responde, podrás enviarle un recordatorio manual a partir del '+time+'.':'If the client has not responded, you can send a manual reminder after '+time+'.';
+   }else{
+    hint.textContent=es?'Han pasado 12 horas sin aprobación. Puedes enviar un recordatorio desde aquí.':'12 hours have passed without approval. You can send a reminder from here.';
+    btn.disabled=false;
+    btn.textContent=es?'✉ Enviar recordatorio al cliente':'✉ Send client reminder';
+    btn.onclick=async()=>{
+     if(!confirm(es?'¿Enviar ahora un recordatorio de aprobación a este cliente? No se enviará la entrega final.':'Send a design-approval reminder to this client now? This will not send final delivery.'))return;
+     btn.disabled=true;
+     hint.textContent=es?'Enviando recordatorio…':'Sending reminder…';
+     try{
+      const sent=await ownerClientReviewRequest('owner_send_review_reminder',kind,id);
+      if(!sent.notification_accepted)throw Error(es?'El proveedor no confirmó el envío.':'Email provider did not accept the message.');
+      hint.textContent=es?'✓ Recordatorio aceptado por el proveedor. Comprueba el estado de entrega del correo.':'✓ Reminder accepted by the email provider. Verify its delivery status.';
+      btn.remove();
+     }catch(error){
+      hint.textContent=(es?'No se pudo confirmar el recordatorio: ':'Could not confirm the reminder: ')+(error.message||String(error));
+      // Prevent accidental duplicates until the owner refreshes the actual server status.
+      btn.disabled=true;
+     }
+    };
+   }
+   reminder.append(hint);
+   if(data.manual_reminder_available&&!data.manual_reminder_attempted)reminder.append(btn);
+   card.append(reminder);
+  }
   if(data.status==='changes_requested'){
     const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.style.cssText='width:100%;white-space:normal';
     btn.textContent=es?'✓ Correcciones terminadas · devolver para aprobación':'✓ Corrections done · Return for client approval';
