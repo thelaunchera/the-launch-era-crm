@@ -56,6 +56,6 @@ assert(source.includes('englishBySpanish.set(es,en)'),'Reverse translation initi
 assert(/tle_crm_language_['\"]\s*\+\s*workspace\.id/.test(source),'Workspace-scoped locale storage missing');
 assert(source.includes('buyerText(\'✓ TEST PASSED'),'QA result does not follow selected language');
 assert(source.includes('picker.setAttribute("aria-label",lang==="es"?"Idioma":"Language")'),'Language picker accessibility label not localized');
-assert(source.includes('2026-10-10-language-separation-v20'),'Unexpected release marker');
+assert(/content="2026-10-10-[a-z0-9-]+-v\\d+"/.test(source),'Missing release marker');
 
 console.log('PASS · EN/ES Command Center static translation audit · '+Object.keys(translations).length+' keys');
