@@ -238,7 +238,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-qa-bridge-v9"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-qa-bridge-v10"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -447,7 +447,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <article class="panel" style="padding:22px;margin:16px 0"><h3>3. Preview the real Booking Page / Vista previa real</h3>
 <p class="muted">This uses the same Booking Page template customers will receive, with no reservations, emails or charges. / Utiliza el diseño real pero sin crear reservas.</p>
 <div style="display:flex;flex-wrap:wrap;gap:9px;margin:12px 0"><button type="button" class="secondary" id="buildPreviewReload">Refresh preview / Actualizar</button><button type="button" class="secondary" id="buildPreviewMobile">Mobile / Móvil</button><button type="button" class="secondary" id="buildPreviewDesktop">Desktop / Computadora</button></div>
-<div style="margin:16px auto;max-width:100%;width:100%;border-radius:23px;overflow:hidden;border:1px solid #cbdce7;background:#fff;box-shadow:0 15px 39px #10243213;transition:width .2s" id="buildFrameShell"><iframe id="buildLiveFrame" title="Real Booking Page private preview" style="display:block;width:100%;height:1020px;border:0;background:#FAF8F3" sandbox="allow-scripts allow-forms"></iframe></div>
+<div style="margin:16px auto;max-width:100%;width:100%;border-radius:23px;overflow:hidden;border:1px solid #cbdce7;background:#fff;box-shadow:0 15px 39px #10243213;transition:width .2s" id="buildFrameShell"><iframe id="buildLiveFrame" title="Real Booking Page private preview" style="display:block;width:100%;height:1020px;border:0;background:#FAF8F3" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div>
 <button type="button" id="buildMarkReviewed" class="secondary">Approve the design / Aprobar diseño</button>
 <p id="buildReviewStatus" role="status" aria-live="polite" style="font-weight:700;margin:12px 0 0;color:#2d526c"></p>
 </article>
@@ -1454,7 +1454,7 @@ window.addEventListener('message',async event=>{
     requested_date:String(request.requested_date||'').slice(0,10)
   }});
   if(ownerReviewAccount?.id!==accountId)return;
-  $('buildPreviewStatus').textContent='✓ Private form test PASSED: Preview submission → correct Command Center lead. Sample deleted; no emails or bookings.';
+  $('buildStatus').textContent='✓ Private form test PASSED: Preview submission → correct Command Center lead. Sample deleted; no emails or bookings.';
   respond({ok:!!result.ok,verified:!!result.linked_to_crm,error:result.error||''});
  }catch(error){respond({ok:false,error:error.message||'Lead QA failed'})}
  finally{previewLeadTestInProgress=false}
