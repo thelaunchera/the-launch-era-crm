@@ -60,3 +60,11 @@
 - Treat automatic follow-ups as **pending**, not active, until the buyer's sender, reply handling, consent/stop conditions and verification are complete. Never imply that a customer-facing workflow is active when its controls show it is paused.
 - The sign-off system stays **blocked** when required evidence is missing. Do not use production bookings or reach out to genuine customers as substitutes for QA; use synthetic records and clean them up.
 - After owner and buyer approvals, carry out one controlled post-delivery booking/email smoke test, then confirm that the client can manage new requests. Fix any failure before encouraging the buyer to share their link.
+
+### Additional operational QA findings — October 10, 2026
+
+- In a safe transaction, check a buyer password-authenticated role can access **its own** lead and notification, but not a synthetic lead/notification or workspace belonging to another client. Roll back test records.
+- In a separate rolled-back test, insert two future follow-up steps and confirm that **reply** and **withdrawn consent** each cancel pending steps. The trigger now includes `replied_at` in its watched UPDATE columns.
+- The legacy Booking Flow follow-up worker must never send **before delivery**, and it must never run for a modern private buyer CRM. That buyer's follow-ups are handled only by the separate verified-sender, reply-monitored buyer automation worker to avoid duplicate or untracked messages.
+- A buyer's follow-ups are **not active** until their own provider sender domain and reply monitoring are connected and verified, regardless of whether a confirmation email sent through The Launch Era's transactional route was delivered successfully. This is a real remaining integration requirement, not a QA checkbox.
+- CB Depot: password sign-in evidenced; cross-account lead/notification isolation simulated successfully; sample routing verified and cleaned; replied/withdrawn follow-up stop tests passed. Customer email test delivered to the agency inbox. Final booking mobile smoke test, actual owner email notification, buyer email-sender/reply verification, and buyer design approval remain outstanding.
