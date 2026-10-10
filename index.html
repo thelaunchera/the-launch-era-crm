@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-delivery-pipeline-v22"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-owner-qa-center-v23"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -1578,6 +1578,98 @@ async function loadOwnerDeliveries(){
    }
    timeline.setAttribute('aria-label',esOwner?'Estado de preparación y entrega':'Preparation and delivery progress');
    item.append(timeline);
+   // Owner-only QA console. Read-only inspection and explicit private tests,
+   // never signs into or modifies the customer's Command Center.
+   const ownerQa=deliveryNode('details');ownerQa.style.cssText='border:1px solid #bfd7e8;border-radius:15px;background:#f5faff;padding:14px;min-width:0;max-width:100%';
+   const qaHead=deliveryNode('summary',esOwner?'🔐 Mi centro de pruebas · '+String(a.business_name||'Negocio'):'🔐 Owner QA Center · '+String(a.business_name||'Business'));
+   qaHead.style.cssText='font-size:14px;line-height:1.5;font-weight:800;cursor:pointer;overflow-wrap:anywhere';
+   ownerQa.append(qaHead);
+   const qaIntro=deliveryNode('p',esOwner?
+    'Prueba la configuración y los correos sin usar la contraseña del cliente ni publicar su página. Los resultados indican claramente qué queda por comprobar.':
+    'Inspect setup and request email tests without the buyer password or a public booking page. Pending checks remain pending.');
+   qaIntro.style.cssText='font-size:12px;line-height:1.6;margin:10px 0';
+   ownerQa.append(qaIntro);
+   const qaActions=deliveryNode('div');qaActions.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
+   const inspect=deliveryNode('button',esOwner?'Revisar estado y automatizaciones':'Inspect setup & automation');
+   const mailTest=deliveryNode('button',esOwner?'Enviar correo TEST a mi bandeja':'Send TEST email to my inbox');
+   const pagePreview=deliveryNode('button',esOwner?'Ver mi vista previa privada':'Open private Booking preview');
+   for(const control of [inspect,mailTest,pagePreview]){control.type='button';control.className='secondary';control.style.cssText='max-width:100%;white-space:normal;min-height:40px;overflow-wrap:anywhere';}
+   const qaResults=deliveryNode('div');qaResults.style.cssText='display:grid;gap:7px;margin-top:11px;max-width:100%;overflow-wrap:anywhere';
+   qaResults.setAttribute('role','status');qaResults.setAttribute('aria-live','polite');
+   const ownerQARequest=async(action)=>{
+    const {data:{session},error:sessionError}=await db.auth.getSession();
+    if(sessionError||!session?.access_token||!workspace?.is_internal)throw Error(esOwner?'Inicia sesión como propietaria.':'Owner sign-in required.');
+    const response=await fetch(ownerStudioEndpoint,{method:'POST',headers:{
+      'Content-Type':'application/json',Authorization:'Bearer '+session.access_token
+    },body:JSON.stringify({account_id:a.id,action})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||!result?.ok)throw Error(result?.error||'QA request did not pass');
+    return result;
+   };
+   inspect.onclick=async()=>{
+    inspect.disabled=true;qaResults.replaceChildren();
+    qaResults.append(deliveryNode('p',esOwner?'Consultando estado real…':'Checking actual status…'));
+    try{
+      const result=await ownerQARequest('qa_dashboard');
+      qaResults.replaceChildren();
+      const heading=deliveryNode('strong',(result.business_name||a.business_name)+' · '+(esOwner?'Resumen privado':'Private QA overview'));
+      qaResults.append(heading);
+      const services=Array.isArray(result.catalog?.active_services)?result.catalog.active_services:[];
+      const servicesRow=deliveryNode('p',(esOwner?'Servicios activos: ':'Active services: ')+
+        (services.length?services.map(s=>s.name+(s.mode==='flat'&&s.price!=null?' · '+s.price+' '+(result.catalog.currency||'USD'):'')).join(' · '):(esOwner?'Ninguno configurado':'None configured')));
+      servicesRow.style.cssText='font-size:12px;line-height:1.6;margin:0';
+      qaResults.append(servicesRow);
+      const details=deliveryNode('p',
+        (esOwner?'Días disponibles: ':'Available days: ')+(result.catalog?.availability_days??0)+
+        ' · '+(esOwner?'Extras: ':'Add-ons: ')+(result.catalog?.addons_count??0)+
+        ' · '+(esOwner?'Cuenta privada: ':'Private workspace: ')+(result.qa?.workspace_linked?'✓':'—'));
+      details.style.cssText='font-size:12px;line-height:1.6;margin:0';
+      qaResults.append(details);
+      const statusLabels=[
+        ['booking_page_tested',esOwner?'Página de reservas':'Booking page'],
+        ['buyer_login_tested',esOwner?'Acceso del comprador':'Buyer login'],
+        ['lead_routing_tested',esOwner?'Ruta del lead':'Lead routing'],
+        ['followups_tested',esOwner?'Seguimientos reales':'Real follow-ups'],
+        ['owner_notifications_tested',esOwner?'Avisos al propietario':'Owner notifications'],
+        ['account_isolation_tested',esOwner?'Separación de cuentas':'Account isolation'],
+        ['design_approved_by_buyer',esOwner?'Aprobación del diseño':'Buyer design approval']
+      ];
+      const statusGrid=deliveryNode('div');statusGrid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px';
+      for(const [key,label] of statusLabels){
+       const passed=result.qa?.[key]===true;
+       const cell=deliveryNode('div',(passed?'✓ ':'○ ')+label);
+       cell.style.cssText='border-radius:8px;background:'+(passed?'#e8f4ea':'#ffffff')+
+         ';padding:8px;font-size:12px;color:'+(passed?'#285e3a':'#556879');
+       statusGrid.append(cell);
+      }
+      qaResults.append(statusGrid);
+      const disclaimer=deliveryNode('p',esOwner?
+       'Un correo enviado o una prueba de datos no certifican por sí solos las notificaciones reales ni los seguimientos. Los estados pendientes no se aprueban automáticamente.':
+       'A queued email or sample lead is not proof of complete live notification and follow-up operation. Pending checks are never auto-approved.');
+      disclaimer.style.cssText='font-size:11px;line-height:1.55;margin:3px 0 0;color:#556879';
+      qaResults.append(disclaimer);
+    }catch(error){qaResults.replaceChildren(deliveryNode('p',(esOwner?'No se pudo revisar: ':'Could not inspect: ')+(error.message||String(error))))}
+    finally{inspect.disabled=false}
+   };
+   mailTest.onclick=async()=>{
+    if(!confirm(esOwner?'¿Enviar un correo identificado como TEST solamente a TU correo de propietaria? CB Depot no recibirá nada.':'Send a TEST-labelled email only to YOUR verified owner inbox? The buyer will not be contacted.'))return;
+    mailTest.disabled=true;qaResults.replaceChildren(deliveryNode('p',esOwner?'Solicitando correo de prueba…':'Requesting test email…'));
+    try{
+      const data=await ownerQARequest('qa_email_test');
+      qaResults.replaceChildren(deliveryNode('p',
+       (esOwner?'✓ Correo TEST solicitado para ':'✓ TEST message queued for ')+data.recipient+
+       (esOwner?'. Revisa tu bandeja, Promociones y Spam para confirmar la entrega. No se hizo ninguna reserva ni se contactó al comprador.':
+       '. Check your Inbox, Promotions and Spam for delivery. No booking was created and no buyer was contacted.')));
+    }catch(error){qaResults.replaceChildren(deliveryNode('p',(esOwner?'No confirmado: ':'Not confirmed: ')+(error.message||String(error))))}
+    finally{mailTest.disabled=false}
+   };
+   pagePreview.onclick=()=>{
+     chooseOwnerBuyer(a,'preview');
+     const destination=$('ownerBuilderHub');if(destination)destination.scrollIntoView({behavior:'smooth',block:'start'});
+   };
+   qaActions.append(inspect,mailTest,pagePreview);
+   ownerQa.append(qaActions,qaResults);
+   item.append(ownerQa);
    void addOwnerClientReview('booking',a.id,item);
    if(a.booking_page_url&&/^https:\/\//.test(a.booking_page_url)){
     if(a.already_queued){
