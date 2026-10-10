@@ -2230,7 +2230,7 @@ function buyerRequestCard(x){
   buyerCreate("span",buyerRequestState(x),"request-pill"));
  const title=buyerCreate("strong",x.customer_name||x.customer_email||"Customer");title.style.cssText="display:block;font-size:16px;margin:10px 0 6px";
  const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
- const details=buyerCreate("div",[x.service_name,time,x.raw_payload?.estimate_display].filter(Boolean).join(" · "),"request-summary");
+ const details=buyerCreate("div",[x.service_name,isDetailingWorkspace()?(x.raw_payload?.vehicle_type||x.raw_payload?.property_type):"",time,x.raw_payload?.estimate_display].filter(Boolean).join(" · "),"request-summary");
  const footer=buyerCreate("div",x.created_at?new Date(x.created_at).toLocaleString():"","request-summary");footer.style.marginTop="8px";
  btn.append(bar,title,details,footer);btn.onclick=()=>buyerOpenRequest(x);return btn
 }
@@ -2369,9 +2369,9 @@ function renderBuyerDashboard(){
  const quotes=buyerRequests.filter(x=>buyerRequestKind(x)==="quote").length;
  const area=$("buyerDashboardStats");area.replaceChildren();
  for(const [name,value] of [
-  [buyerText("Needs attention","Necesitan atención"),attention],
-  [buyerText("Confirmed bookings","Reservas confirmadas"),confirmed],
-  [buyerText("Quotes & estimates","Cotizaciones y estimados"),quotes]
+  [isDetailingWorkspace()?buyerText("Vehicle requests needing attention","Solicitudes de vehículos pendientes"):buyerText("Needs attention","Necesitan atención"),attention],
+  [isDetailingWorkspace()?buyerText("Confirmed detailing appointments","Citas de detailing confirmadas"):buyerText("Confirmed bookings","Reservas confirmadas"),confirmed],
+  [isDetailingWorkspace()?buyerText("Detailing quote requests","Cotizaciones de detailing"):buyerText("Quotes & estimates","Cotizaciones y estimados"),quotes]
  ]){
    const tile=buyerCreate("div",undefined,"request-stat");
    tile.append(buyerCreate("small",name),buyerCreate("b",value));
