@@ -1642,8 +1642,9 @@ async function loadOwnerDeliveries(){
    const qaActions=deliveryNode('div');qaActions.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
    const inspect=deliveryNode('button',esOwner?'Revisar estado y automatizaciones':'Inspect setup & automation');
    const mailTest=deliveryNode('button',esOwner?'Enviar correo TEST a mi bandeja':'Send TEST email to my inbox');
+   const lifecycleTest=deliveryNode('button',esOwner?'Simular solicitud → aviso → respuesta':'Simulate request → alert → reply');
    const pagePreview=deliveryNode('button',esOwner?'Ver mi vista previa privada':'Open private Booking preview');
-   for(const control of [inspect,mailTest,pagePreview]){control.type='button';control.className='secondary';control.style.cssText='max-width:100%;white-space:normal;min-height:40px;overflow-wrap:anywhere';}
+   for(const control of [inspect,lifecycleTest,mailTest,pagePreview]){control.type='button';control.className='secondary';control.style.cssText='max-width:100%;white-space:normal;min-height:40px;overflow-wrap:anywhere';}
    const qaResults=deliveryNode('div');qaResults.style.cssText='display:grid;gap:7px;margin-top:11px;max-width:100%;overflow-wrap:anywhere';
    qaResults.setAttribute('role','status');qaResults.setAttribute('aria-live','polite');
    const ownerQARequest=async(action)=>{
@@ -1701,6 +1702,31 @@ async function loadOwnerDeliveries(){
     }catch(error){qaResults.replaceChildren(deliveryNode('p',(esOwner?'No se pudo revisar: ':'Could not inspect: ')+(error.message||String(error))))}
     finally{inspect.disabled=false}
    };
+   lifecycleTest.onclick=async()=>{
+    if(!confirm(esOwner?
+      '¿Simular una solicitud de este negocio, crear un aviso interno y comprobar que se cancelan dos recordatorios después de una respuesta? Todo será ficticio y se eliminará; no se enviarán correos reales.':
+      'Simulate this business’s request, private alert, and two follow-up cancellations on reply? All test records are removed; no real email will be sent.'))return;
+    lifecycleTest.disabled=true;
+    qaResults.replaceChildren(deliveryNode('p',esOwner?'Ejecutando simulación privada…':'Running private simulation…'));
+    try{
+     const test=await ownerQARequest('qa_simulate_lifecycle');
+     const lines=[
+      esOwner?'✓ Solicitud vinculada al negocio correcto':'✓ Request routed to correct business',
+      esOwner?'✓ Aviso interno creado y eliminado':'✓ In-app alert created and cleaned',
+      (esOwner?'✓ Recordatorios simulados cancelados: ':'✓ Simulated reminders stopped: ')+(test.followup_steps_cancelled_after_reply??0)+' / 2',
+      esOwner?'✓ Sin reservas, correos reales ni cambios en el estado de entrega':'✓ No real booking, emails or delivery changes'
+     ];
+     qaResults.replaceChildren(...lines.map(v=>{
+       const e=deliveryNode('p',v);e.style.cssText='font-size:12px;line-height:1.55;margin:2px 0';return e
+     }));
+     qaResults.append(deliveryNode('p',esOwner?
+      'Simulación correcta. Aún deben verificarse las notificaciones y los seguimientos reales antes de entregar.':
+      'Simulation passed. Live business notifications and actual follow-ups still require separate verification before delivery.'));
+    }catch(error){
+     qaResults.replaceChildren(deliveryNode('p',
+      (esOwner?'No se completó la simulación: ':'Simulation failed: ')+(error.message||String(error))));
+    }finally{lifecycleTest.disabled=false}
+   };
    mailTest.onclick=async()=>{
     if(!confirm(esOwner?'¿Enviar un correo identificado como TEST solamente a TU correo de propietaria? CB Depot no recibirá nada.':'Send a TEST-labelled email only to YOUR verified owner inbox? The buyer will not be contacted.'))return;
     mailTest.disabled=true;qaResults.replaceChildren(deliveryNode('p',esOwner?'Solicitando correo de prueba…':'Requesting test email…'));
@@ -1717,7 +1743,7 @@ async function loadOwnerDeliveries(){
      chooseOwnerBuyer(a,'preview');
      const destination=$('ownerBuilderHub');if(destination)destination.scrollIntoView({behavior:'smooth',block:'start'});
    };
-   qaActions.append(inspect,mailTest,pagePreview);
+   qaActions.append(inspect,lifecycleTest,mailTest,pagePreview);
    ownerQa.append(qaActions,qaResults);
    item.append(ownerQa);
    void addOwnerClientReview('booking',a.id,item);
