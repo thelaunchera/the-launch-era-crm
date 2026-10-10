@@ -2239,14 +2239,20 @@ function buyerOpenRequest(x){
  const body=$("buyerRequestDetails");body.replaceChildren();
  const payload=x.raw_payload||{};
  const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
+ const detailing=isDetailingWorkspace();
  const fields=[
   [buyerText("Request type","Tipo"),buyerRequestKind(x)==="inquiry"?buyerText("Inquiry","Consulta"):buyerRequestKind(x)==="quote"?(buyerRequestIsEstimate(x)?buyerText("Estimate","Estimado"):buyerText("Quote","Cotización")):buyerText("Booking","Reserva")],
   [buyerText("Status","Estado"),buyerRequestState(x)],
-  [buyerText("Cleaning service","Servicio de limpieza"),x.service_name],
+  [detailing?buyerText("Detailing service","Servicio de detailing"):buyerText("Service","Servicio"),x.service_name],
   [buyerText("Published price / estimate","Precio o estimado"),payload.estimate_display],
   [buyerText("Requested date and time","Fecha y hora solicitadas"),requested|| (x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"")],
-  [buyerText("Frequency","Frecuencia"),payload.frequency],
-  [buyerText("Property","Propiedad"),[payload.property_type,payload.bedrooms?payload.bedrooms+" bed":"",payload.bathrooms?payload.bathrooms+" bath":"",payload.square_footage].filter(Boolean).join(" · ")],
+  ...(detailing?[
+    [buyerText("Vehicle type","Tipo de vehículo"),payload.vehicle_type||payload.property_type],
+    [buyerText("Vehicle condition","Estado del vehículo"),payload.vehicle_condition||payload.condition]
+  ]:[
+    [buyerText("Frequency","Frecuencia"),payload.frequency],
+    [buyerText("Property","Propiedad"),[payload.property_type,payload.bedrooms?payload.bedrooms+" bed":"",payload.bathrooms?payload.bathrooms+" bath":"",payload.square_footage].filter(Boolean).join(" · ")]
+  ]),
   [buyerText("Add-ons","Extras"),payload.extras],
   [buyerText("Customer email","Correo del cliente"),x.customer_email],
   [buyerText("Phone","Teléfono"),x.customer_phone],
@@ -2276,7 +2282,8 @@ function buyerSetDefaultMessage(){
  $("buyerRequestQuoteOffer").classList.toggle("hidden",$("buyerRequestAction").value!=="quoted");
  $("buyerRequestConfirmSlot").classList.toggle("hidden",$("buyerRequestAction").value!=="booked"||x.status==="booked");
  const action=$("buyerRequestAction").value,es=x.preferred_language==="es",name=(x.customer_name||"").trim().split(/\s+/)[0]||(es?"cliente":"there");
- const service=x.service_name||(es?"limpieza":"cleaning");
+ const detailing=isDetailingWorkspace();
+ const service=x.service_name||(detailing?"detailing":isOtherServiceWorkspace()?(es?"servicio":"service"):(es?"limpieza":"cleaning"));
  const slot=[ $("buyerRequestBookingDate").value,$("buyerRequestBookingTime").value ].filter(Boolean).join(" · ");
  let copy={
   reviewing:es?"Recibimos tu solicitud para "+service+" y estamos revisando los detalles. Te confirmaremos el próximo paso.":"We received your "+service+" request and are reviewing the details. We'll let you know the next step.",
@@ -2284,10 +2291,10 @@ function buyerSetDefaultMessage(){
   booked:es?"Tu reserva de "+service+" está confirmada"+(slot?" para "+slot:"")+". Si necesitas cambiar algún detalle, responde a este correo.":"Your "+service+" booking is confirmed"+(slot?" for "+slot:"")+". If anything needs changing, please reply here.",
   change_requested:es?"Necesitamos confirmar un detalle de tu solicitud de "+service+". Responde a este correo para revisar una nueva opción antes de cambiar la reserva.":"We need to confirm a detail about your "+service+" request. Please reply so we can review an alternative before any booking change.",
   declined:es?"Gracias por tu interés en "+service+". En este momento no podemos confirmar tu solicitud. Escríbenos si deseas explorar otra opción.":"Thank you for your interest in "+service+". We can't confirm this request at the moment. Reply if you'd like to discuss another option.",
-  closed:es?"Queríamos avisarte que hemos cerrado esta solicitud. Si necesitas una nueva limpieza, puedes escribirnos nuevamente.":"We're letting you know this request has been closed. If you need another cleaning, you're welcome to reach out.",
+  closed:detailing?(es?"Hemos cerrado esta solicitud de detailing. Si necesitas otra cita para tu vehículo, responde aquí.":"We've closed this detailing request. If your vehicle needs another appointment, feel free to reach out."):isOtherServiceWorkspace()?(es?"Hemos cerrado esta solicitud. Escríbenos si necesitas otro servicio.":"We've closed this request. Reach out if you need another service."):es?"Queríamos avisarte que hemos cerrado esta solicitud. Si necesitas una nueva limpieza, puedes escribirnos nuevamente.":"We're letting you know this request has been closed. If you need another cleaning, you're welcome to reach out.",
   reply:es?"Gracias por contactar a nuestro negocio. Revisamos tu solicitud; responde a este correo si tienes preguntas.":"Thanks for contacting our business. We've reviewed your request. Reply here if you have any questions."
  };
- $("buyerRequestMessage").value=(es?"Hola ":"Hi ")+name+",\n\n"+copy[action]+"\n\n"+(workspace?.name||"Your cleaning team")
+ $("buyerRequestMessage").value=(es?"Hola ":"Hi ")+name+",\n\n"+copy[action]+"\n\n"+(workspace?.name||"Your business")
 }
 function buyerManualLeads(){
  if(!workspace||workspace.is_internal)return [];
