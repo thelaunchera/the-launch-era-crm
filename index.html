@@ -2525,10 +2525,24 @@ const buyerStandardMessages={
 };
 function parseBuyerDraft(json){try{const data=JSON.parse(json);return data&&typeof data==='object'&&!Array.isArray(data)?data:{}}catch{return {}}}
 let buyerDraftEditingValues=null;
-function buyerDraftText(){const lng=$('buyerDraftLanguage').value,step=$('buyerDraftStep').value;return buyerStandardMessages[lng][step]}
+const buyerDetailingMessages={
+ en:{
+  "1":{subject:"Checking in on your car detailing request",body:"Hi {{customer_name}},\n\nJust checking in about your vehicle detailing request. If you have questions about the service, quote or scheduling, reply here.\n\n{{business_name}}"},
+  "2":{subject:"Any questions about your car detailing?",body:"Hi {{customer_name}},\n\nOne last check-in. If you still want to move forward with detailing or have a question about your quote, we're happy to help.\n\n{{business_name}}"}
+ },
+ es:{
+  "1":{subject:"Seguimiento de tu solicitud de detailing",body:"Hola {{customer_name}},\n\nQueríamos saber si deseas continuar con el servicio de detailing para tu vehículo. Responde aquí si tienes preguntas sobre el servicio, el precio o el horario.\n\n{{business_name}}"},
+  "2":{subject:"¿Tienes preguntas sobre tu detailing?",body:"Hola {{customer_name}},\n\nTe escribimos por última vez por si deseas continuar con el detailing o tienes preguntas sobre tu cotización.\n\n{{business_name}}"}
+ }
+};
+const buyerOtherServiceMessages={
+ en:{"1":{subject:"Following up on your service request",body:"Hi {{customer_name}},\n\nJust checking in about your service request. Reply here if you have questions or would like to proceed.\n\n{{business_name}}"},"2":{subject:"Any questions about your service?",body:"Hi {{customer_name}},\n\nOne last follow-up. If you would like to continue or have questions about your quote, reply here.\n\n{{business_name}}"}},
+ es:{"1":{subject:"Seguimiento de tu solicitud",body:"Hola {{customer_name}},\n\n¿Deseas continuar con tu solicitud? Responde a este correo para hablar sobre los detalles.\n\n{{business_name}}"},"2":{subject:"¿Necesitas ayuda con el servicio?",body:"Hola {{customer_name}},\n\nSi deseas continuar o tienes preguntas sobre tu cotización, responde aquí.\n\n{{business_name}}"}}
+};
+function buyerDraftText(){const lng=$('buyerDraftLanguage').value,step=$('buyerDraftStep').value;const catalog=isDetailingWorkspace()?buyerDetailingMessages:isOtherServiceWorkspace()?buyerOtherServiceMessages:buyerStandardMessages;return catalog[lng][step]}
 function replaceBuyerTokens(raw,lead){
  const first=(lead?.contact||'').trim().split(/\s+/)[0]||'there';
- return String(raw||'').replaceAll('{{customer_name}}',first).replaceAll('{{business_name}}',workspace?.name||'Cleaning Business');
+ return String(raw||'').replaceAll('{{customer_name}}',first).replaceAll('{{business_name}}',workspace?.name||'Service Business');
 }
 function renderBuyerDraft(lead){
  if(!lead||workspace?.is_internal)return;
