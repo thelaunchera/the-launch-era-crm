@@ -727,6 +727,10 @@ function applyBuyerIndustryLabels(){
  set('#buyerDashboardHub .panel:last-child > p.muted',detailing?'Review vehicle details and prepare personalized detailing quotes in Inbox. A quote request is not a confirmed appointment.':'Review service details and personalized quotes in Inbox. A quote request is not a confirmed appointment.',detailing?'Revisa los detalles del vehículo y prepara cotizaciones. Una solicitud no es una cita confirmada.':'Revisa los detalles y prepara cotizaciones. Una solicitud no es una cita confirmada.');
  set('#buyerRequestsHub > p.muted',detailing?'Car detailing inquiries, vehicle quotes and confirmed appointments.':'Service inquiries, quotes and confirmed appointments.',detailing?'Consultas de detailing, cotizaciones de vehículos y citas confirmadas.':'Consultas, cotizaciones y citas confirmadas.');
  set('#buyerFollowupsIntro > p.muted',detailing?'Two optional follow-up emails for detailing customers, only with verified sender, reply inbox and customer consent.':'Two optional service follow-ups, only with verified sender and consent.',detailing?'Dos seguimientos opcionales de detailing. Requieren remitente, buzón y permiso verificados.':'Dos seguimientos opcionales con remitente y permiso verificados.');
+ const shortcut=(id,en,sp,subEn,subEs)=>{const button=document.getElementById(id);if(!button)return;button.replaceChildren(document.createTextNode(es?sp:en+' '));const small=document.createElement('small');small.style.display='block';small.textContent=es?subEs:subEn;button.append(small)};
+ shortcut('buyerShortcutPricing',detailing?'Detailing Services & Quotes':'Services & Quotes',detailing?'Servicios y cotizaciones de detailing':'Servicios y cotizaciones',detailing?'Vehicle services, custom prices and add-ons':'Services, quotes and extras',detailing?'Vehículos, cotizaciones y extras':'Servicios, cotizaciones y extras');
+ shortcut('buyerShortcutAvailability',detailing?'Detailing Availability':'Availability',detailing?'Disponibilidad de detailing':'Disponibilidad','Appointments, opening hours and service duration','Citas, horarios y duración de servicios');
+ shortcut('buyerShortcutAutomation','Customer Email Automation','Correos automáticos','Verification, follow-ups and customer confirmations','Verificación, seguimientos y confirmaciones');
  const form=document.getElementById('buyerEmailForm');
  if(form){
   const from=form.elements.namedItem('sender_email'),sender=form.elements.namedItem('sender_name'),reply=form.elements.namedItem('reply_to');
@@ -748,6 +752,7 @@ function applyBuyerIndustryLabels(){
  }
 }
 
+document.addEventListener('tle-crm-language',()=>queueMicrotask(applyBuyerIndustryLabels));
 function applyCRMRoleInterface(){
  const owner=!!workspace?.is_internal,buyer=!!workspace&&!owner;
  if(workspace){document.body.dataset.languageWorkspace=workspace.id;const saved=localStorage.getItem('tle_crm_language_'+workspace.id);const selected=saved==='es'?'es':saved==='en'?'en':owner?(localStorage.getItem('tle_crm_owner_language')||'en'):'en';document.dispatchEvent(new CustomEvent('tle-crm-language',{detail:{language:selected}}))}else delete document.body.dataset.languageWorkspace;
