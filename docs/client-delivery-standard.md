@@ -19,7 +19,7 @@
 ## Security
 
 - Customer receives one-time identity-verification link; then chooses an 8+ character password with >=1 number and explicitly signs in. Email-link-only sessions must not expose private workspaces.
-- The customer's outbound email connection must be individually verified. Do not send from TLE on the buyer's behalf, or say automations are active if verification is pending.
+- **Current Booking Page policy:** The Launch Era manages customer booking confirmations, owner notifications, and up to two follow-ups. No buyer Resend account or independent sending domain is required. All email sends and inbound replies use the centralized platform infrastructure with tenant-scoped reply aliases. Never activate outgoing follow-ups before final delivery.
 
 ## Footer / legal
 
@@ -57,7 +57,7 @@
 
 - **Never send final delivery based only on checked boxes.** The private sample-lead routing test must actually pass and produce a server-side QA record before the owner can finalize delivery. This is enforced by `tle_booking_flow_owner_finalize` and applies to every buyer.
 - Check booking page rendering on a real phone, actual buyer password login, active service/availability setup, CRM tenant isolation, and owner/customer notifications. A simulated email delivery test alone is **not** a full booking test.
-- Treat automatic follow-ups as **pending**, not active, until the buyer's sender, reply handling, consent/stop conditions and verification are complete. Never imply that a customer-facing workflow is active when its controls show it is paused.
+- Treat managed follow-ups as **pending** until account delivery, booking-email provider acceptance, reply routing, unsubscribe and stop conditions are verified. Managed email status is independent of legacy buyer Resend connection state.
 - The sign-off system stays **blocked** when required evidence is missing. Do not use production bookings or reach out to genuine customers as substitutes for QA; use synthetic records and clean them up.
 - After owner and buyer approvals, carry out one controlled post-delivery booking/email smoke test, then confirm that the client can manage new requests. Fix any failure before encouraging the buyer to share their link.
 
@@ -65,6 +65,14 @@
 
 - In a safe transaction, check a buyer password-authenticated role can access **its own** lead and notification, but not a synthetic lead/notification or workspace belonging to another client. Roll back test records.
 - In a separate rolled-back test, insert two future follow-up steps and confirm that **reply** and **withdrawn consent** each cancel pending steps. The trigger now includes `replied_at` in its watched UPDATE columns.
-- The legacy Booking Flow follow-up worker must never send **before delivery**, and it must never run for a modern private buyer CRM. That buyer's follow-ups are handled only by the separate verified-sender, reply-monitored buyer automation worker to avoid duplicate or untracked messages.
-- A buyer's follow-ups are **not active** until their own provider sender domain and reply monitoring are connected and verified, regardless of whether a confirmation email sent through The Launch Era's transactional route was delivered successfully. This is a real remaining integration requirement, not a QA checkbox.
+- The legacy Booking Flow follow-up worker must never send before delivery or for any modern private buyer CRM. The managed `tle-booking-managed-followup-worker` checks signed incoming reply receipts, sends only for eligible open quotes using The Launch Era email provider, respects unsubscribe, and prevents duplicate claims. The old buyer-specific Resend workflow must remain inactive for managed orders.
+- Managed booking orders no longer need a customer-owned email provider. They must pass the agency-managed end-to-end send, receive, reply-to-owner and stop-follow-up tests. A transactional confirmation alone is never enough to claim full readiness.
 - CB Depot: password sign-in evidenced; cross-account lead/notification isolation simulated successfully; sample routing verified and cleaned; replied/withdrawn follow-up stop tests passed. Customer email test delivered to the agency inbox. Final booking mobile smoke test, actual owner email notification, buyer email-sender/reply verification, and buyer design approval remain outstanding.
+
+### Platform-managed mail implementation (October 10, 2026)
+
+- The Booking Page server function `tle-booking-flow-inquiry` sends the customer confirmation and business notification through The Launch Era/Make, sets per-request Reply-To `r-<lead-uuid>@nupelke.resend.app`, and schedules the first managed reminder only after provider acceptance and delivery.
+- The signed `tle-crm-resend-events` webhook invokes `tle_booking_managed_reply_route` to authenticate the received event, match the sending customer and original tenant, clear pending follow-ups, log the notification and forward the reply to the owner. Duplicate event replays are idempotent.
+- The managed follow-up job runs every 20 minutes using a worker token; it checks the Resend incoming mailbox before choosing a due reminder. Any unprocessed incoming buyer reply blocks the next reminder instead of risking an unwanted email.
+- All managed replies and follow-up test data must be deleted after QA. The private test verified reply-stop and forwarding to the agency inbox, but real CB Depot owner notification and real post-delivery booking still require final QA and buyer approval.
+- Buyers should see `Managed by The Launch Era` in the Email Automation panel. Do not show customer Resend API key forms on this product.
