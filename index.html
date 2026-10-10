@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-ipad-local-auth-v28"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-ipad-local-auth-v29"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -423,8 +423,8 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   var retry=document.createElement('button');retry.type='button';retry.textContent=spanish?'Volver a intentar':'Try again';
   retry.style.cssText='background:#191919;color:#fff;border:0;border-radius:999px;padding:12px 30px;font-size:14px;font-weight:700;cursor:pointer';
   retry.onclick=function(){location.reload()};
-  var browser=document.createElement('a');browser.textContent=spanish?'Abrir versión web ↗':'Open web version ↗';
-  browser.href='https://the-launch-era-crm.dailinsegura17.workers.dev/';
+  var browser=document.createElement('a');browser.textContent=spanish?'Abrir acceso alternativo ↗':'Open alternate sign-in ↗';
+  browser.href='./access';
   browser.target='_blank';browser.rel='noopener noreferrer';
   browser.style.cssText='font-size:13px;color:#326d9f;text-decoration:underline;padding:6px';
   var note=document.createElement('small');note.textContent=spanish?'Si estás en el navegador de ChatGPT, toca Compartir y elige abrirlo en Safari. No se modifica ningún dato.':'If this is opening inside ChatGPT, tap Share and choose Open in Safari. No data will be changed.';
