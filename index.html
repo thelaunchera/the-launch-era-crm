@@ -162,6 +162,52 @@ body.cb-depot-buyer #cbSettingsBanner h2{color:#FFFAEF;font-size:clamp(25px,4vw,
 body.cb-depot-buyer #cbSettingsBanner p{color:#DCD4C7;line-height:1.6;font-size:14px;max-width:570px}
 body.cb-depot-buyer .cb-settings-signals{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
 body.cb-depot-buyer .cb-settings-signals strong{padding:8px 11px;border-radius:99px;background:#FFFFFF18;border:1px solid #ffffff33;font-size:11px;color:#F0E6D7;font-weight:650}
+
+/* A private Booking Page viewed on a real phone must not be an iframe inside
+   two layers of padded cards. Give the preview its own entire screen. */
+#buyerBookingPreviewClose{display:none}
+@media(max-width:680px){
+ body.crm-buyer-view:has(#buyerBookingPreviewHub:not(.hidden)){overflow:hidden!important}
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden){
+  display:block!important;position:fixed;inset:0;
+  z-index:20000;width:100%;height:100dvh;max-height:100dvh;
+  max-width:100%!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:#07121d!important;
+  overflow:hidden!important;box-sizing:border-box;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden)>:not(.panel):not(#buyerBookingPreviewClose){
+  display:none!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewClose{
+  display:flex!important;align-items:center;justify-content:center;
+  position:absolute;top:0;left:0;right:0;width:100%;height:58px;
+  padding:12px 18px;margin:0!important;border:0!important;border-radius:0!important;
+  background:#20262c!important;color:#fff!important;
+  font-size:14px!important;font-weight:750;z-index:2;box-shadow:none!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden)>.panel{
+  position:absolute;inset:58px 0 0;
+  width:100%!important;height:calc(100dvh - 58px);max-width:none!important;
+  min-width:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;overflow:hidden!important;background:#050a10!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden)>.panel>:not(#buyerBookingPreviewShell){
+  display:none!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewShell{
+  position:relative;width:100%!important;max-width:100%!important;
+  min-width:0!important;height:100%!important;min-height:0;
+  margin:0!important;padding:0!important;border:0!important;
+  border-radius:0!important;overflow:hidden!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewFrame{
+  display:block;width:100%!important;max-width:100%!important;
+  height:100%!important;min-height:0!important;margin:0!important;
+  border:0!important;border-radius:0!important;background:#030910!important;
+ }
+ body.crm-buyer-view:has(#buyerBookingPreviewHub:not(.hidden)) #crmLanguagePicker.floating{display:none!important}
+}
 </style><style id="tleRoleIsolationStyle">
 body.crm-buyer-view #ownerPagesHub,
 body.crm-buyer-view #ownerCalendarHub,
@@ -285,7 +331,7 @@ body.cb-depot-buyer .cb-greeting-chip{
 @media(prefers-reduced-motion:reduce){
  body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{transition:none;transform:none!important}
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-buyer-sidebar-activation-v12"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-mobile-preview-fullscreen-v16"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -685,6 +731,7 @@ body.cb-depot-buyer .cb-greeting-chip{
 </section>
 
 <section id="buyerBookingPreviewHub" class="hidden premium-emailhub" aria-label="Private Booking Page preview">
+ <button id="buyerBookingPreviewClose" type="button" class="secondary" aria-label="Close full-screen Booking Page preview">← Back to Command Center</button>
  <div class="section-title">My Booking Page · Private Preview</div>
  <p class="muted">Explore your actual saved services and quote form safely. Preview times are examples, not live availability. Nothing is booked, emailed or charged.</p>
  <div class="panel" style="max-width:none;padding:16px;margin:18px 0">
@@ -2845,6 +2892,7 @@ $('cbDashRefresh').onclick=()=>{if(isDetailingWorkspace())void loadBuyerRequests
 $('buyerDashboardOpenBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerShortcutBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerBookingPreviewRefresh').onclick=()=>loadBuyerBookingPreview();
+$('buyerBookingPreviewClose').onclick=()=>premiumNavigate('home');
 $('buyerBookingPreviewPhone').onclick=()=>{$('buyerBookingPreviewShell').style.width='min(100%,390px)';$('buyerBookingPreviewFrame').style.height='980px'};
 $('buyerBookingPreviewWide').onclick=()=>{$('buyerBookingPreviewShell').style.width='100%';$('buyerBookingPreviewFrame').style.height='1120px'};
 $("buyerDashboardOpenInbox").onclick=()=>premiumNavigate("request-center");
