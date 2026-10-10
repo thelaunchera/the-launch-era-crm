@@ -268,7 +268,11 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <div id="buildIntakePhotos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,145px),1fr));gap:11px;margin:12px 0"></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">
 <label>Hero photo / Foto principal<select name="hero_photo_path" id="buildHeroPhotoSelect"><option value="">No photo / Sin foto</option></select></label>
-<label>Logo / Logo<select name="logo_photo_path" id="buildLogoPhotoSelect"><option value="">No logo / Sin logo</option></select></label>
+<label>Logo / Logo<select name="logo_photo_path" id="buildLogoPhotoSelect"><option value="">No logo / Sin logo</option></select></label><div style="grid-column:1/-1;border-top:1px solid #d3e2ef;margin-top:12px;padding-top:12px"><strong>Photos for detailing services / Fotos para cada servicio</strong><p class="muted">Upload BMW photos above and assign them here; approval publishes permanent URLs.</p></div>
+<label>Exterior Detailing<select name="service_photo_exterior" id="buildServicePhotoExterior"><option value="">Use sample / Usar ejemplo</option></select></label>
+<label>Paint Protection<select name="service_photo_paint" id="buildServicePhotoPaint"><option value="">Use sample / Usar ejemplo</option></select></label>
+<label>Interior Detailing<select name="service_photo_interior" id="buildServicePhotoInterior"><option value="">Use sample / Usar ejemplo</option></select></label>
+<label>Full Detail Package<select name="service_photo_full" id="buildServicePhotoFull"><option value="">Use sample / Usar ejemplo</option></select></label>
 </div>
 <p class="muted" style="font-size:12px;margin-top:10px">HEIC photos can be received and stored, but JPG, PNG or WebP is required for a website image. / Puedes recibir fotos HEIC, pero para publicarlas necesitarás JPG, PNG o WebP.</p></div>
 <label>Background color / Fondo azul<input name="primary_color" type="color" value="#dceffa"></label>
@@ -1077,8 +1081,10 @@ function buildRenderStatus(){
 }
 function renderBuildPhotos(photos,brand){
  const root=$('buildIntakePhotos'),hero=$('buildHeroPhotoSelect'),logo=$('buildLogoPhotoSelect');
+ const serviceSelects={exterior:$('buildServicePhotoExterior'),paint:$('buildServicePhotoPaint'),interior:$('buildServicePhotoInterior'),full:$('buildServicePhotoFull')};
  root.replaceChildren();
  for(const select of [hero,logo])select.replaceChildren(new Option(select===hero?'No main photo / Sin foto':'No logo / Sin logo',''));
+ for(const el of Object.values(serviceSelects))el.replaceChildren(new Option('Use sample / Usar ejemplo',''));
  const all=Array.isArray(photos)?photos:[];
  if(!all.length){
   root.appendChild(ownerPageElem('p',buildLabel('No photos have been uploaded yet. The buyer can submit up to 10 photos from their phone.','Todavía no hay fotos. La compradora puede subir hasta 10 desde su teléfono.'),'grid-column:1/-1;font-size:13px;color:#5b7080'));
@@ -1088,7 +1094,7 @@ function renderBuildPhotos(photos,brand){
   const path=String(file.path||''),label=String(file.name||'Photo');
   if(!file.preview_url)continue;
   const isWeb=/\.(jpe?g|png|webp)$/i.test(path);
-  if(isWeb){hero.add(new Option(label,path));logo.add(new Option(label,path))}
+  if(isWeb){hero.add(new Option(label,path));logo.add(new Option(label,path));for(const el of Object.values(serviceSelects))el.add(new Option(label,path))}
   const tile=ownerPageElem('div',undefined,'min-width:0;background:#fff;border:1px solid #dfebf2;border-radius:14px;padding:8px;overflow:hidden');
   const img=document.createElement('img');img.alt=label;img.loading='lazy';img.referrerPolicy='no-referrer';
   img.style.cssText='width:100%;height:112px;object-fit:cover;display:block;border-radius:9px;background:#f0f7fb';
@@ -1104,6 +1110,7 @@ function renderBuildPhotos(photos,brand){
  }
  hero.value=brand?.hero_photo_path||'';
  logo.value=brand?.logo_photo_path||'';
+ for(const [name,el] of Object.entries(serviceSelects))el.value=brand?.service_photos?.[name]?.path||'';
 }
 async function loadOwnerBuilder(){
  if(!workspace?.is_internal||!ownerReviewAccount)return premiumNavigate('owner-pages');
@@ -1168,10 +1175,15 @@ $('buildBrandForm').onsubmit=async e=>{
  e.preventDefault();const button=$('buildSave');button.disabled=true;$('buildStatus').textContent=buildLabel('Saving personalized design…','Guardando diseño…');
  try{
   const formData=Object.fromEntries(new FormData(e.target));
+  const service_photo_paths={};
+  for(const k of ['exterior','paint','interior','full']){
+   service_photo_paths[k]=String(formData['service_photo_'+k]||'');
+   delete formData['service_photo_'+k];
+  }
   const reviews=[1,2,3].map(n=>({name:String(formData['review_'+n+'_name']||'').trim(),text:String(formData['review_'+n+'_text']||'').trim(),rating:formData['review_'+n+'_rating']===''?null:Number(formData['review_'+n+'_rating'])})).filter(r=>r.name||r.text);
   if(reviews.some(r=>!r.name||!r.text))throw Error('Complete each review name and text / Completa nombre y texto');
   for(let n=1;n<=3;n++)for(const key of ['name','text','rating'])delete formData['review_'+n+'_'+key];
-  await ownerStudioCall('save',{branding:{...formData,reviews}});
+  await ownerStudioCall('save',{branding:{...formData,reviews,service_photo_paths}});
   await loadOwnerBuilder();
   $('buildStatus').textContent=buildLabel('Design saved. Open the real preview and approve it.','Diseño guardado. Revisa la vista real y apruébala.');
  }catch(error){$('buildStatus').textContent='Not saved / No se guardó: '+error.message}
