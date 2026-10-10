@@ -361,7 +361,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-owner-test-center-fullscreen-v17"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-client-private-qa-v18"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -764,13 +764,13 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <section id="buyerBookingPreviewHub" class="hidden premium-emailhub" aria-label="Private Booking Page preview">
  <button id="buyerBookingPreviewClose" type="button" class="secondary" aria-label="Close full-screen Booking Page preview">← Back to Command Center</button>
  <div class="section-title">My Booking Page · Private Preview</div>
- <p class="muted">Explore your actual saved services and quote form safely. Preview times are examples, not live availability. Nothing is booked, emailed or charged.</p>
+ <p class="muted">Test your real services, prices and quote form. Complete a sample request and tap Submit to verify it reaches your private Command Center. Sample data is deleted afterward; no real booking, email or charge is created.</p>
  <div class="panel" style="max-width:none;padding:16px;margin:18px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
    <strong>CB Depot · Test mode</strong>
    <button type="button" id="buyerBookingPreviewRefresh" class="secondary">↻ Refresh preview</button>
   </div>
-  <p id="buyerBookingPreviewStatus" role="status" aria-live="polite" class="muted">Load the preview to review your Booking Page.</p>
+  <p id="buyerBookingPreviewStatus" role="status" aria-live="polite" class="muted">Load your Booking Page to test a sample request and verify lead routing without contacting a customer.</p>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0">
    <button type="button" class="secondary" id="buyerBookingPreviewPhone">Mobile / Móvil</button>
    <button type="button" class="secondary" id="buyerBookingPreviewWide">Desktop / Computadora</button>
@@ -2914,9 +2914,56 @@ function renderBuyerCustomers(){
 $('buyerCustomersRefresh').onclick=()=>{if(workspace&&!workspace.is_internal)void loadBuyerRequests()};
 
 let buyerPreviewLoading=false;
+let buyerPreviewQaNonce=null;
+let buyerPreviewQaWorkspace=null;
+let buyerPreviewQaRunning=false;
+// Use the same transactional sample-lead QA path as the owner Test Center.
+// The server verifies the signed-in buyer and matching private workspace,
+// then deletes the sample lead before confirming success.
+window.addEventListener('message',async event=>{
+ const frame=$('buyerBookingPreviewFrame');
+ if(event.origin!=='https://thelaunchera.com'||event.source!==frame?.contentWindow||
+    event.data?.type!=='TLE_OWNER_PREVIEW_QA_REQUEST')return;
+ const nonce=event.data?.nonce;
+ if(!nonce||nonce!==buyerPreviewQaNonce||!workspace||workspace.is_internal||
+    workspace.id!==buyerPreviewQaWorkspace||$('buyerBookingPreviewHub').classList.contains('hidden'))return;
+ const answer=(payload)=>frame.contentWindow?.postMessage(
+  {type:'TLE_OWNER_PREVIEW_QA_RESULT',nonce,...payload},'https://thelaunchera.com');
+ if(buyerPreviewQaRunning){
+  answer({ok:false,verified:false,error:'Another private test is already running.'});
+  return;
+ }
+ buyerPreviewQaRunning=true;
+ const status=$('buyerBookingPreviewStatus');
+ status.textContent='Running your private test: checking that the sample request reaches this Command Center…';
+ try{
+  const {data:{session},error:sessionError}=await db.auth.getSession();
+  if(sessionError||!session?.access_token)throw Error('Sign in again to run the test.');
+  if(workspace?.id!==buyerPreviewQaWorkspace)throw Error('Workspace changed. Reload the preview.');
+  const request=event.data.request||{};
+  const response=await fetch('https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-booking-preview',{
+   method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+session.access_token},
+   body:JSON.stringify({action:'qa_test_lead',request:{
+    service_name:String(request.service_name||'Sample request').slice(0,120),
+    property_type:String(request.property_type||'Vehicle').slice(0,80),
+    requested_date:String(request.requested_date||'').slice(0,10)
+   }})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||result.ok!==true||result.verified!==true||
+     result.correct_private_workspace!==true||result.test_data_deleted!==true)
+   throw Error(result.error||'The sample request was not verified.');
+  status.textContent='✓ TEST PASSED — Request reached the correct private Command Center. Sample removed. No real booking, customer email, or charge.';
+  answer({ok:true,verified:true,test_data_deleted:true,no_customer_email_sent:true,no_booking_created:true});
+ }catch(error){
+  status.textContent='TEST FAILED — '+(error.message||String(error));
+  answer({ok:false,verified:false,error:error.message||'Please try again.'});
+ }finally{buyerPreviewQaRunning=false}
+});
 async function loadBuyerBookingPreview(){
  if(!workspace||workspace.is_internal||buyerPreviewLoading)return;
  buyerPreviewLoading=true;
+ buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
  const status=$('buyerBookingPreviewStatus'),frame=$('buyerBookingPreviewFrame'),id=workspace.id;
  status.textContent='Preparing your real Booking Page design safely…';
  try{
@@ -2929,11 +2976,14 @@ async function loadBuyerBookingPreview(){
   if(!response.ok||!payload.ok||!payload.preview_only||!payload.config)throw Error(payload.error||'Private preview unavailable');
   if(workspace?.id!==id||workspace.is_internal)return;
   const config=payload.config;
+  if(typeof config.qa_nonce!=='string'||!config.qa_nonce)throw Error('Private QA is not ready. Refresh the preview.');
+  buyerPreviewQaNonce=config.qa_nonce;buyerPreviewQaWorkspace=id;
   frame.onload=()=>{if(frame.contentWindow&&workspace?.id===id)frame.contentWindow.postMessage(
    {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en');
-  status.textContent='✓ Private test mode: review your vehicle services and forms. No customer emails, charges or bookings will be created.';
+  status.textContent='✓ Private Test Center ready. Submit a sample quote or contact form to check routing to this Command Center; test data is removed automatically.';
  }catch(error){
+  buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
   frame.onload=null;frame.removeAttribute('src');
   status.textContent='Preview unavailable: '+(error.message||String(error));
  }finally{buyerPreviewLoading=false}
