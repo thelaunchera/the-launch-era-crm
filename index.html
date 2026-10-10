@@ -155,6 +155,13 @@ body.cb-depot-buyer .cb-detailing-actions button:hover{transform:translateY(-4px
 @media(max-width:790px){body.cb-depot-buyer .cb-detailing-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:410px){body.cb-depot-buyer .cb-detailing-heading{padding:22px 18px;gap:12px}body.cb-depot-buyer .cb-detailing-actions button{padding:14px 12px;min-height:85px}}
 @media(prefers-reduced-motion:reduce){body.cb-depot-buyer .cb-detailing-actions button{transition:none}}
+
+body.cb-depot-buyer #cbSettingsBanner{padding:clamp(23px,4vw,34px);border-radius:24px;background:linear-gradient(130deg,#2A2E30,#363A3B);color:#FAF4E8;margin:0 0 22px}
+body.cb-depot-buyer #cbSettingsBanner>span{font-size:11px;letter-spacing:.15em;color:#DEC491;font-weight:800}
+body.cb-depot-buyer #cbSettingsBanner h2{color:#FFFAEF;font-size:clamp(25px,4vw,37px);letter-spacing:-.045em;margin:13px 0}
+body.cb-depot-buyer #cbSettingsBanner p{color:#DCD4C7;line-height:1.6;font-size:14px;max-width:570px}
+body.cb-depot-buyer .cb-settings-signals{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+body.cb-depot-buyer .cb-settings-signals strong{padding:8px 11px;border-radius:99px;background:#FFFFFF18;border:1px solid #ffffff33;font-size:11px;color:#F0E6D7;font-weight:650}
 </style><style id="tleRoleIsolationStyle">
 body.crm-buyer-view #ownerPagesHub,
 body.crm-buyer-view #ownerCalendarHub,
@@ -231,7 +238,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-secure-buyer-interactive-v8"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-cb-security-premium-v9"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -528,6 +535,12 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 </section>
 <!-- End temporary owner guide -->
 <section id="settingsHub" class="hidden premium-emailhub">
+<div id="cbSettingsBanner" class="hidden">
+ <span>CB DEPOT · BUSINESS SETTINGS</span>
+ <h2>Your business. Your workspace.</h2>
+ <p>Manage car detailing services, bookings, email automation and security in one place.</p>
+ <div class="cb-settings-signals"><strong>✓ Email verified</strong><strong>✓ Password-protected account</strong><strong>◷ Delivery and automations configured separately</strong></div>
+</div>
 <div id="buyerBusinessShortcuts" class="hidden" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:18px 0">
 <button class="secondary" id="buyerShortcutPricing" type="button">Pricing & Services <small style="display:block">Services, flat prices, estimates, quotes and extras</small></button>
 <button class="secondary" id="buyerShortcutAvailability" type="button">Availability <small style="display:block">Open hours, times and service length</small></button>
@@ -889,6 +902,7 @@ function applyBuyerIndustryLabels(){
  if(!workspace||workspace.is_internal)return;
  const detailing=isDetailingWorkspace(),other=isOtherServiceWorkspace();
  $('cbDetailingTop')?.classList.toggle('hidden',!detailing);
+ $('cbSettingsBanner')?.classList.toggle('hidden',!detailing);
  if(!detailing&&!other)return;
  const es=localStorage.getItem('tle_crm_language')==='es';
  const set=(selector,en,spanish)=>{const el=document.querySelector(selector);if(el)el.textContent=es?spanish:en};
@@ -2692,7 +2706,16 @@ async function loadBuyerRequests(){
   const selection=buyerRequests.find(x=>x.id===previous)||buyerRequests.find(x=>findEmail&&String(x.customer_email||'').toLowerCase()===findEmail)||buyerRequests[0];
   if(selection)buyerOpenRequest(selection);
   else{$("buyerRequestDetailTitle").textContent=buyerText("Select a request or manual inquiry","Elige una solicitud o consulta manual");$("buyerRequestDetails").replaceChildren();$("buyerRequestNextAction").classList.add("hidden");$("buyerRequestReplyArea").classList.add("hidden")}
- }catch(e){$("buyerRequestCards").textContent=buyerText("Could not load requests: ","No se pudieron cargar las solicitudes: ")+e.message;$("buyerDashboardStatus").textContent=buyerText("Customer activity unavailable: ","Actividad no disponible: ")+e.message}
+ }catch(e){
+ const pending=String(e.message||'').includes('Booking system must be completed and delivered');
+ if(isDetailingWorkspace()&&pending){
+  $('buyerRequestCards').textContent=buyerText('Customer activity will appear after your Booking Page passes final delivery checks.','La actividad de los clientes aparecerá después de aprobar la entrega final.');
+  $('buyerDashboardStatus').textContent=buyerText('Preparing your booking workflow · New requests will appear here once your system is delivered.','Preparando las reservas · Las solicitudes aparecerán cuando se entregue el sistema.');
+ }else{
+  $('buyerRequestCards').textContent=buyerText('Could not load requests: ','No se pudieron cargar las solicitudes: ')+e.message;
+  $('buyerDashboardStatus').textContent=buyerText('Customer activity unavailable: ','Actividad no disponible: ')+e.message;
+ }
+}
  finally{buyerRequestBusy=false}
 }
 $("buyerRequestSearch").oninput=buyerRenderRequestCards;
