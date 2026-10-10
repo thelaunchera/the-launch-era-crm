@@ -2,7 +2,7 @@ name: Client Review UI Safety
 on:
   push:
     branches: [main]
-    paths: ['index.html','scripts/qa-client-review.mjs','.github/workflows/client-review-qa.yml']
+    paths: ['index.html','scripts/qa-client-review.mjs','scripts/qa-language.mjs','.github/workflows/client-review-qa.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,3 +16,5 @@ jobs:
           node-version: '22'
       - name: Verify buyer and owner approval controls
         run: node scripts/qa-client-review.mjs
+      - name: Verify English and Spanish Command Center labels
+        run: node scripts/qa-language.mjs
