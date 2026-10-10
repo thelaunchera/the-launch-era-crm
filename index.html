@@ -2630,7 +2630,7 @@ function updateAnalytics(){const won=leads.filter(x=>x.stage==='Won').length;con
  let activationError='';
  if(tokenHash!==null){
   history.replaceState(history.state,'',location.pathname+location.search);
-  if(!/^[a-f0-9]{64}$/i.test(tokenHash)||!['invite','magiclink'].includes(type)){
+  if(!/^(?:pkce_)?[a-f0-9]{56,64}$/i.test(tokenHash)||!['invite','magiclink'].includes(type)){
    activationError='This activation link is invalid. Ask the business that sent it to request a new secure link.';
   }else{
    try{
