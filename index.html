@@ -1204,7 +1204,9 @@ async function loadBuilderRealPreview(){
    branding:{description:b.description,headline:b.headline,service_area:b.service_area,
     hero_image:(studio.uploaded_photos||[]).find(x=>x.path===b.hero_photo_path)?.preview_url||b.hero_image,
     logo_image:(studio.uploaded_photos||[]).find(x=>x.path===b.logo_photo_path)?.preview_url||b.logo_image,
-    primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[]},
+    primary_color:b.primary_color,accent_color:b.accent_color,reviews:b.reviews||[],
+    service_photos:Object.fromEntries(['exterior','paint','interior','full'].map(k=>[k,
+     (studio.uploaded_photos||[]).find(x=>x.path===b.service_photos?.[k]?.path)?.preview_url||b.service_photos?.[k]?.url||null]))},
    currency:price.settings?.currency||'USD',services:svc,addons:price.settings?.addons||[],
    quote_policy:price.settings?.quote_policy||'review_unpriced_jobs',auto_confirm_flat:price.settings?.auto_confirm_flat===true,
    availability:availability.settings||{}};
