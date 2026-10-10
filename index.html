@@ -238,7 +238,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-buyer-booking-preview-v9"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-private-lead-qa-v8"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -1382,6 +1382,29 @@ async function loadOwnerDeliveries(){
     activation.append(send,msg);item.append(activation);
 if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued previously / Entrega ya registrada. No duplicate will be sent.');state.style.fontWeight='700';item.appendChild(state);list.appendChild(item);continue}
    if(!ready){item.appendChild(deliveryNode('p','Complete the intake, private CRM workspace, personalized booking URL and activation before the final review. / Primero termina los accesos y la configuración.'));list.appendChild(item);continue}
+
+   const qaBox=deliveryNode('div');qaBox.style.cssText='padding:17px;border:1px solid #dbc8a9;border-radius:16px;background:#fbf7ed;display:grid;gap:9px;min-width:0';
+   qaBox.append(deliveryNode('strong','Private Lead Routing Test / Prueba de entrada de leads'));
+   const qaDescription=deliveryNode('p','Tests whether a sample request is saved under this buyer and routed to their private Command Center. The sample is removed after verification. No real booking, customer email or follow-up is created. / Comprueba que una solicitud entra al negocio y a su Command Center; se elimina después sin mandar correos ni crear reservas.');
+   qaDescription.style.cssText='font-size:12px;line-height:1.5;margin:0';
+   qaBox.append(qaDescription);
+   const qaButton=deliveryNode('button','Run private lead test / Probar entrada de lead');qaButton.type='button';qaButton.className='secondary';qaButton.style.cssText='max-width:100%;white-space:normal';
+   const qaStatus=deliveryNode('p','Not yet tested / Pendiente de prueba');qaStatus.style.cssText='font-size:12px;margin:0';qaStatus.setAttribute('role','status');qaStatus.setAttribute('aria-live','polite');
+   qaButton.onclick=async()=>{
+     qaButton.disabled=true;qaStatus.textContent='Testing private lead routing… / Comprobando…';
+     try{
+       const {data:{session},error:sessionError}=await db.auth.getSession();
+       if(sessionError||!session?.access_token)throw Error('Sign in to the owner Command Center first');
+       const response=await fetch(ownerStudioEndpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+        body:JSON.stringify({account_id:a.id,action:'qa_test_lead'})});
+       const result=await response.json().catch(()=>({}));
+       if(!response.ok||!result.ok)throw Error(result.error||'Routing test failed');
+       qaStatus.textContent='✓ PASS — Request saved → correct private Command Center → QA record removed. No email or booking sent. / PASS: lead recibido y vinculado correctamente. Sin correos ni reservas.';
+       qaButton.textContent='✓ Retest lead routing / Repetir prueba';
+     }catch(e){qaStatus.textContent='Not verified / No verificado: '+(e.message||String(e))}
+     finally{qaButton.disabled=false}
+   };
+   qaBox.append(qaButton,qaStatus);item.append(qaBox);
    const checks=deliveryNode('div');checks.className='delivery-qa-list';checks.setAttribute('role','group');checks.setAttribute('aria-label','Final delivery quality checks / Comprobaciones finales');
    const inputs={};
    for(const [key,caption] of reviewNames){
