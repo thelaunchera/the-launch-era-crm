@@ -238,7 +238,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
 #buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
 @media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
-</style><meta name="tle-command-center-release" content="2026-10-10-cb-security-premium-v9"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-buyer-booking-preview-v8"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -275,6 +275,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  <div class="nav-caption" id="mainNavCaption">YOUR CLEANING BUSINESS</div>
  <button type="button" class="nav-link active" id="navOverview" data-target="home">⌂ <span>Dashboard</span></button>
  <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox</span></button>
+<button type="button" class="nav-link hidden" id="buyerBookingPreviewNav" data-target="buyer-booking-preview">◇ <span>My Booking Page</span></button>
  <button type="button" class="nav-link" id="buyerClientsNav" data-target="clients">♧ <span>Customers</span></button>
  <div class="hidden" aria-hidden="true" style="display:none">
   <button type="button" class="nav-link" id="buyerLeadsNav" data-target="leads">Customer Inquiries</button>
@@ -542,7 +543,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  <div class="cb-settings-signals"><strong>✓ Email verified</strong><strong>✓ Password-protected account</strong><strong>◷ Delivery and automations configured separately</strong></div>
 </div>
 <div id="buyerBusinessShortcuts" class="hidden" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:18px 0">
-<button class="secondary" id="buyerShortcutPricing" type="button">Pricing & Services <small style="display:block">Services, flat prices, estimates, quotes and extras</small></button>
+<button class="secondary" id="buyerShortcutBookingPreview" type="button">My Booking Page <small style="display:block">Preview your page safely — no real bookings</small></button><button class="secondary" id="buyerShortcutPricing" type="button">Pricing & Services <small style="display:block">Services, flat prices, estimates, quotes and extras</small></button>
 <button class="secondary" id="buyerShortcutAvailability" type="button">Availability <small style="display:block">Open hours, times and service length</small></button>
 <button class="secondary" id="buyerShortcutAutomation" type="button">Email Automation <small style="display:block">Connection, follow-ups and alerts</small></button>
 </div><div id="settingsRoleTitle" class="section-title">Business settings</div><p id="settingsRoleDesc" class="muted">Manage your language, business access and account security.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:18px;margin:18px 0"><article class="panel" style="padding:20px"><h3>Language & display</h3><label>Language on this device<select id="settingsLanguage"><option value="en">English</option><option value="es">Español</option></select></label><p class="muted">Your preference is saved on this device, not on your account.</p></article><article class="panel" style="padding:20px"><h3>Workspace & account</h3><p><strong>Business name</strong></p><p id="settingsBusinessName"></p><p><strong>Account email</strong></p><p id="settingsAccountEmail"></p><button type="button" id="settingsPasswordReset" class="secondary">Send password reset email</button><p id="settingsSecurityStatus" role="status" aria-live="polite"></p></article></div><article class="panel" style="padding:20px"><h3 id="settingsFollowupTitle">Follow-ups &amp; notifications</h3><p id="settingsFollowupStatus" aria-live="polite">Checking follow-up setup…</p><p id="settingsPushNotice">Notifications depend on your browser permissions and verified business email setup.</p></article><section id="buyerEmailHealth" class="hidden" style="margin:15px 0"><div class="panel" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px">
@@ -605,7 +606,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
   <div id="buyerDashboardStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr));gap:11px"></div>
   <p class="muted" role="status" id="buyerDashboardStatus">Loading your customer activity…</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-   <button id="buyerDashboardOpenInbox" type="button">Open Inbox →</button>
+   <button id="buyerDashboardOpenInbox" type="button">Open Inbox →</button><button id="buyerDashboardOpenBookingPreview" type="button" class="secondary">Preview Booking Page →</button>
    <button id="buyerDashboardOpenSettings" type="button" class="secondary">Business Settings</button>
   </div>
  </div>
@@ -626,6 +627,29 @@ body.crm-isolated-view #reminderBanner {display:none!important}
   <p class="muted" style="font-size:12px">Open a contact to see their request in Inbox or edit a manually added customer.</p>
  </div>
  <div id="buyerCustomersList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px"></div>
+</section>
+
+<section id="buyerBookingPreviewHub" class="hidden premium-emailhub" aria-label="Private Booking Page preview">
+ <div class="section-title">My Booking Page · Private Preview</div>
+ <p class="muted">Explore your actual saved services and quote form safely. Preview times are examples, not live availability. Nothing is booked, emailed or charged.</p>
+ <div class="panel" style="max-width:none;padding:16px;margin:18px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+   <strong>CB Depot · Test mode</strong>
+   <button type="button" id="buyerBookingPreviewRefresh" class="secondary">↻ Refresh preview</button>
+  </div>
+  <p id="buyerBookingPreviewStatus" role="status" aria-live="polite" class="muted">Load the preview to review your Booking Page.</p>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0">
+   <button type="button" class="secondary" id="buyerBookingPreviewPhone">Mobile / Móvil</button>
+   <button type="button" class="secondary" id="buyerBookingPreviewWide">Desktop / Computadora</button>
+  </div>
+  <div id="buyerBookingPreviewShell" style="width:100%;max-width:100%;margin:0 auto;transition:width .2s;box-sizing:border-box">
+   <iframe id="buyerBookingPreviewFrame" title="Your private Booking Page test view"
+    loading="lazy" referrerpolicy="no-referrer"
+    sandbox="allow-scripts allow-same-origin allow-forms"
+    style="display:block;width:100%;height:1040px;border:1px solid #ded7cb;border-radius:20px;background:#f8f6f0"></iframe>
+  </div>
+  <p class="muted" style="font-size:12px;line-height:1.6">Preview mode uses saved prices and services. The time slots are samples. Real customer reservations and automatic emails remain disabled until delivery is approved.</p>
+ </div>
 </section>
 <section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
   <div class="section-title">Inbox</div>
@@ -949,7 +973,7 @@ function applyCRMRoleInterface(){
  $('ownerPagesNav').classList.toggle('hidden',!owner);
  $('ownerCalendarNav').classList.toggle('hidden',!owner);$('ownerHelpNav').classList.toggle('hidden',!owner);if(!owner)$('ownerHelpHub').classList.add('hidden');
  $('ownerOrdersCaption').classList.toggle('hidden',!owner);
- $('ownerProspectsCaption').classList.add('hidden');$('ownerPrivateSection').classList.toggle('hidden',!owner);$('buyerBusinessSection').classList.toggle('hidden',!buyer);$('sidebarWorkspaceLabel').textContent=owner?'OWNER COMMAND':buyer?(workspace.name||'BUSINESS WORKSPACE'):'WORKSPACE';$('ownerInsightsNav').classList.toggle('hidden',!owner);$('ownerContactDecision').classList.toggle('hidden',!owner);$('buyerFollowupsNav').classList.toggle('hidden',!buyer);$('buyerRequestsNav').classList.toggle('hidden',!buyer);$('ownerWebsiteInboxNav').classList.toggle('hidden',!owner);$('ownerSettingsNav').classList.toggle('hidden',!owner);$('buyerSettingsNav').classList.toggle('hidden',!buyer);
+ $('ownerProspectsCaption').classList.add('hidden');$('ownerPrivateSection').classList.toggle('hidden',!owner);$('buyerBusinessSection').classList.toggle('hidden',!buyer);$('sidebarWorkspaceLabel').textContent=owner?'OWNER COMMAND':buyer?(workspace.name||'BUSINESS WORKSPACE'):'WORKSPACE';$('ownerInsightsNav').classList.toggle('hidden',!owner);$('ownerContactDecision').classList.toggle('hidden',!owner);$('buyerFollowupsNav').classList.toggle('hidden',!buyer);$('buyerRequestsNav').classList.toggle('hidden',!buyer);$('buyerBookingPreviewNav').classList.toggle('hidden',!buyer);$('ownerWebsiteInboxNav').classList.toggle('hidden',!owner);$('ownerSettingsNav').classList.toggle('hidden',!owner);$('buyerSettingsNav').classList.toggle('hidden',!buyer);
  $('navOverview').classList.toggle('hidden',owner);
  $('mainNavCaption').classList.remove('hidden');
  /* Legacy calendar link is intentionally hidden; the buyer uses Inbox and the owner uses Prospect Follow-ups. */
@@ -1118,7 +1142,7 @@ $('search').oninput=render;$('stageFilter').onchange=render;$('dueFilter').oncha
  document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.classList.toggle('active',b.dataset.target===target));closePremiumSidebar();if(target==='home'){
  if(workspace&&!workspace.is_internal){setView('buyer-dashboard');void loadBuyerRequests();$('buyerDashboardHub').scrollIntoView({behavior:'smooth'});return}
  setView('pipeline');$('search').value='';$('stageFilter').value='';$('dueFilter').value='';render();$('quickhome').scrollIntoView({behavior:'smooth'});return}if(target==='owner-help'){if(!workspace?.is_internal)return;setView('owner-help');$('ownerHelpHub').scrollIntoView({behavior:'smooth'});return}if(target==='help'){setView('help');$('helpHub').scrollIntoView({behavior:'smooth'});return}if(target==='availability'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='availability'){setView('availability');loadAvailability();$('availabilityHub').scrollIntoView({behavior:'smooth'});return}if(target==='pricing'&&workspace?.is_internal&&!ownerReviewAccount){premiumNavigate('owner-pages');return}if(target==='pricing'){setView('pricing');loadPricing();$('pricingHub').scrollIntoView({behavior:'smooth'});return}if(target==='owner-pages'){setView('owner-pages');loadOwnerPages();$('ownerPagesHub').scrollIntoView({behavior:'smooth'});return}
-if(target==='owner-calendar'){if(!workspace?.is_internal)return;setView('owner-calendar');loadOwnerCalendar();$('ownerCalendarHub').scrollIntoView({behavior:'smooth'});return}if(target==='clients'&&workspace&&!workspace.is_internal){setView('buyer-customers');void loadBuyerRequests();$('buyerCustomersHub').scrollIntoView({behavior:'smooth'});return}if(target==='request-center'){if(!workspace||workspace.is_internal)return;setView('request-center');void loadBuyerRequests();$('buyerRequestsHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-followups'){if(!workspace||workspace.is_internal)return;setView('buyer-followups');$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='settings'){setView('settings');$('settingsAccountEmail').textContent=accountEmail||'—';$('settingsBusinessName').textContent=workspace?.name||'—';$('settingsLanguage').value=localStorage.getItem('tle_crm_language')==='es'?'es':'en';$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='inbox'){setView('inbox');$('inboundHub').scrollIntoView({behavior:'smooth'});return}if(target==='emails'){setView('emails');$('emailHub').scrollIntoView({behavior:'smooth'});return}if(target==='calendar'){$('dueFilter').value='';$('stageFilter').value='';render();setView('calendar')}else if(target==='clients'){$('stageFilter').value='';$('dueFilter').value='';render();setView('clients')}else{$('stageFilter').value='';$('dueFilter').value='';render();setView('pipeline')}document.getElementById('premiumViews').scrollIntoView({behavior:'smooth'})}document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.onclick=()=>premiumNavigate(b.dataset.target));$('navToggle').setAttribute('aria-expanded','false');$('navToggle').setAttribute('aria-controls','premiumSidebar');$('navToggle').onclick=togglePremiumSidebar;$('sidebarScrim').onclick=closePremiumSidebar;document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremiumSidebar()});$('settingsLanguage').onchange=()=>{const select=$('crmLanguageSelect');if(select){select.value=$('settingsLanguage').value;select.dispatchEvent(new Event('change'))}};
+if(target==='owner-calendar'){if(!workspace?.is_internal)return;setView('owner-calendar');loadOwnerCalendar();$('ownerCalendarHub').scrollIntoView({behavior:'smooth'});return}if(target==='clients'&&workspace&&!workspace.is_internal){setView('buyer-customers');void loadBuyerRequests();$('buyerCustomersHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-booking-preview'){if(!workspace||workspace.is_internal)return;setView('buyer-booking-preview');$('buyerBookingPreviewHub').scrollIntoView({behavior:'smooth'});void loadBuyerBookingPreview();return}if(target==='request-center'){if(!workspace||workspace.is_internal)return;setView('request-center');void loadBuyerRequests();$('buyerRequestsHub').scrollIntoView({behavior:'smooth'});return}if(target==='buyer-followups'){if(!workspace||workspace.is_internal)return;setView('buyer-followups');$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='settings'){setView('settings');$('settingsAccountEmail').textContent=accountEmail||'—';$('settingsBusinessName').textContent=workspace?.name||'—';$('settingsLanguage').value=localStorage.getItem('tle_crm_language')==='es'?'es':'en';$('settingsHub').scrollIntoView({behavior:'smooth'});return}if(target==='inbox'){setView('inbox');$('inboundHub').scrollIntoView({behavior:'smooth'});return}if(target==='emails'){setView('emails');$('emailHub').scrollIntoView({behavior:'smooth'});return}if(target==='calendar'){$('dueFilter').value='';$('stageFilter').value='';render();setView('calendar')}else if(target==='clients'){$('stageFilter').value='';$('dueFilter').value='';render();setView('clients')}else{$('stageFilter').value='';$('dueFilter').value='';render();setView('pipeline')}document.getElementById('premiumViews').scrollIntoView({behavior:'smooth'})}document.querySelectorAll('.nav-link[data-target]').forEach(b=>b.onclick=()=>premiumNavigate(b.dataset.target));$('navToggle').setAttribute('aria-expanded','false');$('navToggle').setAttribute('aria-controls','premiumSidebar');$('navToggle').onclick=togglePremiumSidebar;$('sidebarScrim').onclick=closePremiumSidebar;document.addEventListener('keydown',e=>{if(e.key==='Escape')closePremiumSidebar()});$('settingsLanguage').onchange=()=>{const select=$('crmLanguageSelect');if(select){select.value=$('settingsLanguage').value;select.dispatchEvent(new Event('change'))}};
 document.querySelectorAll('[data-owner-help-target]').forEach(button=>button.onclick=()=>{if(workspace?.is_internal)premiumNavigate(button.dataset.ownerHelpTarget)});
 const buyerMailUrl="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-mail-setup";
 let buyerMailState=null;
@@ -2664,6 +2688,32 @@ function renderBuyerCustomers(){
  }
 }
 $('buyerCustomersRefresh').onclick=()=>{if(workspace&&!workspace.is_internal)void loadBuyerRequests()};
+
+let buyerPreviewLoading=false;
+async function loadBuyerBookingPreview(){
+ if(!workspace||workspace.is_internal||buyerPreviewLoading)return;
+ buyerPreviewLoading=true;
+ const status=$('buyerBookingPreviewStatus'),frame=$('buyerBookingPreviewFrame'),id=workspace.id;
+ status.textContent='Preparing your real Booking Page design safely…';
+ try{
+  const {data:{session},error:sessionError}=await db.auth.getSession();
+  if(sessionError||!session?.access_token)throw Error('Please sign in with your password first.');
+  const response=await fetch('https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-crm-buyer-booking-preview',{
+   method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+session.access_token}
+  });
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok||!payload.ok||!payload.preview_only||!payload.config)throw Error(payload.error||'Private preview unavailable');
+  if(workspace?.id!==id||workspace.is_internal)return;
+  const config=payload.config;
+  frame.onload=()=>{if(frame.contentWindow&&workspace?.id===id)frame.contentWindow.postMessage(
+   {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
+  frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en');
+  status.textContent='✓ Private test mode: review your vehicle services and forms. No customer emails, charges or bookings will be created.';
+ }catch(error){
+  frame.onload=null;frame.removeAttribute('src');
+  status.textContent='Preview unavailable: '+(error.message||String(error));
+ }finally{buyerPreviewLoading=false}
+}
 function renderBuyerDashboard(){
  if(!workspace||workspace.is_internal)return;
  const attention=buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>["New","Follow-up"].includes(x.stage)).length;
@@ -2685,6 +2735,11 @@ $('cbDashInbox').onclick=()=>premiumNavigate('request-center');
 $('cbDashAdd').onclick=()=>{if(isDetailingWorkspace())edit(null)};
 $('cbDashPricing').onclick=()=>premiumNavigate('pricing');
 $('cbDashRefresh').onclick=()=>{if(isDetailingWorkspace())void loadBuyerRequests()};
+$('buyerDashboardOpenBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
+$('buyerShortcutBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
+$('buyerBookingPreviewRefresh').onclick=()=>loadBuyerBookingPreview();
+$('buyerBookingPreviewPhone').onclick=()=>{$('buyerBookingPreviewShell').style.width='min(100%,390px)';$('buyerBookingPreviewFrame').style.height='980px'};
+$('buyerBookingPreviewWide').onclick=()=>{$('buyerBookingPreviewShell').style.width='100%';$('buyerBookingPreviewFrame').style.height='1120px'};
 $("buyerDashboardOpenInbox").onclick=()=>premiumNavigate("request-center");
 $("buyerDashboardOpenSettings").onclick=()=>premiumNavigate("settings");
 async function loadBuyerRequests(){
@@ -2784,6 +2839,7 @@ let view='pipeline';function setView(v){
   'clients':['YOUR BUSINESS / CUSTOMERS','Customers'],
   'buyer-customers':['YOUR BUSINESS / CUSTOMERS','Customers'],
   'request-center':['YOUR BUSINESS / INBOX','Inbox'],
+  'buyer-booking-preview':['YOUR BUSINESS / BOOKING PAGE','Booking Page Preview'],
   'emails':['YOUR BUSINESS / EMAIL','Customer Email History'],
   'buyer-followups':['YOUR BUSINESS / AUTOMATION','Automatic Follow-ups'],
   'pricing':['YOUR BUSINESS / SERVICES','Pricing & Services'],
@@ -2800,7 +2856,7 @@ let view='pipeline';function setView(v){
  $('quickIntro').textContent=internal
   ?'These are The Launch Era sales prospects—not customers of buyer cleaning businesses.'
   :'These are inquiries for your cleaning business—not The Launch Era sales leads.';
-$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');$('buyerCustomersHub').classList.toggle('hidden',v!=='buyer-customers');$('buyerDashboardHub').classList.toggle('hidden',v!=='buyer-dashboard');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings'){loadOwnerDeliveries();loadOwnerAiDeliveries()};}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
+$('ownerBuilderHub').classList.toggle('hidden',v!=='owner-build');$('ownerPagesHub').classList.toggle('hidden',v!=='owner-pages');$('ownerPagePreviewHub').classList.toggle('hidden',v!=='owner-preview');$('availabilityHub').classList.toggle('hidden',v!=='availability');$('pricingHub').classList.toggle('hidden',v!=='pricing');$('ownerHelpHub').classList.toggle('hidden',v!=='owner-help'||!internal);$('helpHub').classList.toggle('hidden',v!=='help');$('settingsHub').classList.toggle('hidden',v!=='settings'&&v!=='buyer-followups');$('board').classList.toggle('hidden',v!=='pipeline');$('calendar').classList.toggle('hidden',v!=='calendar');$('clients').classList.toggle('hidden',v!=='clients');$('emailHub').classList.toggle('hidden',v!=='emails');$('inboundHub').classList.toggle('hidden',v!=='inbox');$('buyerBookingPreviewHub').classList.toggle('hidden',v!=='buyer-booking-preview');$('buyerRequestsHub').classList.toggle('hidden',v!=='request-center');$('buyerCustomersHub').classList.toggle('hidden',v!=='buyer-customers');$('buyerDashboardHub').classList.toggle('hidden',v!=='buyer-dashboard');if(v==='inbox')loadInbound();if(v==='emails')renderEmailHub();if(v==='settings'||v==='buyer-followups'){loadBuyerMail();if(v==='settings'){loadOwnerDeliveries();loadOwnerAiDeliveries()};}$('pipelineView').classList.toggle('active',v==='pipeline');$('calendarView').classList.toggle('active',v==='calendar');$('clientView').classList.toggle('active',v==='clients')} $('pipelineView').onclick=()=>setView('pipeline');$('calendarView').onclick=()=>setView('calendar');$('clientView').onclick=()=>setView('clients');$('exportCsv').onclick=()=>{const cols=['business','contact','email','source','language','stage','followup','notes','email_consent_status','email_consent_source','email_followup_enabled'];const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv=[cols.join(','),...leads.map(x=>cols.map(k=>esc(x[k])).join(','))].join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='command-center-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('guideAdd').onclick=()=>edit(null);
 async function showFollowupHistory(leadId){
  const target=$('followupHistory');const es=localStorage.getItem('tle_crm_language')==='es';
  const label=(en,spanish)=>es?spanish:en;
