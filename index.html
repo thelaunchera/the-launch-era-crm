@@ -206,6 +206,30 @@ body.cb-depot-buyer .cb-settings-signals strong{padding:8px 11px;border-radius:9
   height:100%!important;min-height:0!important;margin:0!important;
   border:0!important;border-radius:0!important;background:#030910!important;
  }
+ /* During initial setup only, customer approval is available as a compact,
+    dismissible sheet. It disappears as soon as approval is recorded. */
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewClose{
+  right:147px!important;width:calc(100% - 147px)!important;
+  font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerReviewMobileOpen:not(.hidden){
+  display:flex!important;position:absolute;z-index:10;top:6px;right:8px;
+  width:130px!important;min-width:0;max-height:46px!important;min-height:46px!important;
+  align-items:center;justify-content:center;text-align:center;padding:8px 11px;
+  border-radius:999px!important;background:#F2D85B;color:#191919;
+  border:1px solid #e6cf50;font-size:12px;white-space:normal;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden)>#buyerClientReview:not(.hidden){
+  display:none!important;
+ }
+ body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden)>#buyerClientReview.review-sheet-open:not(.hidden){
+  display:grid!important;position:absolute!important;inset:auto 9px 9px 9px!important;
+  z-index:11;width:auto!important;height:auto!important;min-height:0!important;
+  max-height:calc(100dvh - 84px)!important;margin:0!important;padding:18px!important;
+  border:1px solid #cbdde9!important;border-radius:20px!important;
+  background:#FAF8F3!important;box-shadow:0 10px 34px #0007!important;
+  overflow-y:auto!important;align-content:start;gap:10px;
+ }
  body.crm-buyer-view:has(#buyerBookingPreviewHub:not(.hidden)) #crmLanguagePicker.floating{display:none!important}
 }
 </style><style id="tleRoleIsolationStyle">
@@ -763,12 +787,13 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 
 <section id="buyerBookingPreviewHub" class="hidden premium-emailhub" aria-label="Private Booking Page preview">
  <button id="buyerBookingPreviewClose" type="button" class="secondary" aria-label="Close full-screen Booking Page preview">← Back to Command Center</button>
+ <button id="buyerReviewMobileOpen" type="button" class="secondary hidden" aria-expanded="false" aria-controls="buyerClientReview" aria-label="Open customer approval" style="display:none">Review / Revisar</button>
  <div class="section-title">My Booking Page · Private Preview</div>
  <p class="muted">Test your real services, prices and quote form. Complete a sample request and tap Submit to verify it reaches your private Command Center. Sample data is deleted afterward; no real booking, email or charge is created.</p>
  <div class="panel" style="max-width:none;padding:16px;margin:18px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
    <strong>CB Depot · Test mode</strong>
-   <button type="button" id="buyerBookingPreviewRefresh" class="secondary">↻ Refresh preview</button>
+   <button type="button" id="buyerBookingPreviewRefresh" class="secondary">↻ Refresh prices & preview</button>
   </div>
   <p id="buyerBookingPreviewStatus" role="status" aria-live="polite" class="muted">Load your Booking Page to test a sample request and verify lead routing without contacting a customer.</p>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0">
@@ -781,7 +806,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
     sandbox="allow-scripts allow-same-origin allow-forms"
     style="display:block;width:100%;height:1040px;border:1px solid #ded7cb;border-radius:20px;background:#f8f6f0"></iframe>
   </div>
-  <p class="muted" style="font-size:12px;line-height:1.6">Preview mode uses saved prices and services. The time slots are samples. Real customer reservations and automatic emails remain disabled until delivery is approved.</p>
+  <p class="muted" style="font-size:12px;line-height:1.6">Your private Test Center remains available after delivery. Select <strong>Refresh preview</strong> to see the latest service prices, extras, design and business hours. Sample submissions check routing without real bookings, customer emails or charges. Displayed time slots in test mode are samples.</p>
  </div>
  <article id="buyerClientReview" class="panel hidden" style="padding:20px;margin:18px 0;border:1px solid #cbdde9;background:#fff;display:grid;gap:13px">
   <div><strong style="font-size:19px" id="buyerClientReviewTitle">Your approval · Tu aprobación</strong><p class="muted" style="margin:7px 0 0;line-height:1.55">A successful sample test is separate from your design approval. / La prueba técnica es independiente de tu aprobación.</p></div>
@@ -2947,9 +2972,13 @@ async function clientReviewRequest(action,data={}){
 }
 function renderBuyerClientReview(){
  const data=buyerClientReviewState;
- const panel=$('buyerClientReview'),message=$('buyerClientReviewStatus'),buttons=$('buyerClientReviewButtons'),form=$('buyerReviewFeedbackForm');
- if(!data){panel.classList.add('hidden');return}
+ const panel=$('buyerClientReview'),message=$('buyerClientReviewStatus'),buttons=$('buyerClientReviewButtons'),form=$('buyerReviewFeedbackForm'),mobileButton=$('buyerReviewMobileOpen');
+ if(!data||data.status==='approved'||data.delivered){
+  panel.classList.add('hidden');panel.classList.remove('review-sheet-open');
+  mobileButton.classList.add('hidden');mobileButton.setAttribute('aria-expanded','false');return;
+ }
  panel.classList.remove('hidden');
+ mobileButton.classList.remove('hidden');
  const es=localStorage.getItem('tle_crm_language')==='es';
  const remaining=Number(data.revisions_remaining||0);
  $('buyerClientReviewCount').textContent=es?remaining+' de '+data.revisions_limit+' revisiones disponibles':remaining+' of '+data.revisions_limit+' included revisions remaining';
@@ -2969,9 +2998,20 @@ function renderBuyerClientReview(){
 async function loadBuyerClientReview(){
  if(!workspace||workspace.is_internal)return;
  try{buyerClientReviewState=await clientReviewRequest('buyer_status');renderBuyerClientReview();}
- catch(error){$('buyerClientReview').classList.remove('hidden');$('buyerClientReviewButtons').classList.add('hidden');$('buyerClientReviewStatus').textContent=error.message||'Unable to load review';}
+ catch(error){
+  // Never block the permanent operational Test Center on a review-portal outage.
+  buyerClientReviewState=null;renderBuyerClientReview();
+  console.warn('Client review status temporarily unavailable:',error.message||String(error));
+ }
 }
-$('buyerReviewChange').onclick=()=>{$('buyerReviewFeedbackForm').classList.remove('hidden');$('buyerReviewFeedback').focus()};
+$('buyerReviewMobileOpen').onclick=()=>{
+  const panel=$('buyerClientReview'),trigger=$('buyerReviewMobileOpen');
+  if(panel.classList.contains('hidden'))return;
+  const open=panel.classList.toggle('review-sheet-open');
+  trigger.setAttribute('aria-expanded',open?'true':'false');
+  trigger.textContent=open?'Close / Cerrar':'Review / Revisar';
+ };
+ $('buyerReviewChange').onclick=()=>{$('buyerReviewFeedbackForm').classList.remove('hidden');$('buyerReviewFeedback').focus()};
 $('buyerReviewCancel').onclick=()=>$('buyerReviewFeedbackForm').classList.add('hidden');
 $('buyerReviewApprove').onclick=async()=>{
  const button=$('buyerReviewApprove'),status=$('buyerClientReviewStatus');
@@ -3090,6 +3130,8 @@ window.addEventListener('message',async event=>{
 async function loadBuyerBookingPreview(){
  if(!workspace||workspace.is_internal||buyerPreviewLoading)return;
  buyerPreviewLoading=true;
+ // A previous approval should never stay over the permanent Booking Page preview.
+ buyerClientReviewState=null;renderBuyerClientReview();
  buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
  const status=$('buyerBookingPreviewStatus'),frame=$('buyerBookingPreviewFrame'),id=workspace.id;
  status.textContent='Preparing your real Booking Page design safely…';
@@ -3107,9 +3149,10 @@ async function loadBuyerBookingPreview(){
   buyerPreviewQaNonce=config.qa_nonce;buyerPreviewQaWorkspace=id;
   frame.onload=()=>{if(frame.contentWindow&&workspace?.id===id)frame.contentWindow.postMessage(
    {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
-  frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en');
-  status.textContent='✓ Private Test Center ready. Submit a sample quote or contact form to check routing to this Command Center; test data is removed automatically.';
-  void loadBuyerClientReview();
+  frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en')+'&preview_refresh='+Date.now();
+  status.textContent='✓ Private Test Center ready with your latest saved services and prices. Sample requests verify your own Command Center routing and are deleted automatically; no real booking or email is sent.';
+  if(payload.delivered===true){buyerClientReviewState={status:'approved',delivered:true};renderBuyerClientReview();}
+  else void loadBuyerClientReview();
  }catch(error){
   buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
   frame.onload=null;frame.removeAttribute('src');
