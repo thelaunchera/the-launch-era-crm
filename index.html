@@ -246,6 +246,9 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <div style="grid-column:1/-1;border:1px solid #dfebf3;border-radius:20px;padding:17px;background:#f6fafc">
 <strong style="display:block;margin-bottom:6px">Photos received / Fotos recibidas</strong>
 <p style="font-size:13px;color:#5c7380;line-height:1.6">Choose the logo and main photo from the files uploaded in the intake. No URLs needed. / Elige el logo y la foto principal de las imágenes recibidas. No necesitas enlaces.</p>
+<label style="display:block;border:1px dashed #74A8CC;background:white;border-radius:14px;padding:14px;margin:12px 0;font-weight:700">📷 Upload photos yourself / Subir fotos tú misma
+<input type="file" id="buildOwnerUpload" accept="image/jpeg,image/png,image/webp" multiple style="margin-top:10px;max-width:100%;font-weight:400"></label>
+<p id="buildUploadStatus" role="status" aria-live="polite" class="muted" style="margin:8px 0;font-size:12px">Photos from your phone or computer · JPG, PNG, WebP · up to 10 per buyer. / Fotos del teléfono o computadora · hasta 10.</p>
 <div id="buildIntakePhotos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,145px),1fr));gap:11px;margin:12px 0"></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">
 <label>Hero photo / Foto principal<select name="hero_photo_path" id="buildHeroPhotoSelect"><option value="">No photo / Sin foto</option></select></label>
@@ -254,7 +257,7 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <p class="muted" style="font-size:12px;margin-top:10px">HEIC photos can be received and stored, but JPG, PNG or WebP is required for a website image. / Puedes recibir fotos HEIC, pero para publicarlas necesitarás JPG, PNG o WebP.</p></div>
 <label>Background color / Fondo azul<input name="primary_color" type="color" value="#dceffa"></label>
 <label>Accent color / Azul de acento<input name="accent_color" type="color" value="#3a7399"></label>
-<div style="grid-column:1/-1"><strong>3 real client reviews / 3 reviews reales</strong><p class="muted">Received from the intake. Review the text and names before publishing. / Revisa los textos y nombres antes de publicar.</p><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 1</legend><label>Client name / Nombre<input name="review_1_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_1_text" maxlength="450" rows="3"></textarea></label><label>Source link / Enlace de origen<input type="url" name="review_1_source_url"></label></fieldset><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 2</legend><label>Client name / Nombre<input name="review_2_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_2_text" maxlength="450" rows="3"></textarea></label><label>Source link / Enlace de origen<input type="url" name="review_2_source_url"></label></fieldset><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 3</legend><label>Client name / Nombre<input name="review_3_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_3_text" maxlength="450" rows="3"></textarea></label><label>Source link / Enlace de origen<input type="url" name="review_3_source_url"></label></fieldset></div>
+<div style="grid-column:1/-1"><strong>3 real client reviews / 3 reviews reales</strong><p class="muted">Received from the intake. Review the text and names before publishing. / Revisa los textos y nombres antes de publicar.</p><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 1</legend><label>Client name / Nombre<input name="review_1_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_1_text" maxlength="450" rows="3"></textarea></label></fieldset><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 2</legend><label>Client name / Nombre<input name="review_2_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_2_text" maxlength="450" rows="3"></textarea></label></fieldset><fieldset style="min-width:0;border:1px solid #dfebf3;border-radius:14px;margin:12px 0;padding:14px"><legend>Review 3</legend><label>Client name / Nombre<input name="review_3_name" maxlength="70"></label><label>Original text / Texto original<textarea name="review_3_text" maxlength="450" rows="3"></textarea></label></fieldset></div>
 <div style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap"><button type="submit" id="buildSave">Save design / Guardar diseño</button><button type="button" class="secondary" id="buildEditPricing">Edit services & prices</button><button type="button" class="secondary" id="buildEditAvailability">Edit booking hours</button></div></form></article>
 <article class="panel" style="padding:22px;margin:16px 0"><h3>3. Preview the real Booking Page / Vista previa real</h3>
 <p class="muted">This uses the same Booking Page template customers will receive, with no reservations, emails or charges. / Utiliza el diseño real pero sin crear reservas.</p>
@@ -1100,7 +1103,7 @@ async function loadOwnerBuilder(){
   for(const key of ['business_name','headline','description','service_area','primary_color','accent_color'])
    buildField(form,key,brand[key]||'');
   renderBuildPhotos(data.uploaded_photos||[],brand);
-  for(let n=1;n<=3;n++){const r=brand.reviews?.[n-1]||{};for(const key of ['name','text','source_url'])buildField(form,'review_'+n+'_'+key,r[key]||'')}
+  for(let n=1;n<=3;n++){const r=brand.reviews?.[n-1]||{};for(const key of ['name','text'])buildField(form,'review_'+n+'_'+key,r[key]||'')}
   buildRenderStatus();
  }catch(e){builderState=null;status.textContent='Could not load buyer setup / No se pudo cargar: '+e.message}
 }
@@ -1108,13 +1111,50 @@ $('buildBack').onclick=()=>premiumNavigate('owner-pages');
 $('buildOpenCal').onclick=()=>{if(ownerReviewAccount?.id)openBuyerWorkCalendar(ownerReviewAccount.id)};
 $('buildEditPricing').onclick=()=>premiumNavigate('pricing');
 $('buildEditAvailability').onclick=()=>premiumNavigate('availability');
+async function buildPhotoPayload(file){
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type))throw Error('Use JPG, PNG or WebP. / Usa JPG, PNG o WebP.');
+ const source=await new Promise((resolve,reject)=>{
+  const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not read photo'));reader.readAsDataURL(file);
+ });
+ const bitmap=await new Promise((resolve,reject)=>{
+  const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Could not open photo'));image.src=String(source);
+ });
+ const scale=Math.min(1,1800/Math.max(bitmap.naturalWidth,bitmap.naturalHeight));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.naturalWidth*scale));canvas.height=Math.max(1,Math.round(bitmap.naturalHeight*scale));
+ canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+ const mime=file.type==='image/png'?'image/png':'image/jpeg';
+ let blob=await new Promise(res=>canvas.toBlob(res,mime,mime==='image/jpeg'?0.83:undefined));
+ if(!blob||blob.size>3900000){blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.76))}
+ if(!blob||blob.size>3900000)throw Error('Photo is too large after resizing / Foto demasiado grande.');
+ const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return {filename:file.name.replace(/\.(heic|heif)$/i,'.jpg'),mime:blob.type,base64:btoa(binary)};
+}
+$('buildOwnerUpload').onchange=async e=>{
+ const input=e.currentTarget,files=[...input.files||[]].slice(0,10),message=$('buildUploadStatus');
+ if(!files.length)return;
+ input.disabled=true;let added=0;
+ try{
+  for(const file of files){
+   message.textContent=buildLabel('Uploading '+(added+1)+' of '+files.length+'…','Subiendo '+(added+1)+' de '+files.length+'…');
+   const payload=await buildPhotoPayload(file);
+   await ownerStudioCall('upload',payload);added++;
+  }
+  await loadOwnerBuilder();
+  message.textContent=buildLabel(added+' photo(s) added. Select a main photo or logo, then Save design.',added+' foto(s) añadidas. Escoge foto principal o logo y guarda el diseño.');
+ }catch(err){
+  if(added)await loadOwnerBuilder();
+  message.textContent=buildLabel('Added '+added+' photo(s). ','Añadidas '+added+' fotos. ')+err.message;
+ }finally{input.value='';input.disabled=false}
+};
+
 $('buildBrandForm').onsubmit=async e=>{
  e.preventDefault();const button=$('buildSave');button.disabled=true;$('buildStatus').textContent=buildLabel('Saving personalized design…','Guardando diseño…');
  try{
   const formData=Object.fromEntries(new FormData(e.target));
-  const reviews=[1,2,3].map(n=>({name:String(formData['review_'+n+'_name']||'').trim(),text:String(formData['review_'+n+'_text']||'').trim(),source_url:String(formData['review_'+n+'_source_url']||'').trim()})).filter(r=>r.name||r.text||r.source_url);
+  const reviews=[1,2,3].map(n=>({name:String(formData['review_'+n+'_name']||'').trim(),text:String(formData['review_'+n+'_text']||'').trim()})).filter(r=>r.name||r.text);
   if(reviews.some(r=>!r.name||!r.text))throw Error('Complete each review name and text / Completa nombre y texto');
-  for(let n=1;n<=3;n++)for(const key of ['name','text','source_url'])delete formData['review_'+n+'_'+key];
+  for(let n=1;n<=3;n++)for(const key of ['name','text'])delete formData['review_'+n+'_'+key];
   await ownerStudioCall('save',{branding:{...formData,reviews}});
   await loadOwnerBuilder();
   $('buildStatus').textContent=buildLabel('Design saved. Open the real preview and approve it.','Diseño guardado. Revisa la vista real y apruébala.');
