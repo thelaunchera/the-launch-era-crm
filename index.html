@@ -163,7 +163,19 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 #privateActivationSplash .pa-spin{width:31px;height:31px;border-radius:100%;margin:24px auto 6px;border:3px solid #28516e;border-top-color:#1ca0ff;animation:tleActivationSpin .8s linear infinite}
 #privateActivationSplash #paReturn{margin-top:15px;background:#1688e5;border-radius:50px;padding:13px 23px;color:white;display:none}
 @keyframes tleActivationSpin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#privateActivationSplash .pa-spin{animation:none}}
-</style><meta name="tle-command-center-release" content="2026-10-10-safe-booking-preview-v5"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+
+/* Private buyer first-login password enrollment. No workspace UI is shown until verified. */
+#buyerPasswordSetup{width:min(100%,570px);margin:24px auto 40px;padding:clamp(24px,5vw,44px);border:1px solid #e9ddc6;border-radius:26px;background:#fffaf1;box-shadow:0 18px 55px #1c262e17;}
+#buyerPasswordSetup .enrollment-mark{display:inline-block;border-radius:99px;padding:8px 13px;background:#f6e4b7;color:#3e3830;font-size:11px;font-weight:850;letter-spacing:.10em}
+#buyerPasswordSetup h2{font-size:clamp(27px,5vw,35px);line-height:1.18;letter-spacing:-.04em;margin:19px 0 12px;color:#1c232a}
+#buyerPasswordSetup p{line-height:1.65;color:#57616d;font-size:14px}
+#buyerPasswordSetup label{display:block;margin-top:18px;color:#35404b}
+#buyerPasswordSetup input{background:white;border:1px solid #c8d0d8;width:100%;max-width:100%;font-size:16px;margin:8px 0 2px}
+#buyerPasswordSetup button[type="submit"]{width:100%;margin:22px 0 8px;padding:15px 19px;background:#202c38;border-radius:99px;color:#fff;font-weight:800}
+#buyerPasswordSetup .enrollment-rule{font-size:12px;color:#6c7280}
+#buyerPasswordSetup .enrollment-status{font-size:13px;min-height:22px;color:#9b443c}
+@media(max-width:600px){#buyerPasswordSetup{margin:12px auto;padding:24px 21px}}
+</style><meta name="tle-command-center-release" content="2026-10-10-secure-buyer-password-v6"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -171,7 +183,19 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <p id="paMessage">Verifying your private access securely…</p>
 <div class="pa-spin" id="paSpin" aria-hidden="true"></div>
 <button type="button" id="paReturn">Go to sign in →</button>
-</div></div><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section><section id="app" class="hidden"><div id="sidebarScrim" class="sidebar-scrim" aria-hidden="true"></div><aside class="premium-sidebar" id="premiumSidebar" aria-label="Workspace navigation">
+</div></div><div id="tleLoading" role="status" aria-live="polite" aria-label="Loading The Launch Era"><div class="tle-loading-mark"><img id="crm-loading-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" width="80" height="80" style="object-fit:cover;border-radius:20px"></div><strong>THE LAUNCH ERA</strong><span>Loading your workspace…</span></div><header><b>THE LAUNCH ERA · COMMAND CENTER</b><button id="logout" class="hidden">Sign out</button></header><main><section id="auth" class="auth-shell"><div class="auth-photo" role="img" aria-label="Bright contemporary workspace"><div class="auth-photo-copy"><span>THE LAUNCH ERA</span><h2>You worked hard to get that lead.</h2><p>Don’t let it disappear between messages, missed calls, and forgotten follow-ups.</p></div></div><div class="auth-content"><div class="auth-wordmark">THE LAUNCH ERA</div><h1 class="auth-simple-title">Sign in</h1><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" minlength="6" required autocomplete="current-password"></label><button type="submit" id="signin">Sign in</button> <button type="button" id="signup">Create account</button> <button type="button" id="forgotPassword" class="secondary">Forgot password?</button></form><p class="muted" id="authMessage" role="status"></p><div class="auth-footer"><span>© 2026 THE LAUNCH ERA</span><nav aria-label="Legal and support"><button type="button" class="auth-textlink" data-public-info="privacy">Privacy</button><button type="button" class="auth-textlink" data-public-info="terms">Terms</button><button type="button" class="auth-textlink" data-public-info="contact">Contact</button><button type="button" class="auth-textlink" data-public-info="faq">FAQ</button></nav></div></div></section>
+<section id="buyerPasswordSetup" class="hidden" aria-labelledby="buyerPasswordTitle">
+ <span class="enrollment-mark">CB DEPOT · PRIVATE ACCOUNT</span>
+ <h2 id="buyerPasswordTitle">Secure your Command Center</h2>
+ <p id="buyerPasswordIntro">Your email has been verified. Create your private password before accessing your customer details, quotes, and appointments.</p>
+ <form id="buyerPasswordSetupForm" autocomplete="off">
+ <label>New password<input name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label>
+ <label>Confirm new password<input name="confirm" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label>
+ <p class="enrollment-rule">Use at least 12 characters. Don't reuse a password from another account.</p>
+ <button type="submit" id="buyerPasswordSetupSubmit">Save password and continue securely →</button>
+ <p class="enrollment-status" id="buyerPasswordSetupStatus" role="status" aria-live="polite"></p>
+ </form>
+</section><section id="app" class="hidden"><div id="sidebarScrim" class="sidebar-scrim" aria-hidden="true"></div><aside class="premium-sidebar" id="premiumSidebar" aria-label="Workspace navigation">
 <div class="premium-brand"><img class="brand-symbol" id="crm-brand-icon" src="./app-icons/tle-192.png?v=20261010" alt="" style="display:block;width:36px;height:36px;object-fit:cover;border-radius:10px;flex-shrink:0;padding:0;"><span>THE LAUNCH ERA<small id="sidebarWorkspaceLabel">WORKSPACE</small></span></div>
 <div id="ownerPrivateSection" class="hidden" aria-label="The Launch Era private admin navigation">
  <div class="nav-caption" id="ownerOrdersCaption">THE LAUNCH ERA · PRIVATE</div>
@@ -879,14 +903,45 @@ function handleCommandCenterAuthChange(event,session){
   setTimeout(()=>{if(!$('passwordResetDialog').open)$('passwordResetDialog').showModal()},0);
  }
 }
-async function boot(){let roleVerified=false;const generation=++bootGeneration;$('app').classList.add('hidden');try{let {data:{user},error:authError}=await db.auth.getUser();if(generation!==bootGeneration)return;if(authError&&authError.name!=='AuthSessionMissingError')throw authError;if(activeAuthUserId&&activeAuthUserId!==user?.id){lockCommandCenterSession();location.reload();return}activeAuthUserId=user?.id||null;$('auth').classList.toggle('hidden',!!user);$('logout').classList.toggle('hidden',!user);if(!user){
+async function boot(){let roleVerified=false;const generation=++bootGeneration;$('app').classList.add('hidden');$('buyerPasswordSetup').classList.add('hidden');try{let {data:{user},error:authError}=await db.auth.getUser();if(generation!==bootGeneration)return;if(authError&&authError.name!=='AuthSessionMissingError')throw authError;if(activeAuthUserId&&activeAuthUserId!==user?.id){lockCommandCenterSession();location.reload();return}activeAuthUserId=user?.id||null;$('auth').classList.toggle('hidden',!!user);$('logout').classList.toggle('hidden',!user);if(!user){
+ if(sessionStorage.getItem('tle_crm_new_password_ready')==='yes'){
+  sessionStorage.removeItem('tle_crm_new_password_ready');
+  $('authMessage').textContent='✓ Password saved. Sign in with your email and new password to finish securing your Command Center.';
+ }
  hideTleLoading();loadGeneration++;delete document.body.dataset.leadsLoaded;
  workspace=null;clearAdminClientState();
  document.body.classList.remove('tle-owner-purchases','crm-owner-view','crm-buyer-view','crm-followups-focus');
  $('ownerPagesNav').classList.add('hidden');$('ownerCalendarNav').classList.add('hidden');$('ownerInsightsNav').classList.add('hidden');$('ownerWebsiteInboxNav').classList.add('hidden');$('ownerSettingsNav').classList.add('hidden');$('buyerSettingsNav').classList.add('hidden');$('buyerFollowupsNav').classList.add('hidden');$('buyerRequestsNav').classList.add('hidden');
  $('buyerEmailSetup').classList.add('hidden');$('ownerDeliveryPanel').classList.add('hidden');
  leads=[];accountEmail='';emailSentByLead=new Map();return
-}accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,business_category,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){
+}
+ // Owner access is untouched. Paid buyer security is checked on the server
+ // before fetching workspace data, and RLS blocks buyer data until password login.
+ const {data:security,error:securityError}=await db.rpc('tle_crm_buyer_auth_state');
+ if(securityError)throw securityError;
+ if(generation!==bootGeneration)return;
+ if(security?.password_required){
+   if(security.password_setup_complete&&!security.signed_in_with_password){
+     await db.auth.signOut({scope:'local'});
+     if(generation!==bootGeneration)return;
+     $('auth').classList.remove('hidden');
+     $('authMessage').textContent='For your security, sign in with your email and password to open your private Command Center.';
+     hideTleLoading();
+     return;
+   }
+   if(!security.password_setup_complete&&security.signed_in_with_password){
+     const {data:completed,error:completeError}=await db.rpc('tle_crm_buyer_finalize_password_setup');
+     if(completeError||completed!==true)throw completeError||new Error('Account verification was not completed.');
+   }else if(!security.password_setup_complete){
+     $('app').classList.add('hidden');
+     $('auth').classList.add('hidden');
+     $('buyerPasswordSetup').classList.remove('hidden');
+     $('buyerPasswordIntro').textContent='Your email '+(user.email||'')+' is verified. Create a password to secure your CB Depot Command Center before your customer records become visible.';
+     hideTleLoading();
+     return;
+   }
+ }
+ accountEmail=(user.email||'').trim().toLowerCase();let ws=await check(await db.from('tle_crm_workspaces').select('id,name,is_internal,business_category,automated_followups_enabled,reply_monitor_verified').eq('created_by',user.id).order('created_at',{ascending:true}).limit(1));if(generation!==bootGeneration)return;workspace=ws[0]||null;applyCRMRoleInterface();if(workspace&&!workspace.is_internal)await initializeBuyerLanguage(workspace.id);if(generation!==bootGeneration)return;roleVerified=true;$('app').classList.remove('hidden');loadBuyerMail();loadOwnerDeliveries();const setupStatus=$('settingsFollowupStatus');if(setupStatus){const active=!!workspace?.automated_followups_enabled&&!!workspace?.reply_monitor_verified;const es=localStorage.getItem('tle_crm_language')==='es';setupStatus.textContent=workspace?.is_internal?(active?(es?'Tu primer correo es manual. El segundo y el tercero son automáticos para contactos habilitados; respuestas y bajas detienen la secuencia.':'Your first email is manual. Emails two and three are automatic for eligible contacts; replies and opt-outs stop the sequence.'):(es?'Envías el primero; los otros dos quedan pendientes de un canal de correo compatible y permiso válido.':'You send the first; the other two require an eligible recipient and compatible email provider.')):(active?(es?'Seguimientos automáticos 1 y 2 activos; respuesta detectada y cancelación habilitada. El tercero es manual.':'Automatic follow-ups 1 and 2 are active, with reply detection and cancellation. The third is manual.'):(es?'Los seguimientos automáticos están pendientes de configuración y verificación del correo. El tercero es manual.':'Automatic follow-ups require sender setup and reply-monitor verification. The third is manual.'));}if(!workspace){delete document.body.dataset.leadsLoaded;leads=[];emailSentByLead=new Map()}$('setup').classList.toggle('hidden',!!workspace);$('pipeline').classList.toggle('hidden',!workspace);if(workspace){
  $('workspaceName').textContent=workspace.name;
  $('ownerOrdersCaption').classList.toggle('hidden',!workspace.is_internal);
  $('ownerProspectsCaption').classList.add('hidden');
@@ -906,6 +961,31 @@ async function boot(){let roleVerified=false;const generation=++bootGeneration;$
  }
  await loadStoredNotifications();
 }hideTleLoading()}catch(e){if(generation!==bootGeneration)return;if(roleVerified){say(e.message)}else{lockCommandCenterSession();$('authMessage').textContent=e.message}hideTleLoading()}}
+$('buyerPasswordSetupForm').onsubmit=async e=>{
+ e.preventDefault();
+ const form=e.currentTarget;
+ const password=String(form.elements.namedItem('password').value||'');
+ const confirm=String(form.elements.namedItem('confirm').value||'');
+ const status=$('buyerPasswordSetupStatus');
+ if(password.length<12||password!==confirm){
+  status.textContent='Use at least 12 characters and enter the same password twice.';
+  return;
+ }
+ const button=$('buyerPasswordSetupSubmit');button.disabled=true;status.textContent='Securing your private account…';
+ try{
+  const {error}=await db.auth.updateUser({password});
+  if(error)throw error;
+  form.reset();
+  sessionStorage.setItem('tle_crm_new_password_ready','yes');
+  status.textContent='Password saved. Sign in to finish verification.';
+  const signedOut=await db.auth.signOut({scope:'global'});
+  if(signedOut.error)throw signedOut.error;
+  lockCommandCenterSession();
+  await boot();
+ }catch(error){status.textContent=error?.message||'Could not save your password. Try again.'}
+ finally{button.disabled=false}
+};
+if(new URLSearchParams(location.search).get('app')==='cb-depot')$('signup').classList.add('hidden');
 $('authForm').onsubmit=async e=>{e.preventDefault();try{let x=Object.fromEntries(new FormData(e.target));await check(await db.auth.signInWithPassword(x));$('authMessage').textContent='';await boot()}catch(e){$('authMessage').textContent=e.message}};
 $('forgotPassword').onclick=async()=>{const email=$('authForm').elements.namedItem('email').value.trim();if(!email){$('authMessage').textContent='Enter your email address first.';return}try{await check(await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname}));$('authMessage').textContent='If an account exists, a password reset email will arrive shortly.'}catch(e){$('authMessage').textContent=e.message}};db.auth.onAuthStateChange(handleCommandCenterAuthChange);$('cancelPasswordReset').onclick=()=>$('passwordResetDialog').close();$('passwordResetForm').onsubmit=async e=>{e.preventDefault();const data=new FormData(e.target),password=String(data.get('newPassword')||''),confirm=String(data.get('confirmPassword')||'');if(password.length<8||password!==confirm){$('passwordResetError').textContent='Passwords must match and contain at least 8 characters.';return}const submit=e.target.querySelector('[type=submit]');submit.disabled=true;const {error}=await db.auth.updateUser({password});submit.disabled=false;if(error){$('passwordResetError').textContent=error.message;return}$('passwordResetDialog').close();e.target.reset();say('Password updated successfully.');await boot()};$('signup').onclick=async()=>{try{let x=Object.fromEntries(new FormData($('authForm')));await check(await db.auth.signUp({email:x.email,password:x.password,options:{emailRedirectTo:location.origin+location.pathname}}));$('authMessage').textContent='Account request received. Check your inbox for the confirmation email. If you already registered, use Sign in instead.'}catch(e){const msg=String(e.message||'');$('authMessage').textContent=/rate limit|too many requests/i.test(msg)?'Email confirmation limit reached. If you already have an account, tap Sign in instead. Otherwise, wait before trying again. Check your email spelling (gmail.com).':msg}};
 $('logout').onclick=async()=>{lockCommandCenterSession();const {error}=await db.auth.signOut();if(error){$('authMessage').textContent=error.message;return}await boot()};$('sidebarLogout').onclick=()=>{$('logout').click();closePremiumSidebar()};
