@@ -1,0 +1,39 @@
+name: Save approved Command Center app icons
+on:
+  push:
+    paths:
+      - .github/workflows/sync-app-icons.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save approved branding images and mobile icon sizes
+        env:
+          CB_ICON_URL: "https://d2ol7oe51mr4n9.cloudfront.net/user_3FC9GcVebQE6WAxiCP5Hh9w95GF/e7419bba-8612-4c2d-81e2-6e5a971d4db8.jpg"
+          TLE_ICON_URL: "https://d2ol7oe51mr4n9.cloudfront.net/user_3FC9GcVebQE6WAxiCP5Hh9w95GF/fa37d208-8432-4a17-8b75-fe77f091cd64.jpg"
+        run: |
+          mkdir -p app-icons
+          curl --fail --silent --show-error --location --retry 3 "$CB_ICON_URL" -o app-icons/cb-depot-original.jpg
+          curl --fail --silent --show-error --location --retry 3 "$TLE_ICON_URL" -o app-icons/tle-original.jpg
+          python3 -m pip install --quiet Pillow
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          for key in ("cb-depot", "tle"):
+              source = Path("app-icons") / f"{key}-original.jpg"
+              with Image.open(source) as img:
+                  img = img.convert("RGB")
+                  img.verify if False else None
+                  for size in (180, 192, 512):
+                      img.resize((size, size), Image.Resampling.LANCZOS).save(Path("app-icons") / f"{key}-{size}.png", optimize=True)
+          PY
+      - name: Commit local icons
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-icons
+          if ! git diff --cached --quiet; then git commit -m "Store approved CB Depot and TLE mobile app icons"; git push; fi
