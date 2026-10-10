@@ -91,3 +91,23 @@
 - Language follows the buyer account (English or Spanish) without mixed-language paragraphs. Every buyer receives their own business name and private Command Center CTA; never a previous buyer's design, favicon, reviews or appointment claims.
 - Before the first production use or any template change, send a **[TEST]** email to the agency owner, verify Gmail inbox arrival and visual readability on mobile, and keep the actual customer's review/reminder untouched.
 - The reminder is explicitly identified as a **design review, not final delivery**. Keep the existing 12-hour due gate, one-send-per-cycle protection and owner-only send action.
+
+## Reusable multi-client sales-to-delivery lifecycle — October 10, 2026
+
+**Owner-facing stages** (auto-refreshed in Owner Settings → Client Delivery): payment and intake → personalized Booking Page and isolated private workspace → private activation → client design approval → six verified QA checkpoints → final delivery.
+
+- Paid purchase: live Stripe confirmation creates/updates the buyer account and sends the localized intake email. Never treat payment alone as account activation or final release; use the owner-managed account state.
+- Intake: accepted fields seed editable services and prices only once; future edits must win. The owner gets a private Command Center notification when a new paid intake is completed, with no extra customer email.
+- Owner review: the admin prepares business-specific branding, confirms service options and availability, and reviews the true private buyer preview. The customer can approve or request the included revision; the owner receives a new dashboard notification of the decision.
+- Final release: private activation and verified buyer sign-in are distinct from final delivery. The buyer's explicit approval, server-side isolation/routing checks, all six QA timestamps and the owner's final click remain mandatory. An incomplete system stays inaccessible to real public bookings.
+- Immediately after QA signoff, a single final delivery email sends the buyer their Booking Page, private Command Center and localized guide. The email correctly states The Launch Era manages confirmations and up to two eligible quote follow-ups; buyers do not need their own Resend accounts.
+- Emails use Warm Ivory / Soft Black / Butter Yellow / restrained Soft Blue, two-language variants with no mixed UI labels, real business names, visible status and working CTA buttons. The purchase email hides its sensitive intake URL behind a button.
+- 48-hour estimated production begins at the next working period **only after** payment, complete intake and required materials/access/approvals; Saturday after noon Eastern rolls to Monday or the next business day.
+- Owner notifications on new paid purchase, completed intake and buyer review decision are in-app only; do not auto-send external marketing messages.
+
+## October 10 sales and follow-up handoff
+
+- Added five publicly researched cleaning businesses to **The Launch Era** owner CRM as `research_only=true`, `contact_decision=no`, `email_consent_status=unknown`. Their source URLs and unverified opportunities are saved on each prospect. Do not present assumptions as proven deficiencies, do not schedule outreach without validation.
+- CRM review found 58 pre-existing owner prospects; 44 second follow-up emails already marked sent; the 42 contacts with overdue follow-up dates **already have a second email recorded**, so these are historical due dates, not instructions to send 42 more emails. No third step in the queue; marketing permission remains unverified.
+- Prepare a final, one-to-one follow-up only after evaluating existing replies/bounces/opt-outs and contact eligibility. Never queue duplicate outreach or schedule automatically merely because a CRM date is past.
+- Booking demo EN/ES: the open-ended assistance question is now optional, while name, verified email, business and service area remain required. The demo copy makes automatic email delivery, no card/payment/call, and Promotions/Spam guidance clear. Do not imply public client bookings become live before owner release.
