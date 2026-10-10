@@ -18,6 +18,22 @@ const critical=[
  "item.dataset.clientReviewApproved"
 ];
 for(const marker of critical)assert(html.includes(marker),"Required customer review component missing: "+marker);
+const permanentTestCenter=[
+ 'id="buyerBookingPreviewMobileRefresh"',
+ 'Refresh prices & preview',
+ 'buyerBookingPreviewMobileRefresh',
+ 'preview_refresh=',
+ 'status===\'approved\'||data.delivered',
+ 'payload.delivered===true',
+ "if(!data||data.status==='approved'||data.delivered)",
+ 'body.crm-buyer-view #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewMobileRefresh:not(.hidden)',
+ 'data.status===\'changes_requested\''
+];
+for(const marker of permanentTestCenter){
+ assert(html.includes(marker),"Permanent test center or temporary approval separation missing: "+marker);
+}
+assert(html.includes("void loadBuyerClientReview()"),"Review controls must load only during pre-delivery setup");
+
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 assert(scripts.length>=3,"Expected the current CRM script layout");
 for(const [i,script] of scripts.entries()){
