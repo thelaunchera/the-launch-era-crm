@@ -1012,7 +1012,7 @@ async function loadOwnerDeliveries(){
     const kindLabel=deliveryNode('label','Business type / Tipo de negocio');
     const kind=document.createElement('select');kind.style.cssText='width:100%;margin:6px 0 0';
     [['cleaning','Cleaning business'],['detailing','Car Detailing'],['other','Other service / Otro servicio']].forEach(([v,l])=>{const o=new Option(l,v);kind.add(o)});
-    kind.value=/detail|auto|cb depot/i.test(a.business_name||'')?'detailing':'cleaning';kindLabel.append(kind);activation.append(kindLabel);
+    kind.value=a.business_category||(/detail|auto|cb depot/i.test(a.business_name||'')?'detailing':'cleaning');kindLabel.append(kind);activation.append(kindLabel);
     const otherLabel=deliveryNode('label','Type of service / Tipo de servicio');otherLabel.style.display='none';
     const other=document.createElement('input');other.type='text';other.maxLength=65;other.placeholder='e.g. Landscaping';otherLabel.append(other);
     kind.onchange=()=>{otherLabel.style.display=kind.value==='other'?'block':'none'};activation.append(otherLabel);
