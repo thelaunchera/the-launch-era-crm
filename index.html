@@ -783,6 +783,24 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   </div>
   <p class="muted" style="font-size:12px;line-height:1.6">Preview mode uses saved prices and services. The time slots are samples. Real customer reservations and automatic emails remain disabled until delivery is approved.</p>
  </div>
+ <article id="buyerClientReview" class="panel hidden" style="padding:20px;margin:18px 0;border:1px solid #cbdde9;background:#fff;display:grid;gap:13px">
+  <div><strong style="font-size:19px" id="buyerClientReviewTitle">Your approval · Tu aprobación</strong><p class="muted" style="margin:7px 0 0;line-height:1.55">A successful sample test is separate from your design approval. / La prueba técnica es independiente de tu aprobación.</p></div>
+  <p id="buyerClientReviewCount" style="margin:0;font-size:13px;font-weight:800;color:#356a8a">1 revision included · 1 revisión incluida</p>
+  <p id="buyerClientReviewStatus" role="status" aria-live="polite" style="margin:0;font-size:13px;line-height:1.5">Loading review status…</p>
+  <div id="buyerClientReviewButtons" style="display:flex;flex-wrap:wrap;gap:10px">
+   <button type="button" id="buyerReviewApprove" style="flex:1 1 190px;min-height:48px;white-space:normal">✓ Approve &amp; Continue</button>
+   <button type="button" id="buyerReviewChange" class="secondary" style="flex:1 1 190px;min-height:48px;white-space:normal">✎ Request Changes</button>
+  </div>
+  <div id="buyerReviewFeedbackForm" class="hidden" style="display:grid;gap:9px">
+    <label for="buyerReviewFeedback" style="font-weight:700;font-size:13px">What would you like us to fix? / ¿Qué debemos corregir?</label>
+    <textarea id="buyerReviewFeedback" maxlength="2000" rows="4" placeholder="Describe the change you want, in one message. / Describe los cambios que necesitas."></textarea>
+    <p class="muted" style="margin:0;font-size:12px">Submitting this request uses one included revision. Technical problems are fixed separately. / Enviar consume una revisión incluida. Las fallas técnicas se atienden aparte.</p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button type="button" id="buyerReviewSend" style="flex:1 1 170px">Send for corrections →</button>
+      <button type="button" id="buyerReviewCancel" class="secondary" style="flex:1 1 130px">Cancel</button>
+    </div>
+  </div>
+ </article>
 </section>
 <section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
   <div class="section-title">Inbox</div>
@@ -1426,10 +1444,12 @@ async function loadOwnerAiDeliveries(){
    if(!['intake_submitted','in_setup'].includes(order.status)){item.append(aiDeliveryText(es?'Pendiente del intake de la compradora.':'Waiting for the buyer intake.','font-size:12px;margin-top:12px'));root.append(item);continue;}
    const label=document.createElement('label');label.textContent=es?'Enlace del asistente funcionando':'Working assistant URL';label.style.cssText='display:block;font-size:12px;font-weight:700;margin:15px 0 6px';item.append(label);
    const url=document.createElement('input');url.type='url';url.placeholder='https://...';url.autocomplete='off';url.required=true;url.maxLength=320;url.value=order.delivered_url||order.booking_page_url||order.website_url||'';url.style.cssText='display:block;width:100%;min-width:0';item.append(url);
+   void addOwnerClientReview('ai',order.id,item,url);
    const checkLabel=document.createElement('label');checkLabel.style.cssText='display:flex;align-items:flex-start;gap:9px;margin:12px 0;font-size:12px;font-weight:500;line-height:1.4';const check=document.createElement('input');check.type='checkbox';check.style.cssText='width:18px;height:18px;min-width:18px;margin:0';const checkCopy=document.createElement('span');checkCopy.textContent=es?'Ya probé el asistente y lo entregué a esta clienta.':'I tested this assistant and delivered it to the buyer.';checkLabel.append(check,checkCopy);item.append(checkLabel);
    const act=document.createElement('button');act.type='button';act.className='secondary';act.textContent=es?'Confirmar entrega e iniciar mes':'Confirm delivery & start month';act.style.cssText='display:block;width:100%;white-space:normal';item.append(act);
    const feedback=aiDeliveryText('','font-size:12px;line-height:1.4;margin-top:9px;overflow-wrap:anywhere');feedback.setAttribute('role','status');item.append(feedback);
    act.onclick=async()=>{
+    if(item.dataset.clientReviewApproved!=='true'){feedback.textContent=es?'Primero el cliente debe aprobar el agente en el Test Center.':'The buyer must approve the AI Assistant in the Test Center first.';return;}
     if(!check.checked){feedback.textContent=es?'Confirma primero que está probado y entregado.':'Confirm delivery and testing first.';return;}
     if(!url.value||!url.checkValidity()){feedback.textContent=es?'Añade un enlace https válido.':'Enter a valid https URL.';return;}
     if(!window.confirm(es?'¿Confirmas que este asistente ya está entregado? Se inicia el mes incluido.':'Confirm delivery? The included first month starts now.'))return;
@@ -1472,6 +1492,7 @@ async function loadOwnerDeliveries(){
    const ready=a.payment_status==='paid'&&!!a.intake_done&&!!a.crm_ready&&!!a.booking_page_url&&a.status==='active';
    const detail=deliveryNode('p','Paid: '+(a.payment_status==='paid'?'✓':'—')+' · Intake: '+(a.intake_done?'✓':'—')+' · Booking: '+(a.booking_page_url?'✓':'—')+' · CRM: '+(a.crm_ready?'✓':'—')+' · Active: '+(a.status==='active'?'✓':'—'));
    detail.className='muted';item.appendChild(detail);
+   void addOwnerClientReview('booking',a.id,item);
    if(a.booking_page_url&&/^https:\/\//.test(a.booking_page_url)){
     if(a.already_queued){
      const link=deliveryNode('a','Open delivered Booking Page ↗');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='overflow-wrap:anywhere';item.appendChild(link);
@@ -1555,6 +1576,7 @@ if(a.already_queued){const state=deliveryNode('p','✓ Final delivery queued pre
    item.appendChild(checks);
    const action=deliveryNode('button','Approve & send 2 access links + guide / Aprobar y entregar');action.type='button';action.className='secondary delivery-qa-action';
    action.onclick=async()=>{
+    if(item.dataset.clientReviewApproved!=='true'){status.textContent='Buyer approval is required before final delivery / Falta la aprobación del cliente';return}
     if(!Object.values(inputs).every(input=>input.checked)){status.textContent='Complete all six checks before sending / Marca las seis pruebas primero';return}
     const description=(a.business_name||'business')+' ('+(a.owner_email||'buyer')+')';
     if(!confirm('Final delivery to '+description+'? The email will include the real Booking Page, private Command Center and bilingual guide. / ¿Confirmas la entrega?'))return;
@@ -2913,6 +2935,111 @@ function renderBuyerCustomers(){
 }
 $('buyerCustomersRefresh').onclick=()=>{if(workspace&&!workspace.is_internal)void loadBuyerRequests()};
 
+const clientReviewEndpoint='https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-client-review';
+let buyerClientReviewState=null;
+async function clientReviewRequest(action,data={}){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw Error('Please sign in with your own account.');
+ const res=await fetch(clientReviewEndpoint,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+session.access_token},body:JSON.stringify({action,...data})});
+ const result=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(result.error||'Review could not be saved.');
+ return result;
+}
+function renderBuyerClientReview(){
+ const data=buyerClientReviewState;
+ const panel=$('buyerClientReview'),message=$('buyerClientReviewStatus'),buttons=$('buyerClientReviewButtons'),form=$('buyerReviewFeedbackForm');
+ if(!data){panel.classList.add('hidden');return}
+ panel.classList.remove('hidden');
+ const es=localStorage.getItem('tle_crm_language')==='es';
+ const remaining=Number(data.revisions_remaining||0);
+ $('buyerClientReviewCount').textContent=es?remaining+' de '+data.revisions_limit+' revisiones disponibles':remaining+' of '+data.revisions_limit+' included revisions remaining';
+ const lines={
+  pending_review:es?'Revisa la página y el resultado del test antes de aprobar o pedir un cambio.':'Check your page and sample test, then approve or request a change.',
+  changes_requested:es?'Tu solicitud fue enviada a The Launch Era. Estamos preparando la corrección.':'Your correction request was sent to The Launch Era. The updated version is being prepared.',
+  ready_for_retest:es?'Los cambios están listos. Revisa la página actualizada, prueba y decide.':'Your corrections are ready. Review the updated page, test it and decide.',
+  approved:es?'✓ Aprobado. No necesitas otra cuenta. La entrega final se confirma por separado.':'✓ Approved. No new account is needed. Final delivery is confirmed separately.'
+ };
+ message.textContent=lines[data.status]||'Review status unavailable';
+ if(data.status==='changes_requested'&&data.feedback)message.textContent+=' '+(es?'Tu solicitud: ':'Your request: ')+data.feedback;
+ const actionable=!data.delivered&&['pending_review','ready_for_retest'].includes(data.status);
+ buttons.classList.toggle('hidden',!actionable);
+ $('buyerReviewChange').disabled=remaining<=0;
+ form.classList.add('hidden');
+}
+async function loadBuyerClientReview(){
+ if(!workspace||workspace.is_internal)return;
+ try{buyerClientReviewState=await clientReviewRequest('buyer_status');renderBuyerClientReview();}
+ catch(error){$('buyerClientReview').classList.remove('hidden');$('buyerClientReviewButtons').classList.add('hidden');$('buyerClientReviewStatus').textContent=error.message||'Unable to load review';}
+}
+$('buyerReviewChange').onclick=()=>{$('buyerReviewFeedbackForm').classList.remove('hidden');$('buyerReviewFeedback').focus()};
+$('buyerReviewCancel').onclick=()=>$('buyerReviewFeedbackForm').classList.add('hidden');
+$('buyerReviewApprove').onclick=async()=>{
+ const button=$('buyerReviewApprove'),status=$('buyerClientReviewStatus');
+ if(!confirm('Approve this personalized Booking Page and Command Center as shown? / ¿Apruebas esta versión?'))return;
+ button.disabled=true;status.textContent='Saving your approval…';
+ try{buyerClientReviewState=await clientReviewRequest('buyer_decision',{decision:'approve'});renderBuyerClientReview();}
+ catch(error){status.textContent=error.message||'Could not approve';button.disabled=false}
+};
+$('buyerReviewSend').onclick=async()=>{
+ const button=$('buyerReviewSend'),status=$('buyerClientReviewStatus'),feedback=$('buyerReviewFeedback').value.trim();
+ if(feedback.length<12){status.textContent='Describe the changes you need in at least 12 characters. / Describe el cambio con más detalle.';return}
+ if(!confirm('Send your correction request? This uses one included revision. / ¿Enviar y descontar una revisión?'))return;
+ button.disabled=true;status.textContent='Sending your request to The Launch Era…';
+ try{buyerClientReviewState=await clientReviewRequest('buyer_decision',{decision:'request_changes',feedback});renderBuyerClientReview();}
+ catch(error){status.textContent=error.message||'Could not send request';button.disabled=false}
+};
+async function ownerClientReviewRequest(action,subject_type,subject_id,extra={}){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw Error('Owner sign-in required');
+ const response=await fetch(clientReviewEndpoint,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+session.access_token},body:JSON.stringify({action,subject_type,subject_id,...extra})});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(data.error||'Could not load client approval');
+ return data;
+}
+async function addOwnerClientReview(kind,id,item,previewInput){
+ const es=localStorage.getItem('tle_crm_language')==='es';
+ const card=document.createElement('div');card.style.cssText='background:#f2f7fb;border:1px solid #cbddea;padding:14px;border-radius:14px;display:grid;gap:9px;min-width:0;margin:13px 0';
+ const heading=document.createElement('strong');heading.textContent=es?'Aprobación del cliente y revisiones':'Client approval & revisions';card.append(heading);
+ const status=document.createElement('p');status.style.cssText='font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere';card.append(status);
+ const notes=document.createElement('p');notes.style.cssText='font-size:13px;line-height:1.5;margin:0;white-space:pre-wrap;overflow-wrap:anywhere';card.append(notes);
+ item.append(card);
+ try{
+  const data=await ownerClientReviewRequest('owner_get',kind,id);
+  if(!card.isConnected)return;
+  item.dataset.clientReviewApproved=data.status==='approved'?'true':'false';
+  const labels={
+   pending_review:es?'Esperando aprobación del cliente':'Waiting for client approval',
+   changes_requested:es?'Necesita correcciones':'Changes requested — action needed',
+   ready_for_retest:es?'Corregido · esperando nueva aprobación':'Corrected · awaiting buyer re-approval',
+   approved:es?'✓ Aprobado por el cliente':'✓ Client approved'
+  };
+  status.textContent=(labels[data.status]||data.status)+' · '+data.revisions_remaining+'/'+data.revisions_limit+' '+(es?'revisiones disponibles':'revisions remaining');
+  if(data.feedback)notes.textContent=(es?'Solicitud del cliente: ':'Buyer feedback: ')+data.feedback;
+  if(data.status==='changes_requested'){
+    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.style.cssText='width:100%;white-space:normal';
+    btn.textContent=es?'✓ Correcciones terminadas · devolver para aprobación':'✓ Corrections done · Return for client approval';
+    btn.onclick=async()=>{
+     if(!confirm(es?'¿Ya corregiste y comprobaste lo solicitado?':'Have you fixed and tested the requested changes?'))return;
+     btn.disabled=true;status.textContent=es?'Enviando versión corregida…':'Sending corrected version…';
+     try{const next=await ownerClientReviewRequest('owner_mark_ready',kind,id);status.textContent=(es?'Versión corregida lista para revisión. ':'Corrected version ready for buyer review. ')+(next.notification_accepted?'Email queued.':'Email not verified; use the secure review link or notify the client.');btn.remove();if(next.review_url){const input=document.createElement('input');input.readOnly=true;input.value=next.review_url;input.style.width='100%';card.append(input)}}
+     catch(error){status.textContent=error.message;btn.disabled=false;}
+    };
+    card.append(btn);
+  }
+  if(kind==='ai'&&data.status!=='approved'){
+   const issue=document.createElement('button');issue.type='button';issue.className='secondary';issue.style.cssText='width:100%;white-space:normal';
+   issue.textContent=es?'Crear enlace privado para revisar el agente':'Create private AI review link';
+   const holder=document.createElement('input');holder.readOnly=true;holder.placeholder='Private review link appears here';holder.style.width='100%';
+   issue.onclick=async()=>{
+    issue.disabled=true;status.textContent=es?'Creando enlace seguro…':'Creating secure link…';
+    try{const url=previewInput?.value?.trim();const result=await ownerClientReviewRequest('owner_issue_ai_link','ai',id,{preview_url:url});holder.value=result.url;holder.focus();holder.select();status.textContent=es?'Enlace creado. Cópialo y compártelo con tu cliente para la prueba.':'Private link created. Copy it and share with your buyer for testing. Date-limited access.';}
+    catch(error){status.textContent=error.message}finally{issue.disabled=false}
+   };
+   card.append(issue,holder);
+  }
+ }catch(e){status.textContent='Review status unavailable: '+(e.message||String(e))}
+}
+
 let buyerPreviewLoading=false;
 let buyerPreviewQaNonce=null;
 let buyerPreviewQaWorkspace=null;
@@ -2982,6 +3109,7 @@ async function loadBuyerBookingPreview(){
    {type:'TLE_OWNER_BOOKING_PREVIEW',config},'https://thelaunchera.com')};
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(config.language==='es'?'es':'en');
   status.textContent='✓ Private Test Center ready. Submit a sample quote or contact form to check routing to this Command Center; test data is removed automatically.';
+  void loadBuyerClientReview();
  }catch(error){
   buyerPreviewQaNonce=null;buyerPreviewQaWorkspace=null;
   frame.onload=null;frame.removeAttribute('src');
@@ -3012,6 +3140,7 @@ $('cbDashRefresh').onclick=()=>{if(isDetailingWorkspace())void loadBuyerRequests
 $('buyerDashboardOpenBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerShortcutBookingPreview').onclick=()=>premiumNavigate('buyer-booking-preview');
 $('buyerBookingPreviewRefresh').onclick=()=>loadBuyerBookingPreview();
+$('buyerClientReview').classList.add('hidden');
 $('buyerBookingPreviewClose').onclick=()=>premiumNavigate('home');
 $('buyerBookingPreviewPhone').onclick=()=>{$('buyerBookingPreviewShell').style.width='min(100%,390px)';$('buyerBookingPreviewFrame').style.height='980px'};
 $('buyerBookingPreviewWide').onclick=()=>{$('buyerBookingPreviewShell').style.width='100%';$('buyerBookingPreviewFrame').style.height='1120px'};
