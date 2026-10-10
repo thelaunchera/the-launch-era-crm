@@ -1146,7 +1146,18 @@ async function loadOwnerDeliveries(){
    const detail=deliveryNode('p','Paid: '+(a.payment_status==='paid'?'✓':'—')+' · Intake: '+(a.intake_done?'✓':'—')+' · Booking: '+(a.booking_page_url?'✓':'—')+' · CRM: '+(a.crm_ready?'✓':'—')+' · Active: '+(a.status==='active'?'✓':'—'));
    detail.className='muted';item.appendChild(detail);
    if(a.booking_page_url&&/^https:\/\//.test(a.booking_page_url)){
-    const link=deliveryNode('a','Review the personalized Booking Page ↗');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';item.appendChild(link)
+    if(a.already_queued){
+     const link=deliveryNode('a','Open delivered Booking Page ↗');link.href=a.booking_page_url;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='overflow-wrap:anywhere';item.appendChild(link);
+    }else{
+     const preview=deliveryNode('button','Review Booking Page safely / Revisar vista privada');
+     preview.type='button';preview.className='secondary';
+     preview.style.cssText='width:100%;max-width:100%;white-space:normal;text-align:center';
+     preview.onclick=()=>{chooseOwnerBuyer(a,'preview');$('ownerBuilderHub').scrollIntoView({behavior:'smooth',block:'start'});};
+     item.appendChild(preview);
+     const previewNote=deliveryNode('p','Private preview only — no bookings or emails. The public Booking Page becomes available after final delivery approval. / Vista previa privada: sin reservas ni correos. La página pública se activa después de aprobar la entrega.');
+     previewNote.className='muted';previewNote.style.cssText='font-size:12px;line-height:1.5;margin:0';
+     item.appendChild(previewNote);
+    }
    }
    
     const activationReady=a.payment_status==='paid'&&!!a.intake_done&&!!a.booking_page_url&&a.status==='active';
