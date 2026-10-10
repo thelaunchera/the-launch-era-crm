@@ -292,6 +292,26 @@ body.crm-isolated-view #reminderBanner {display:none!important}
 <p id="buildInviteStatus" role="status" class="muted"></p>
 <section id="buildPrivateCheckResult" aria-live="polite" style="margin:14px 0 0;max-width:720px"></section>
 </article>
+<article id="buildClientEmailPanel" class="panel" style="padding:22px;margin:16px 0;border:1px solid #bed7eb;scroll-margin-top:22px">
+<h3>✉ Client Emails / Correos del cliente</h3>
+<p class="muted">Private Command Center access · Prepared email for this customer. Nothing is sent until you confirm. / Acceso privado: no se envía hasta tu confirmación.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+<label>To / Para<input id="buildClientEmailTo" type="email" readonly></label>
+<label>From / De<input id="buildClientEmailFrom" type="text" readonly></label>
+</div>
+<label>Subject / Asunto<input id="buildClientEmailSubject" type="text" readonly></label>
+<label>Business category / Tipo de negocio<select id="buildClientEmailCategory">
+<option value="detailing">Car detailing</option><option value="cleaning">Cleaning</option><option value="other">Other service</option>
+</select></label>
+<label id="buildClientEmailOtherLabel" style="display:none">Other service<input id="buildClientEmailOther" maxlength="65" placeholder="Business service"></label>
+<p class="muted" style="font-size:12px">Preview only: the actual secure link is generated when you approve sending. / El enlace seguro se genera al enviar.</p>
+<iframe id="buildClientEmailPreviewFrame" title="Buyer private access email preview" sandbox="" style="display:block;width:100%;height:615px;background:#f4f7fa;border:1px solid #dce7ef;border-radius:12px"></iframe>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin:15px 0">
+<button type="button" class="secondary" id="buildClientEmailRefresh">Refresh preview / Actualizar correo</button>
+<button type="button" id="buildClientEmailSend">Review & send access / Revisar y enviar acceso</button>
+</div>
+<p id="buildClientEmailStatus" role="status" aria-live="polite" style="font-weight:700;font-size:13px;line-height:1.6;color:#34576c"></p>
+</article>
 <article class="panel" style="padding:22px;margin:16px 0"><h3>5–6. Test & deliver / Probar y entregar</h3><p class="muted">Confirm buyer sign-in, lead routing, services, availability, follow-ups, notifications and account privacy. Then approve the six delivery checks in Settings. / Prueba todo y aprueba la entrega.</p><button type="button" id="buildFinalChecks">Open final QA & delivery / Revisar y entregar</button></article>
 </section><section id="ownerPagePreviewHub" class="hidden premium-emailhub">
 <div class="section-title">Private landing preview / Vista previa privada</div>
