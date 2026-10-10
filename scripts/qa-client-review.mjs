@@ -90,4 +90,22 @@ checkReviewUI({status:"approved",delivered:true,revisions_remaining:0,revisions_
 checkReviewUI({status:"pending_review",delivered:true,revisions_remaining:1,revisions_limit:1},{hidden:true});
 console.log("PASS: actual customer-review renderer hides approvals upon signoff/delivery, preserves review before signoff, and obeys revision quotas.");
 
+
+// A 12-hour buyer-design reminder is a manual owner action, never a scheduled send.
+for(const marker of [
+ "manual_reminder_due_at",
+ "manual_reminder_available",
+ "manual_reminder_attempted",
+ "owner_send_review_reminder",
+ "✉ Send client reminder",
+ "✉ Enviar recordatorio al cliente",
+ "kind==='booking'&&!['approved','changes_requested'].includes(data.status)",
+ "if(!confirm(es?'¿Enviar ahora un recordatorio de aprobación a este cliente?"
+]){
+ assert(html.includes(marker),"Owner review reminder safety control missing: "+marker);
+}
+assert(!html.includes("setInterval(()=>ownerClientReviewRequest('owner_send_review_reminder'"),
+  "The client approval reminder must not send itself automatically");
+console.log("PASS: 12-hour approval reminder requires an explicit owner click and is hidden after buyer decision");
+
 console.log("PASS: client-approval and revision controls are present; all inline scripts parse");
