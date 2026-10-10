@@ -398,7 +398,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
  }
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-client-private-qa-v18"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><meta name="tle-command-center-release" content="2026-10-10-managed-buyer-emails-v19"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -714,7 +714,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 </div><div class="row" style="justify-content:space-between;align-items:center;padding:9px 0"><p class="muted" style="font-size:12px">Delivery alerts also appear in your notification bell. Editing previews never pauses an active automation.</p><button type="button" id="buyerHistoryFromAutomation" class="secondary">View email history →</button></div></section>
 <section class="hidden" id="buyerFollowupsIntro" aria-label="Follow-up sequence for your business" style="margin-top:12px">
 <div class="section-title">Automatic Follow-ups</div>
-<p class="muted">Only for your cleaning business. Manage your two automatic emails after a customer inquiry without changing another business or The Launch Era's campaigns.</p>
+<p class="muted">Your business receives up to two automatic reminders for eligible quote requests. The Launch Era handles sending and reply tracking without a separate email provider.</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:16px 0">
  <div class="buyer-followup-step"><strong>1</strong><div><b>First follow-up</b><div><span>Automatic, only when eligible</span></div></div></div>
  <div class="buyer-followup-step"><strong>2</strong><div><b>Second follow-up</b><div><span>Automatic, only if there is no reply</span></div></div></div>
@@ -723,9 +723,9 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 </section><article class="panel hidden crm-buyer-only" id="buyerEmailSetup" style="padding:20px;margin-top:16px">
 <p id="buyerAutomationState" role="status" aria-live="polite">Checking automation</p>
 <h3 style="margin-top:18px">Your email automation</h3>
-<p class="muted">Use your own verified Resend account. Your contacts receive messages from your business, not The Launch Era. No outside subscription is paid for you.</p>
+<p id="buyerMailIntro" class="muted">Managed by The Launch Era. Booking confirmations and up to two follow-ups are included with your Booking Page. No additional email account or provider setup is required.</p>
 <p id="buyerEmailStatus" role="status" aria-live="polite">Checking connection</p>
-<details id="buyerConnectDetails"><summary>Sender connection · Advanced setup</summary><form id="buyerEmailForm" autocomplete="off" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+<details id="buyerConnectDetails" style="display:none"><summary>Sender connection · Advanced setup</summary><form id="buyerEmailForm" autocomplete="off" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
 <label>Business sender<input name="sender_email" type="email" placeholder="hello@yourcleaningbusiness.com" required></label>
 <label>Sender name<input name="sender_name" maxlength="70" placeholder="Your Cleaning Business" required></label>
 <label>Dedicated reply inbox<input name="reply_to" type="email" placeholder="replies@yourcleaningbusiness.com" required></label>
@@ -735,7 +735,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <p class="muted" style="margin:12px 0">Your sender domain must be verified in <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer">Resend</a>. Your dedicated reply inbox must already deliver incoming messages to the same Resend account. Do not replace the MX records of your regular business email.</p>
 <p class="muted">After connecting, send one test email <strong>from your Command Center login email</strong> to the reply inbox above. Then refresh.</p></details>
 <div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" id="buyerRefreshMail" class="secondary">Refresh status</button><button type="button" id="buyerActivateMail" disabled>Turn on</button><button type="button" id="buyerPauseMail" class="secondary" disabled>Turn off follow-ups</button></div>
-<p class="muted" style="margin-top:10px">Only the first two follow-ups are automatic. Replies or opt-outs stop the sequence. Turning off prevents new automatic follow-ups in your business; it cannot undo messages already sent. Activation requires verified email, documented permission and delivered purchase.</p>
+<p id="buyerMailFootnote" class="muted" style="margin-top:10px">Only eligible open quote requests receive follow-ups. Replies and unsubscribes stop them. The Launch Era manages the sender and incoming responses. Follow-ups begin only after your system is delivered.</p>
 </article><article id="ownerDeliveryPanel" class="panel hidden crm-owner-only" style="padding:23px;margin-top:16px">
 <div class="section-title">Client delivery / Entrega a compradoras</div>
 <p class="muted">Private owner checklist. Nothing is sent until the complete personalized system is ready, all six checks are confirmed, and you approve the final delivery. / Nada se envía hasta que el sistema esté preparado y apruebes las seis pruebas.</p>
@@ -1377,6 +1377,31 @@ async function loadBuyerMail(){
   if(!workspace||workspace.is_internal||workspace.id!==buyerWorkspaceId)return;
   buyerMailState=data;
   const c=buyerMailState;
+  if(c.managed===true){
+   const delivered=c.delivery_complete===true,active=c.activated===true;
+   $('buyerConnectDetails').style.display='none';
+   $('buyerEmailHealthConnection').textContent=buyerEs()?'Administrado por The Launch Era':'Managed by The Launch Era';
+   $('buyerEmailHealthActive').textContent=active?(buyerEs()?'Sí':'On'):(buyerEs()?'Todavía no':'Not yet');
+   $('buyerEmailHealthIssue').textContent=delivered?(buyerEs()?'Sin configuración adicional':'No setup needed'):(buyerEs()?'Esperando entrega final':'Awaiting final delivery');
+   $('buyerMailIntro').textContent=buyerEs()?
+    'The Launch Era administra los correos de confirmación, recordatorios y respuestas automáticamente. No necesitas Resend ni otra suscripción.':
+    'The Launch Era manages your booking confirmations, reminders and customer replies automatically. No Resend account, separate sender setup or extra subscription required.';
+   status.textContent=delivered?
+    (buyerEs()?'Tu sistema de correos está administrado por The Launch Era.':'Your email workflow is managed by The Launch Era.'):
+    (buyerEs()?'Automatización preparada. Comenzará después de la entrega final del sistema.':'Automation is prepared. It begins after final system delivery.');
+   const indicator=$('buyerAutomationState');
+   indicator.textContent=active?
+    (buyerEs()?'● Administrados por The Launch Era · Hasta 2 seguimientos automáticos.':'● Managed by The Launch Era · Up to 2 automatic follow-ups.'):
+    (buyerEs()?'○ Preparados · No se envían recordatorios antes de la entrega.':'○ Prepared · No reminders are sent before delivery.');
+   indicator.style.backgroundColor=active?'#e9f4ee':'#f0f5f9';
+   $('buyerMailFootnote').textContent=buyerEs()?
+    'Solo se envían a solicitudes de cotización abiertas. Si el cliente responde o se da de baja, se detienen automáticamente.':
+    'Only eligible open quote requests receive reminders. Replies and unsubscribes stop the sequence automatically.';
+   $('buyerActivateMail').disabled=!delivered||active;
+   $('buyerPauseMail').disabled=!active;
+   return;
+  }
+  $('buyerConnectDetails').style.display='';
   const connected=!!c.sender_email&&c.status!=="not_connected";
   const issue=!connected?(buyerEs()?"Conectar remitente":"Connect sender"):
       !c.reply_tested?(buyerEs()?"Comprobar respuestas":"Verify reply inbox"):
