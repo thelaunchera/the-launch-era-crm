@@ -252,9 +252,9 @@ body.crm-isolated-view #reminderBanner {display:none!important}
  <h2 id="buyerPasswordTitle">Secure your Command Center</h2>
  <p id="buyerPasswordIntro">Your email has been verified. Create your private password before accessing your customer details, quotes, and appointments.</p>
  <form id="buyerPasswordSetupForm" autocomplete="off">
- <label>New password<input name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label>
- <label>Confirm new password<input name="confirm" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label>
- <p class="enrollment-rule">Use at least 12 characters. Don't reuse a password from another account.</p>
+ <label>New password<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></label>
+ <label>Confirm new password<input name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></label>
+ <p class="enrollment-rule">Use at least 8 characters and one number. Don't reuse another password.</p>
  <button type="submit" id="buyerPasswordSetupSubmit">Save password and continue securely →</button>
  <p class="enrollment-status" id="buyerPasswordSetupStatus" role="status" aria-live="polite"></p>
  </form>
@@ -1051,8 +1051,8 @@ $('buyerPasswordSetupForm').onsubmit=async e=>{
  const password=String(form.elements.namedItem('password').value||'');
  const confirm=String(form.elements.namedItem('confirm').value||'');
  const status=$('buyerPasswordSetupStatus');
- if(password.length<12||password!==confirm){
-  status.textContent='Use at least 12 characters and enter the same password twice.';
+ if(password.length<8||!/\d/.test(password)||password!==confirm){
+  status.textContent='Use 8 or more characters with at least one number, and enter the same password twice.';
   return;
  }
  const button=$('buyerPasswordSetupSubmit');button.disabled=true;status.textContent='Securing your private account…';
