@@ -41,7 +41,8 @@ const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 assert(scripts.length>=3,"Expected the current CRM script layout");
 for(const [i,script] of scripts.entries()){
  const source=script[1].replace(/^import\s.*;\s*$/gm,"");
- try{new Function(source)}catch(e){throw Error("Inline CRM script "+i+" has a JavaScript syntax error: "+e)}
+ const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+ try{new AsyncFunction(source)}catch(e){throw Error("Inline CRM script "+i+" has a JavaScript syntax error: "+e)}
 }
 assert(!/public[^\n]{0,50}service_role/i.test(html),"Never expose private API credentials in public markup");
 
