@@ -331,7 +331,37 @@ body.cb-depot-buyer .cb-greeting-chip{
 @media(prefers-reduced-motion:reduce){
  body.cb-depot-buyer .cb-detailing-heading .cb-greeting-photo img{transition:none;transform:none!important}
 }
-</style><meta name="tle-command-center-release" content="2026-10-10-mobile-preview-fullscreen-v16"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+
+/* Owner Test Center: on a real phone, show the landing at the device's full viewport
+   instead of compressing it inside nested Command Center panels. Preview-only change. */
+#buildPreviewExitFullScreen{display:none}
+body.owner-preview-fullscreen-open{overflow:hidden!important}
+body.owner-preview-fullscreen-open #buildPreviewExitFullScreen{
+ display:flex!important;position:fixed;top:0;left:0;right:0;z-index:39001;
+ width:100%;min-height:55px;height:55px;margin:0!important;
+ align-items:center;justify-content:center;border:0!important;border-radius:0!important;
+ color:#fff!important;background:#0b1c2d!important;font-size:14px;font-weight:750;
+ padding:10px 15px;box-shadow:none!important;
+}
+body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen{
+ display:block!important;position:fixed!important;top:55px!important;left:0!important;right:0!important;bottom:0!important;
+ z-index:39000!important;width:100vw!important;max-width:100vw!important;
+ height:calc(100vh - 55px)!important;height:calc(100dvh - 55px)!important;
+ margin:0!important;padding:0!important;overflow:hidden!important;
+ border:0!important;border-radius:0!important;background:#07121d!important;
+ box-shadow:none!important;box-sizing:border-box!important;
+}
+body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buildLiveFrame{
+ display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ height:100%!important;min-height:0!important;margin:0 auto!important;
+ border:0!important;border-radius:0!important;box-sizing:border-box!important;
+}
+@media(min-width:761px){
+ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen.tle-phone-preview #buildLiveFrame{
+  width:min(390px,100%)!important;box-shadow:0 0 42px #0006!important;
+ }
+}
+</style><meta name="tle-command-center-release" content="2026-10-10-owner-test-center-fullscreen-v17"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -539,7 +569,8 @@ body.cb-depot-buyer .cb-greeting-chip{
 <div style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap"><button type="submit" id="buildSave">Save design / Guardar diseño</button><button type="button" class="secondary" id="buildEditPricing">Edit services & prices</button><button type="button" class="secondary" id="buildEditAvailability">Edit booking hours</button></div></form></article>
 <article class="panel" style="padding:22px;margin:16px 0"><h3>3. Preview the real Booking Page / Vista previa real</h3>
 <p class="muted">This uses the same Booking Page template customers will receive, with no reservations, emails or charges. / Utiliza el diseño real pero sin crear reservas.</p>
-<div style="display:flex;flex-wrap:wrap;gap:9px;margin:12px 0"><button type="button" class="secondary" id="buildPreviewReload">Refresh preview / Actualizar</button><button type="button" class="secondary" id="buildPreviewMobile">Mobile / Móvil</button><button type="button" class="secondary" id="buildPreviewDesktop">Desktop / Computadora</button></div>
+<div style="display:flex;flex-wrap:wrap;gap:9px;margin:12px 0"><button type="button" class="secondary" id="buildPreviewReload">Refresh preview / Actualizar</button><button type="button" class="secondary" id="buildPreviewMobile">Mobile / Móvil</button><button type="button" class="secondary" id="buildPreviewDesktop">Desktop / Computadora</button><button type="button" class="secondary" id="buildPreviewExpand">⛶ Full screen / Pantalla completa</button></div>
+<button type="button" id="buildPreviewExitFullScreen" aria-label="Close full screen preview">← Back to Test Center / Volver al panel</button>
 <div style="margin:16px auto;max-width:100%;width:100%;border-radius:23px;overflow:hidden;border:1px solid #cbdce7;background:#fff;box-shadow:0 15px 39px #10243213;transition:width .2s" id="buildFrameShell"><iframe id="buildLiveFrame" title="Real Booking Page private preview" style="display:block;width:100%;height:1020px;border:0;background:#FAF8F3" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div>
 <button type="button" id="buildMarkReviewed" class="secondary">Approve the design / Aprobar diseño</button>
 <p id="buildReviewStatus" role="status" aria-live="polite" style="font-weight:700;margin:12px 0 0;color:#2d526c"></p>
@@ -1875,12 +1906,51 @@ async function loadBuilderRealPreview(){
   const send=()=>{if(frame.contentWindow&&builderPreviewData)frame.contentWindow.postMessage({type:'TLE_OWNER_BOOKING_PREVIEW',config:builderPreviewData},'*')};
   frame.onload=send;
   frame.src='https://thelaunchera.com/booking/?owner_preview=1&lang='+encodeURIComponent(builderPreviewData.language==='es'?'es':'en');
+  if(window.matchMedia('(max-width:760px)').matches)setOwnerBookingPreviewFullscreen(true);
   status.textContent=buildLabel('Private buyer preview. Submit a sample request to verify lead routing: no actual email, booking or follow-up is created.','Vista privada. Envía una solicitud de prueba para verificar la llegada del lead; no se crean correos ni reservas.');
  }catch(e){status.textContent='Preview unavailable / Vista no disponible: '+e.message}
 }
+let ownerPreviewMode='desktop';
+function setOwnerBookingPreviewMode(mode){
+ ownerPreviewMode=mode==='phone'?'phone':'desktop';
+ const shell=$('buildFrameShell'),frame=$('buildLiveFrame');
+ shell.classList.toggle('tle-phone-preview',ownerPreviewMode==='phone');
+ if(document.body.classList.contains('owner-preview-fullscreen-open')){
+  shell.style.width='100%';
+  frame.style.height='100%';
+ }else{
+  shell.style.width=ownerPreviewMode==='phone'?'min(100%,390px)':'100%';
+  frame.style.height=ownerPreviewMode==='phone'?'980px':'1020px';
+ }
+ $('buildPreviewMobile').setAttribute('aria-pressed',String(ownerPreviewMode==='phone'));
+ $('buildPreviewDesktop').setAttribute('aria-pressed',String(ownerPreviewMode==='desktop'));
+}
+function setOwnerBookingPreviewFullscreen(open){
+ const shell=$('buildFrameShell'),frame=$('buildLiveFrame');
+ if(!shell||!frame)return;
+ document.body.classList.toggle('owner-preview-fullscreen-open',!!open);
+ shell.classList.toggle('tle-preview-fullscreen',!!open);
+ $('buildPreviewExpand').setAttribute('aria-expanded',String(!!open));
+ $('buildPreviewExitFullScreen').setAttribute('aria-hidden',String(!open));
+ if(open&&window.matchMedia('(max-width:760px)').matches)ownerPreviewMode='phone';
+ setOwnerBookingPreviewMode(ownerPreviewMode);
+ if(open)$('buildPreviewExitFullScreen').focus({preventScroll:true});
+ else $('buildPreviewExpand').focus({preventScroll:true});
+}
 $('buildPreviewReload').onclick=loadBuilderRealPreview;
-$('buildPreviewMobile').onclick=()=>{$('buildFrameShell').style.width='min(100%,390px)';$('buildLiveFrame').style.height='980px'};
-$('buildPreviewDesktop').onclick=()=>{$('buildFrameShell').style.width='100%';$('buildLiveFrame').style.height='1020px'};
+$('buildPreviewMobile').onclick=()=>{
+ setOwnerBookingPreviewMode('phone');
+ if(window.matchMedia('(max-width:760px)').matches)setOwnerBookingPreviewFullscreen(true);
+};
+$('buildPreviewDesktop').onclick=()=>{
+ setOwnerBookingPreviewMode('desktop');
+ if(window.matchMedia('(max-width:760px)').matches)setOwnerBookingPreviewFullscreen(true);
+};
+$('buildPreviewExpand').onclick=()=>setOwnerBookingPreviewFullscreen(true);
+$('buildPreviewExitFullScreen').onclick=()=>setOwnerBookingPreviewFullscreen(false);
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&document.body.classList.contains('owner-preview-fullscreen-open'))setOwnerBookingPreviewFullscreen(false);
+});
 $('buildMarkReviewed').onclick=async()=>{
  const btn=$('buildMarkReviewed'),note=$('buildReviewStatus'),status=$('buildStatus');
  if(builderState?.reviewed){
