@@ -84,3 +84,10 @@
 - The reminder button is never shown as ready before 12 elapsed hours; it disappears when the buyer approves, requests changes, or the order is delivered. Reminders do not use revisions or count as the final handoff.
 - A server-side transaction claims each reminder once, prevents duplicates across devices and checks buyer status before sending. A failed/ambiguous provider response must be investigated rather than automatically retried.
 - The bilingual email directs the buyer to their own private Test Center to choose Approve & Continue or Request Changes. No automatic reminder job is scheduled.
+
+### Standard email presentation and preview for all future buyers
+
+- Use the branded, reusable master `email-templates/client-design-approval-reminder.html` for manual 12-hour design-approval reminders. Presentation: Soft Black `#191919` masthead, Butter Yellow `#F2D85B` logotype accent, Warm Ivory `#FAF8F3` body, restrained Soft Blue highlight, 580px responsive table layout and one prominent CTA button. No exposed raw review URLs in HTML.
+- Language follows the buyer account (English or Spanish) without mixed-language paragraphs. Every buyer receives their own business name and private Command Center CTA; never a previous buyer's design, favicon, reviews or appointment claims.
+- Before the first production use or any template change, send a **[TEST]** email to the agency owner, verify Gmail inbox arrival and visual readability on mobile, and keep the actual customer's review/reminder untouched.
+- The reminder is explicitly identified as a **design review, not final delivery**. Keep the existing 12-hour due gate, one-send-per-cycle protection and owner-only send action.
