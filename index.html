@@ -245,6 +245,41 @@ body.cb-depot-buyer .cb-settings-signals strong{padding:8px 11px;border-radius:9
  }
  body.crm-buyer-view:has(#buyerBookingPreviewHub:not(.hidden)) #crmLanguagePicker.floating{display:none!important}
 }
+/* Buyer Booking Page: uncropped full-window review on desktop/tablet. Keep the private iframe and approval flow intact. */
+body.buyer-preview-fullscreen-open{overflow:hidden!important}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub:not(.hidden){
+ position:fixed!important;inset:0!important;z-index:38000!important;
+ display:block!important;width:100vw!important;height:100dvh!important;max-width:none!important;
+ margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important;
+}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub>.section-title,
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub>p,
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub>.panel>div:not(#buyerBookingPreviewShell),
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub>.panel>p{display:none!important}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewHub>.panel{
+ position:absolute!important;inset:52px 0 0!important;width:100%!important;
+ height:calc(100dvh - 52px)!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:0!important;overflow:hidden!important;max-width:none!important;
+}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewShell{
+ width:100%!important;max-width:none!important;height:100%!important;margin:0!important;
+}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewFrame{
+ width:100%!important;height:100%!important;border:0!important;border-radius:0!important;
+}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewExitFullScreen{
+ display:flex!important;position:fixed!important;inset:0 0 auto!important;z-index:38002!important;
+ height:52px!important;align-items:center!important;padding:0 18px!important;
+ margin:0!important;border:0!important;border-radius:0!important;
+ background:#191919!important;color:white!important;text-align:left!important;
+}
+body.buyer-preview-fullscreen-open #buyerBookingPreviewClose,
+body.buyer-preview-fullscreen-open #buyerBookingPreviewMobileRefresh,
+body.buyer-preview-fullscreen-open #buyerReviewMobileOpen{display:none!important}
+@media(max-width:680px){
+ body.buyer-preview-fullscreen-open #buyerBookingPreviewHub:not(.hidden)>.panel{inset:52px 0 0!important;height:calc(100dvh - 52px)!important}
+ body.buyer-preview-fullscreen-open #buyerBookingPreviewHub:not(.hidden) #buyerBookingPreviewExitFullScreen{display:flex!important}
+}
 </style><style id="tleRoleIsolationStyle">
 body.crm-buyer-view #ownerPagesHub,
 body.crm-buyer-view #ownerCalendarHub,
@@ -842,7 +877,9 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0">
    <button type="button" class="secondary" id="buyerBookingPreviewPhone">Mobile</button>
    <button type="button" class="secondary" id="buyerBookingPreviewWide">Desktop</button>
+   <button type="button" class="secondary" id="buyerBookingPreviewExpand" aria-pressed="false">⛶ Open full screen</button>
   </div>
+  <button type="button" class="secondary" id="buyerBookingPreviewExitFullScreen" style="display:none">← Back to Test Center</button>
   <div id="buyerBookingPreviewShell" style="width:100%;max-width:100%;margin:0 auto;transition:width .2s;box-sizing:border-box">
    <iframe id="buyerBookingPreviewFrame" title="Your private Booking Page test view"
     loading="lazy" referrerpolicy="no-referrer"
@@ -3468,7 +3505,9 @@ $('buyerShortcutBookingPreview').onclick=()=>premiumNavigate('buyer-booking-prev
 $('buyerBookingPreviewRefresh').onclick=()=>loadBuyerBookingPreview();
 $('buyerBookingPreviewMobileRefresh').onclick=()=>loadBuyerBookingPreview();
 $('buyerClientReview').classList.add('hidden');
-$('buyerBookingPreviewClose').onclick=()=>premiumNavigate('home');
+$('buyerBookingPreviewClose').onclick=()=>{document.body.classList.remove('buyer-preview-fullscreen-open');premiumNavigate('home')};
+$('buyerBookingPreviewExpand').onclick=()=>{document.body.classList.add('buyer-preview-fullscreen-open');$('buyerBookingPreviewExpand').setAttribute('aria-pressed','true');$('buyerBookingPreviewShell').style.width='100%'};
+$('buyerBookingPreviewExitFullScreen').onclick=()=>{document.body.classList.remove('buyer-preview-fullscreen-open');$('buyerBookingPreviewExpand').setAttribute('aria-pressed','false')};
 $('buyerBookingPreviewPhone').onclick=()=>{$('buyerBookingPreviewShell').style.width='min(100%,390px)';$('buyerBookingPreviewFrame').style.height='980px'};
 $('buyerBookingPreviewWide').onclick=()=>{$('buyerBookingPreviewShell').style.width='100%';$('buyerBookingPreviewFrame').style.height='1120px'};
 $("buyerDashboardOpenInbox").onclick=()=>premiumNavigate("request-center");
