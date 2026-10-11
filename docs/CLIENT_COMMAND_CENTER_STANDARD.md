@@ -11,6 +11,15 @@ Applies to all future client Booking Pages + Command Centers. The Launch Era con
 - Make the dashboard greeting a wide, responsive hero image/banner with readable company-specific heading, generous height, good contrast, and natural mobile cropping; never a tiny square image.
 - Test all cards and controls at mobile, tablet and desktop widths and prevent sideways overflow.
 
+## Final delivery: share link, alerts and client email
+- When the paid order, buyer design approval, private workspace and final QA pass, the final delivery stamp is authoritative. Only then enable **Copy Booking Link** and **Open Booking Page** on the buyer Dashboard, with the actual tenant-specific `/booking/?key=...` URL. Never copy owner previews, demos or the Command Center sign-in link.
+- On first login after delivery, load the share link automatically; reopening Dashboard refreshes it. Localize the copy, labels, and delivery state in English and Spanish.
+- The delivery timestamp triggers one private, bilingual **Your Booking Page is ready to share** notification, deduplicated by `workspace_id` + `booking-delivered:<account_id>`. A duplicate delivery update must not notify twice or resend the final package.
+- For managed Booking Page customers, confirmations and up to two eligible quote follow-ups belong to The Launch Era's managed service, controlled by `tle_booking_flow_accounts.follow_up_enabled`. Do not misinterpret unrelated `tle_crm_workspaces.automated_followups_enabled=false` as a managed-mail failure. Customer replies and opt-outs must cancel pending mail. A third contact is the business owner's manual choice.
+- Reply-monitor worker must ignore unrelated inbox recipients and deleted QA aliases but **fail closed** on any unacknowledged reply to a current real customer request. Keep the dedicated webhook signed and monitored. Never unpause a deliberately paused customer.
+- The final delivery email includes a getting-started guide and reply-to-support instructions; the Command Center's Help & FAQ and in-app delivery notification are the support paths. Do not send an extra duplicate final email simply to activate the share button.
+- Release checks: one valid live booking URL after delivery, copy and open controls, English/Spanish, one delivery notification, no cross-tenant visibility, active scheduled worker with healthy reply handling, and no test emails to real buyers.
+
 ## Dashboard and settings
 - Present real and current metrics only: pending inquiries, quote requests, confirmed appointments and follow-up status. Empty means zero, not fake activity.
 - Provide quick actions for Inbox, Add Inquiry, Create/Review Quote, Calendar/Availability and Business Settings, controlled by feature readiness.
