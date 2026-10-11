@@ -44,6 +44,21 @@ assert(html.includes('id="buyerBookingPreviewBusiness"'),"Every buyer needs a dy
 assert(html.includes("config.business_name||workspace?.name"),"Test Center must render the authenticated buyer's business name");
 assert(!html.includes("<strong>CB Depot · Test mode</strong>"),"Never hardcode a previous buyer's brand in the shared Test Center");
 
+// Every delivered buyer gets a safe public link, distinct from the private Test Center.
+for(const marker of [
+ 'id="buyerBookingShareCard"',
+ 'id="buyerCopyBookingLink"',
+ 'id="buyerBookingShareUrl"',
+ 'id="buyerOpenBookingLink"',
+ 'function verifiedPublicBookingUrl(value)',
+ 'if(!buyerDeliveryReady)',
+ 'void loadBuyerBookingShare()',
+ "data.delivery_ready===false?'':verifiedPublicBookingUrl(data.booking_url)",
+ 'Your public booking link will be available after final delivery.'
+])assert(html.includes(marker),"Public Booking Page share flow is missing or unsafe: "+marker);
+assert(html.includes("url.searchParams.has('owner_preview')"),"Never share a private test link");
+console.log("PASS: public booking links appear only after delivery, and previews remain private");
+
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 assert(scripts.length>=3,"Expected the current CRM script layout");
 for(const [i,script] of scripts.entries()){
