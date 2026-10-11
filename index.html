@@ -2474,6 +2474,64 @@ $('buildInvite').onclick=()=>{
 };
 $('buildFinalChecks').onclick=()=>{premiumNavigate('settings');$('ownerDeliveryPanel').scrollIntoView({behavior:'smooth'})};
 
+
+/* Client support: authenticated buyer requests, isolated by workspace. */
+const supportEs=()=>localStorage.getItem('tle_crm_language')==='es';
+const supportTxt=(en,es)=>supportEs()?es:en;
+function openClientSupport(type){
+ if(!workspace||workspace.is_internal)return;
+ premiumNavigate('help');
+ const active=$('buyerSupport'+(type==='problem'?'Problem':'Feedback')+'Details');
+ const other=$('buyerSupport'+(type==='problem'?'Feedback':'Problem')+'Details');
+ other.open=false;active.open=true;
+ requestAnimationFrame(()=>{active.scrollIntoView({behavior:'smooth',block:'center'});active.querySelector('textarea')?.focus({preventScroll:true})});
+}
+$('buyerSupportNav').onclick=()=>openClientSupport('problem');
+$('buyerFeedbackNav').onclick=()=>openClientSupport('feedback');
+async function loadClientSupportHistory(){
+ const root=$('buyerSupportHistory');
+ if(!workspace||workspace.is_internal)return;
+ root.textContent=supportTxt('Loading your messages…','Cargando tus mensajes…');
+ const {data,error}=await db.from('tle_crm_support_requests').select('request_type,message,status,created_at')
+   .eq('workspace_id',workspace.id).order('created_at',{ascending:false}).limit(10);
+ root.replaceChildren();
+ if(error){root.textContent=supportTxt('Could not load messages. Please try later.','No se pudieron cargar los mensajes. Intenta más tarde.');return}
+ if(!data?.length){root.textContent=supportTxt('No messages yet.','Todavía no hay mensajes.');return}
+ for(const item of data){
+  const el=document.createElement('article');el.style.cssText='background:#f9fbfd;border:1px solid #dce8f0;border-radius:12px;padding:12px;overflow-wrap:anywhere';
+  const heading=document.createElement('strong');heading.style.cssText='display:block;font-size:12px;color:#365970';
+  const state={open:supportTxt('Received','Recibido'),in_progress:supportTxt('Under review','En revisión'),resolved:supportTxt('Resolved','Resuelto')}[item.status]||item.status;
+  heading.textContent=(item.request_type==='problem'?supportTxt('Problem report','Reporte de falla'):supportTxt('Suggestion','Sugerencia'))+' · '+state+' · '+new Date(item.created_at).toLocaleDateString(supportEs()?'es-US':'en-US');
+  const body=document.createElement('p');body.style.cssText='margin:7px 0 0;font-size:12px;white-space:pre-wrap';body.textContent=item.message;
+  el.append(heading,body);root.append(el);
+ }
+}
+for(const type of ['problem','feedback']){
+ const suffix=type==='problem'?'Problem':'Feedback';
+ const form=$('buyerSupport'+suffix+'Form'),status=$('buyerSupport'+suffix+'Status');
+ form.onsubmit=async event=>{
+  event.preventDefault();
+  if(!workspace||workspace.is_internal)return;
+  const msg=form.elements.namedItem('message').value.trim(),button=form.querySelector('[type=submit]');
+  if(msg.length<10){status.textContent=supportTxt('Please add a few details.','Añade algunos detalles.');return}
+  button.disabled=true;status.textContent=supportTxt('Sending…','Enviando…');
+  try{
+   const {data:userResult,error:authError}=await db.auth.getUser();
+   if(authError||!userResult?.user?.id)throw Error('Authentication required');
+   const {error}=await db.from('tle_crm_support_requests').insert({
+    workspace_id:workspace.id,submitted_by:userResult.user.id,request_type:type,message:msg,
+    page_context:type==='problem'?form.elements.namedItem('page_context').value:null,
+    language:supportEs()?'es':'en'
+   });
+   if(error)throw error;
+   form.reset();status.textContent=supportTxt('✓ Message received. Thank you! Track the status below.','✓ ¡Mensaje recibido! Gracias. Consulta su estado más abajo.');
+   showSaveToast('success','Message received','Mensaje recibido');
+   void loadClientSupportHistory();
+  }catch(error){status.textContent=supportTxt('Could not send. Please try again or reply to your delivery email.','No se pudo enviar. Intenta de nuevo o responde al correo de entrega.')}
+  finally{button.disabled=false}
+ };
+}
+
 const buyerPageLabel=()=>localStorage.getItem('tle_crm_language')==='es';
 function ownerPageElem(tag,textValue,style){const e=document.createElement(tag);if(textValue!==undefined)e.textContent=String(textValue);if(style)e.style.cssText=style;return e}
 function chooseOwnerBuyer(a,tab){ownerReviewAccount={id:a.id,business_name:a.business_name||'Cleaning Business',intake_done:!!a.intake_done,booking_page_url:a.booking_page_url};if(tab==='builder'){setView('owner-build');loadOwnerBuilder()}else if(tab==='preview'){setView('owner-build');loadOwnerBuilder().then(()=>loadBuilderRealPreview())}else premiumNavigate(tab)}
