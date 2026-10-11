@@ -435,7 +435,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 }
 </style><meta name="tle-command-center-release" content="2026-10-10-ipad-local-auth-v29"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
-<img class="pa-logo" src="./app-icons/cb-depot-192.png?v=20261010" alt="">
+<img class="pa-logo" id="paLogo" src="./app-icons/tle-192.png?v=20261011" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
 <h2 id="paTitle">Opening your Command Center</h2>
 <p id="paMessage">Verifying your private access securely…</p>
@@ -3780,8 +3780,10 @@ async function loadStoredNotifications(){if(!workspace)return;const wsId=workspa
  const splash=$('privateActivationSplash');
  const isPrivateActivation=tokenHash!==null;
  if(isPrivateActivation){
-  splash.classList.remove('hidden');
   const isCBD=new URLSearchParams(location.search).get('app')==='cb-depot';
+  // Personalize this temporary activation screen only for an explicitly named client activation.
+  $('paLogo').src=isCBD?'./app-icons/cb-depot-192.png?v=20261010':'./app-icons/tle-192.png?v=20261011';
+  splash.classList.remove('hidden');
   $('paBrand').textContent=isCBD?'CB DEPOT · PRIVATE CLIENT ACCESS':'THE LAUNCH ERA · PRIVATE CLIENT ACCESS';
   $('paTitle').textContent='Opening your Command Center';
   history.replaceState(history.state,'',location.pathname+location.search);
@@ -3860,8 +3862,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   let last="";
   function sync(){
     const verifiedCB=document.body.classList.contains("crm-buyer-view")&&document.body.classList.contains("cb-depot-buyer");
-    const awaitingAuth=!document.body.classList.contains("crm-owner-view")&&!document.body.classList.contains("crm-buyer-view");
-    const isCB=verifiedCB||(awaitingAuth&&new URLSearchParams(location.search).get("app")==="cb-depot");
+    // Branding in the shared Command Center follows the authenticated workspace, never URL hints.
+    const isCB=verifiedCB;
     const mode=isCB?"cb":"tle";
     if(last===mode)return;
     last=mode;
