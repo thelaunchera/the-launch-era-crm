@@ -133,3 +133,17 @@ The Launch Era owner now has a per-buyer **Owner QA Center** in `Owner Settings 
 - The controlled CB Depot run on 2026-10-10 passed: `Interior Detailing` routed to its own private workspace, one internal notification appeared, two synthetic follow-ups were cancelled by a recorded reply, and synthetic records were cleaned.
 - The separate **Send TEST email to my inbox** button uses the verified agency owner's Auth email only. A CB Depot-branded test was accepted by the Make endpoint (HTTP 200) and independently found in the agency Gmail Inbox. This verifies agency test-email delivery, **not** real buyer notification or customer follow-ups; do not stamp those until the live scenario passes.
 - Each additional client must use their own buyer card's QA actions. Never log into a buyer's account with agency credentials, share buyer passwords, or expose actual pre-delivery booking URLs to the public.
+
+## Automated post-delivery activation standard — October 11, 2026
+
+After verified QA, approval, and the single final delivery email:
+
+- The paid, active account's delivery_sent_at is authoritative. An idempotent database trigger adds a private bell notification on the transition to delivered using booking-delivered:<account-id>. Never send another final-delivery email for a notification.
+- On Dashboard, show Copy Booking Link and Open Booking Page only after the buyer's workspace-specific published URL is verified. It must use the actual released thelaunchera.com/booking/?key=... URL. Never expose a private preview, demo, other buyer's link, or Command Center access URL.
+- While the buyer remains signed in, recheck delivery readiness so the link can become available without new sign-in or invitation. The Test Center remains separate and operational.
+- For managed buyers, follow-up eligibility is the account's follow_up_enabled field AND the final delivery state. The legacy workspace automated_followups_enabled and reply_monitor_verified flags belong to a separate self-managed sender and MUST NOT be flipped on without full verification.
+- Managed email workers process only eligible open quotes and stop on a reply, unsubscribe or closed request. Respect an intentional pause and avoid duplicate sends.
+- A separate 48-hour post-delivery help/check-in message is queued only once. Do not resend it on dashboard refresh.
+- Verify for each future buyer: single final email; isolated private notification; public link correct and copyable in EN/ES/mobile; active managed status; help email due once; no duplicated emails, booking submissions, or cross-account access. Confirm the actual thelaunchera.com route as well as the private CRM mirror.
+
+CB Depot (October 11): paid/active, delivered with a public booking key. Managed follow-ups were enabled on the booking account and the 48-hour getting-started email was queued. Leave legacy self-managed sender flags disabled.
