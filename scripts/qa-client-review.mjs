@@ -99,7 +99,7 @@ checkReviewUI({status:"pending_review",delivered:true,revisions_remaining:1,revi
 console.log("PASS: actual customer-review renderer hides approvals upon signoff/delivery, preserves review before signoff, and obeys revision quotas.");
 
 
-// A 12-hour buyer-design reminder is a manual owner action, never a scheduled send.
+// An 8-hour buyer-design reminder is a manual owner action, never a scheduled send.
 for(const marker of [
  "manual_reminder_due_at",
  "manual_reminder_available",
