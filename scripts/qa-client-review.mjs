@@ -1,6 +1,13 @@
 import {readFileSync} from "node:fs";
 import assert from "node:assert/strict";
 const html=readFileSync("index.html","utf8");
+// Brand identity must be tenant-scoped on every loading or activation surface.
+assert(html.includes('id="paLogo" src="./app-icons/tle-192.png'),"The shared activation screen must default to the TLE logo");
+assert(html.includes("$('paLogo').src=isCBD?"),"The CB Depot activation must choose its logo only on that client link");
+assert(html.includes('id="crm-loading-brand-icon" src="./app-icons/tle-192.png'),"The shared loading screen must default to the TLE logo");
+assert(html.includes('const isCB=verifiedCB;'),"CB Depot branding must use the verified buyer workspace");
+assert(!html.includes('verifiedCB||(awaitingAuth'),"Unverified URL parameters may not override owner or other clients' branding");
+console.log("PASS: Command Center loading, activation and installed-app branding remain tenant-specific");
 const critical=[
  "id=\"buyerClientReview\"",
  "id=\"buyerReviewApprove\"",
