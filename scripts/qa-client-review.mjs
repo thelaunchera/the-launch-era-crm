@@ -105,16 +105,21 @@ for(const marker of [
  "manual_reminder_available",
  "manual_reminder_attempted",
  "owner_send_review_reminder",
- "✉ Send client reminder",
- "✉ Enviar recordatorio al cliente",
+ "✉ Send Reminder",
+ "Available in ",
+ "Disponible en ",
+ "✓ Reminder Sent",
+ "clearInterval(interval)",
+ "const latest=await ownerClientReviewRequest('owner_get',kind,id)",
+ "✉ Enviar recordatorio",
  "kind==='booking'&&!['approved','changes_requested'].includes(data.status)",
- "if(!confirm(es?'¿Enviar ahora un recordatorio de aprobación a este cliente?"
+ "if(!confirm(es?'¿Enviar ahora un recordatorio para revisar el diseño?"
 ]){
  assert(html.includes(marker),"Owner review reminder safety control missing: "+marker);
 }
 assert(!html.includes("setInterval(()=>ownerClientReviewRequest('owner_send_review_reminder'"),
   "The client approval reminder must not send itself automatically");
-console.log("PASS: 12-hour approval reminder requires an explicit owner click and is hidden after buyer decision");
+console.log("PASS: visible countdown and manual owner click protect client-review reminders");
 
 
 // Per-client testing must remain on the authenticated owner's delivery card.
