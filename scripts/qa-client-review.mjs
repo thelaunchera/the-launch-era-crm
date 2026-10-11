@@ -59,6 +59,23 @@ for(const marker of [
 assert(html.includes("url.searchParams.has('owner_preview')"),"Never share a private test link");
 console.log("PASS: public booking links appear only after delivery, and previews remain private");
 
+// A buyer can always go Back from a nested section and sees a toast only after a confirmed save.
+for(const marker of [
+ 'id="workspaceBack"',
+ 'id="crmSaveToast"',
+ 'id="crmSaveToastText"',
+ 'function showSaveToast(',
+ 'function navigateWorkspaceBack()',
+ 'workspaceBackStack.push(priorView)',
+ 'workspaceNavigationInitialized=false',
+ "showSaveToast('success','Prices saved and published'",
+ "showSaveToast('success','Availability saved'",
+ "showSaveToast('success','Email edits saved'",
+ "showSaveToast('success','Work dates saved'",
+ "showSaveToast('error','Could not save prices'"
+])assert(html.includes(marker),"Missing save confirmation or navigation rule: "+marker);
+assert(html.includes('prefers-reduced-motion:reduce'),"Reduced-motion navigation must remain available");
+console.log("PASS: mobile-safe saved/error feedback and internal Back navigation are present");
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 assert(scripts.length>=3,"Expected the current CRM script layout");
 for(const [i,script] of scripts.entries()){
