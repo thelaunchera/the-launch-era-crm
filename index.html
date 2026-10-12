@@ -2579,7 +2579,13 @@ function renderOwnerSupport(){
    }catch(error){output.textContent=supportTxt('Could not save the update.','No se pudo guardar el cambio.')}
    finally{save.disabled=false}
   };
-  card.append(head,meta,message,grid,save,output);root.append(card)
+  const project=ownerPurchases.find(a=>a.crm_workspace_id===item.workspace_id);
+  if(project){
+   const open=document.createElement('button');open.type='button';open.className='secondary';open.style.cssText='margin:10px 8px 0 0';open.textContent=supportTxt('Open client project →','Abrir proyecto del cliente →');
+   open.onclick=()=>chooseOwnerBuyer(project,'builder');
+   card.append(head,meta,message,grid,open,save,output);
+  }else card.append(head,meta,message,grid,save,output);
+  root.append(card)
  }
 }
 async function loadOwnerSupportInbox(){
@@ -2588,7 +2594,7 @@ async function loadOwnerSupportInbox(){
  if(!workspace?.is_internal)return;
  $('ownerSupportStatus').textContent=supportTxt('Loading client messages…','Cargando mensajes de clientes…');
  const {data,error}=await db.from('tle_crm_support_requests')
-  .select('id,business_name,request_type,message,page_context,status,owner_note,created_at')
+  .select('id,workspace_id,business_name,request_type,message,page_context,status,owner_note,created_at')
   .order('created_at',{ascending:false}).limit(100);
  if(error){$('ownerSupportStatus').textContent=supportTxt('Could not load support. Please refresh.','No se pudo cargar el soporte. Actualiza la página.');return}
  ownerSupportRequests=data||[];renderOwnerSupport();
