@@ -571,6 +571,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
  <button type="button" class="nav-link active" id="navOverview" data-target="home">⌂ <span>Dashboard</span></button>
  <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox & Leads</span></button>
  <button type="button" class="nav-link hidden" id="buyerAppointmentsNav" data-target="buyer-calendar">▦ <span>Booking Calendar</span></button>
+ <button type="button" class="nav-link hidden" id="buyerServiceCareNav" data-target="buyer-service-care">♡ <span>Service Care</span></button>
 <button type="button" class="nav-link hidden" id="buyerBookingPreviewNav" data-target="buyer-booking-preview">◇ <span>My Booking Page</span></button>
  <button type="button" class="nav-link" id="buyerClientsNav" data-target="clients">♧ <span>Customers</span></button>
  <button type="button" class="nav-link hidden" id="buyerPricingNav" data-target="pricing">◇ <span>Pricing &amp; Services</span></button>
@@ -939,7 +940,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   </div>
   <div class="cb-detailing-actions" aria-label="Quick actions">
    <button type="button" id="cbDashInbox">↗ Open Inbox <small>View customer requests</small></button>
-   <button type="button" id="cbDashCalendar">▦ Full Calendar <small>See the entire month</small></button>
+   <button type="button" id="cbDashCalendar">▦ Full Calendar <small>See the entire month</small></button><button type="button" id="cbDashCreateBooking">+ Create Booking <small>Add an appointment</small></button>
    <button type="button" id="cbDashAdd">＋ Add inquiry <small>Record a new contact</small></button>
    <button type="button" id="cbDashPricing">◇ Services & quotes <small>Review pricing</small></button>
    <button type="button" id="cbDashRefresh">↻ Refresh <small>Update activity</small></button>
@@ -981,7 +982,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
  <div class="panel" style="padding:17px;margin:17px 0">
   <div style="display:flex;gap:13px;align-items:center;flex-wrap:wrap;justify-content:space-between">
    <strong id="buyerCustomersCount">Checking customers…</strong>
-   <button type="button" class="secondary" id="buyerCustomersRefresh">↻ Refresh</button>
+   <button type="button" id="buyerAddCustomer" class="secondary">+ Add Customer</button><button type="button" id="buyerCustomersNewBooking">+ Create Booking</button><button type="button" class="secondary" id="buyerCustomersRefresh">↻ Refresh</button>
   </div>
   <p class="muted" style="font-size:12px">Open a contact to see their request in Inbox or edit a manually added customer.</p>
  </div>
@@ -1033,6 +1034,38 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   </div>
  </article>
 </section>
+<section id="buyerServiceCareHub" class="hidden premium-emailhub" aria-label="Service Care">
+<div class="section-title">Service Care</div><p class="muted">Personal follow-through after every appointment. Your customer's feedback stays private.</p>
+<div class="buyer-care-quick"><button type="button" id="buyerCareAddCustomer" class="secondary">+ Add Customer</button><button type="button" id="buyerCareNewBooking">+ Create Booking</button><button type="button" id="buyerCareOpenCalendar" class="secondary">▦ Booking Calendar</button><button type="button" id="buyerCareRefresh" class="secondary">↻ Refresh</button></div>
+<div class="panel" style="padding:18px;margin:18px 0;background:#f7fafc"><h3>Thoughtful follow-through</h3><p class="muted">Confirmed bookings receive appointment reminders two days before and at 5:00 AM on the appointment day. Completed services get a warm thank-you. Optional care tips and 21-day return check-ins require customer permission.</p></div>
+<div class="panel" style="padding:18px;margin-top:15px"><h3>Recently completed services <span id="buyerCareCompletedCount"></span></h3><div id="buyerCareCompletedList" style="display:grid;gap:9px"></div></div>
+<div class="panel" style="padding:18px;margin-top:15px"><h3>Private Customer Feedback <span id="buyerCareReviewCount"></span></h3><p class="muted">Only your business can read these notes. Nothing is published automatically.</p><div id="buyerCareReviewList" style="display:grid;gap:9px"></div></div>
+<p id="buyerCareStatus" role="status" aria-live="polite"></p></section>
+<dialog id="buyerCreateBookingDialog" class="buyer-care-dialog" aria-labelledby="buyerCreateBookingTitle"><form id="buyerCreateBookingForm">
+<div class="buyer-care-dialog-title"><h2 id="buyerCreateBookingTitle">Create Booking</h2><button type="button" id="buyerBookingClose" class="secondary">✕</button></div>
+<p class="muted">Add a confirmed appointment to your calendar. Only available time slots can be booked.</p>
+<div class="buyer-care-form-grid">
+<label>Customer name<input name="customer_name" maxlength="140" required autocomplete="name"></label>
+<label>Customer email<input name="customer_email" maxlength="254" type="email" required autocomplete="email"></label>
+<label>Phone (optional)<input name="customer_phone" maxlength="45" type="tel"></label>
+<label>Service<input name="service_name" maxlength="150" required></label>
+<label>Date<input name="date" type="date" required></label>
+<label>Start time<select name="time" id="buyerManualBookingTime" required></select></label>
+<label>Space / vehicle type<input name="space_type" maxlength="70" required></label>
+<label>Visit frequency<select name="recurrence"><option value="one_time">One-time</option><option value="weekly">Weekly</option><option value="biweekly">Every two weeks</option><option value="monthly">Monthly</option></select></label>
+</div><p class="muted">Recurring frequency does not automatically book future appointments.</p>
+<label class="buyer-care-optin"><input type="checkbox" name="optional_care_opt_in"> The customer agreed to optional care tips and check-ins.</label>
+<label id="buyerManualConsentLabel" class="hidden">How did they give permission?<input name="consent_detail" maxlength="180" placeholder="e.g. Asked for tips by email during our call"></label>
+<p id="buyerManualBookingResult" role="status" aria-live="polite"></p><button type="submit" id="buyerManualBookingSubmit">Save Confirmed Booking</button></form></dialog>
+<dialog id="buyerFinishServiceDialog" class="buyer-care-dialog" aria-labelledby="buyerFinishServiceTitle"><form id="buyerFinishServiceForm">
+<div class="buyer-care-dialog-title"><h2 id="buyerFinishServiceTitle">Mark Service Finished</h2><button type="button" id="buyerFinishClose" class="secondary">✕</button></div>
+<p class="muted" id="buyerFinishCustomerName"></p><input type="hidden" name="lead_id">
+<label>Space / vehicle cared for<input name="space_type" maxlength="70" required></label>
+<label class="buyer-care-optin"><input type="checkbox" name="recurring"> This customer is recurring</label>
+<label class="buyer-care-optin"><input type="checkbox" name="optional_care_opt_in"> The customer agreed to optional care tips and future-service check-ins.</label>
+<label id="buyerFinishConsentLabel" class="hidden">How did they give permission?<input name="consent_detail" maxlength="180"></label>
+<p class="muted">We'll send a warm thank-you. Private feedback is optional and never published automatically.</p>
+<p id="buyerFinishResult" role="status" aria-live="polite"></p><button type="submit" id="buyerFinishSubmit">✓ Finish & Queue Thank-You</button></form></dialog>
 <section id="buyerAppointmentsHub" class="hidden premium-emailhub" aria-label="Booking Calendar">
  <div class="section-title">Booking Calendar</div>
  <p class="muted">Your full month at a glance. Confirmed bookings reserve a time. Quote requests and proposed appointments stay pending until you confirm them.</p>
@@ -1043,7 +1076,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
     <button type="button" class="secondary" id="buyerCalendarPrev" aria-label="Previous month">‹</button>
     <button type="button" class="secondary" id="buyerCalendarToday">Today</button>
     <button type="button" class="secondary" id="buyerCalendarNext" aria-label="Next month">›</button>
-    <button type="button" class="secondary" id="buyerCalendarRefresh">↻ Refresh</button>
+    <button type="button" class="secondary" id="buyerCalendarRefresh">↻ Refresh</button><button type="button" id="buyerCalendarNewBooking">+ Create Booking</button>
    </div>
   </div>
   <div class="buyer-calendar-legend" aria-label="Calendar statuses">
@@ -1071,7 +1104,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
    <div>Inquiry = a question · Estimate = approximate price · Quote = price proposal · Booking = a reserved appointment</div>
    <div style="color:#607d8e">Open a request to see what needs attention.</div>
   </div>
-  <div class="row" style="justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap"><strong>Customer activity</strong><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="secondary" id="buyerInboxCalendar">▦ Calendar</button><button type="button" class="secondary" id="buyerInboxNewManual">+ Add inquiry</button></div></div>
+  <div class="row" style="justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap"><strong>Customer activity</strong><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="secondary" id="buyerInboxCalendar">▦ Calendar</button><button type="button" id="buyerInboxNewBooking">+ Create Booking</button><button type="button" class="secondary" id="buyerInboxNewManual">+ Add inquiry</button></div></div>
   <div id="buyerRequestStats" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"></div>
   <div class="buyer-lead-quick-filters" role="group" aria-label="Quick lead filters">
    <button type="button" data-buyer-lead-filter="attention">Needs attention <span id="buyerLeadAttentionCount"></span></button>
@@ -1090,7 +1123,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   <div class="request-layout">
     <div id="buyerRequestCards" style="display:grid;align-content:start;gap:10px;max-height:72vh;overflow-y:auto"></div>
     <article class="panel" id="buyerRequestDetail" style="padding:18px;min-width:0">
-      <h3 id="buyerRequestDetailTitle">Choose a customer request</h3>
+      <h3 id="buyerRequestDetailTitle">Choose a customer request</h3><button type="button" id="buyerMarkServiceFinished" class="secondary hidden" style="margin:9px 0 12px">✓ Mark Service Finished</button>
       <div id="buyerRequestNextAction" class="hidden" style="margin:12px 0;padding:12px 13px;background:#edf6fc;border-radius:13px;color:#285a78;font-size:13px;line-height:1.5"></div>
       <div id="buyerRequestDetails" class="request-detail-grid"></div>
       <div id="buyerRequestReplyArea" class="hidden" style="margin-top:17px;border-top:1px solid #dce9f2;padding-top:16px">
