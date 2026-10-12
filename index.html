@@ -2601,6 +2601,13 @@ async function loadOwnerSupportInbox(){
 }
 $('ownerSupportRefresh').onclick=loadOwnerSupportInbox;
 $('ownerSupportFilter').onchange=renderOwnerSupport;
+async function refreshOwnerSupportBadge(){
+ if(!workspace?.is_internal)return;
+ const {count,error}=await db.from('tle_crm_support_requests').select('id',{head:true,count:'exact'}).neq('status','resolved');
+ if(!error)$('ownerSupportCount').textContent=count?String(count):'';
+}
+setInterval(()=>{if(workspace?.is_internal&&!document.hidden)void refreshOwnerSupportBadge()},60000);
+document.addEventListener('visibilitychange',()=>{if(workspace?.is_internal&&!document.hidden)void refreshOwnerSupportBadge()});
 $('ownerSupportNav').onclick=()=>{
  if(!workspace?.is_internal)return;
  premiumNavigate('settings');
