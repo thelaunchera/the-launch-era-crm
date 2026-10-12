@@ -528,7 +528,8 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <div id="buyerBusinessSection" class="hidden" aria-label="Buyer business workspace">
  <div class="nav-caption" id="mainNavCaption">YOUR CLEANING BUSINESS</div>
  <button type="button" class="nav-link active" id="navOverview" data-target="home">⌂ <span>Dashboard</span></button>
- <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox</span></button>
+ <button type="button" class="nav-link hidden" id="buyerRequestsNav" data-target="request-center">▣ <span>Inbox & Leads</span></button>
+ <button type="button" class="nav-link hidden" id="buyerAppointmentsNav" data-target="buyer-calendar">▦ <span>Booking Calendar</span></button>
 <button type="button" class="nav-link hidden" id="buyerBookingPreviewNav" data-target="buyer-booking-preview">◇ <span>My Booking Page</span></button>
  <button type="button" class="nav-link" id="buyerClientsNav" data-target="clients">♧ <span>Customers</span></button>
  <button type="button" class="nav-link hidden" id="buyerPricingNav" data-target="pricing">◇ <span>Pricing &amp; Services</span></button>
@@ -897,6 +898,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   </div>
   <div class="cb-detailing-actions" aria-label="Quick actions">
    <button type="button" id="cbDashInbox">↗ Open Inbox <small>View customer requests</small></button>
+   <button type="button" id="cbDashCalendar">▦ Full Calendar <small>See the entire month</small></button>
    <button type="button" id="cbDashAdd">＋ Add inquiry <small>Record a new contact</small></button>
    <button type="button" id="cbDashPricing">◇ Services & quotes <small>Review pricing</small></button>
    <button type="button" id="cbDashRefresh">↻ Refresh <small>Update activity</small></button>
@@ -990,21 +992,60 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
   </div>
  </article>
 </section>
+<section id="buyerAppointmentsHub" class="hidden premium-emailhub" aria-label="Booking Calendar">
+ <div class="section-title">Booking Calendar</div>
+ <p class="muted">Your full month at a glance. Confirmed bookings reserve a time. Quote requests and proposed appointments stay pending until you confirm them.</p>
+ <div class="panel" style="padding:clamp(13px,2.5vw,22px);margin:16px 0;overflow:hidden">
+  <div class="buyer-calendar-toolbar">
+   <div><h2 id="buyerCalendarMonthTitle" style="margin:0">Calendar</h2><p id="buyerCalendarMonthSummary" class="muted" style="font-size:12px;margin:5px 0 0"></p></div>
+   <div class="buyer-calendar-toolbar-actions">
+    <button type="button" class="secondary" id="buyerCalendarPrev" aria-label="Previous month">‹</button>
+    <button type="button" class="secondary" id="buyerCalendarToday">Today</button>
+    <button type="button" class="secondary" id="buyerCalendarNext" aria-label="Next month">›</button>
+    <button type="button" class="secondary" id="buyerCalendarRefresh">↻ Refresh</button>
+   </div>
+  </div>
+  <div class="buyer-calendar-legend" aria-label="Calendar statuses">
+   <span><i class="buyer-cal-dot booked"></i>Confirmed booking</span>
+   <span><i class="buyer-cal-dot pending"></i>Request · not confirmed</span>
+  </div>
+  <div class="buyer-calendar-scroll" role="region" tabindex="0" aria-label="Scrollable full month calendar">
+   <div id="buyerCalendarGrid" class="buyer-calendar-grid" role="grid" aria-label="Customer booking calendar"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:12px 0 0">On smaller screens, swipe the calendar sideways to see all seven days. Tap any day to view its appointments.</p>
+ </div>
+ <article class="panel" style="padding:18px;margin-top:14px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+   <div><h3 id="buyerCalendarDayTitle" style="margin:0">Selected day</h3><p id="buyerCalendarDayCount" class="muted" style="font-size:12px;margin:5px 0 0"></p></div>
+   <button type="button" class="secondary" id="buyerCalendarInbox">Open Inbox & Leads →</button>
+  </div>
+  <div id="buyerCalendarDayList" style="display:grid;gap:10px;margin-top:16px" aria-live="polite"></div>
+ </article>
+</section>
 <section id="buyerRequestsHub" class="hidden premium-emailhub" aria-label="Customer Inbox">
-  <div class="section-title">Inbox</div>
+  <div class="section-title">Inbox & Leads</div>
   <p class="muted">Your customer inquiries, estimates, quotes and confirmed bookings — all in one place. The Cleaning App is separate for managing jobs and teams.</p>
   <div id="buyerInboxLegend" class="panel" style="padding:14px 16px;line-height:1.65;font-size:12px">
    <strong>How requests work</strong>
    <div>Inquiry = a question · Estimate = approximate price · Quote = price proposal · Booking = a reserved appointment</div>
    <div style="color:#607d8e">Open a request to see what needs attention.</div>
   </div>
-  <div class="row" style="justify-content:space-between;gap:10px;margin-top:14px"><strong>Customer activity</strong><button type="button" class="secondary" id="buyerInboxNewManual">+ Add inquiry</button></div>
+  <div class="row" style="justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap"><strong>Customer activity</strong><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="secondary" id="buyerInboxCalendar">▦ Calendar</button><button type="button" class="secondary" id="buyerInboxNewManual">+ Add inquiry</button></div></div>
   <div id="buyerRequestStats" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"></div>
+  <div class="buyer-lead-quick-filters" role="group" aria-label="Quick lead filters">
+   <button type="button" data-buyer-lead-filter="attention">Needs attention <span id="buyerLeadAttentionCount"></span></button>
+   <button type="button" data-buyer-lead-filter="quotes">Quotes to review</button>
+   <button type="button" data-buyer-lead-filter="confirmed">Confirmed</button>
+   <button type="button" data-buyer-lead-filter="all" class="active">All leads</button>
+  </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 20px">
     <label style="flex:1;min-width:180px">Find a request<input id="buyerRequestSearch" type="search" placeholder="Name, email, service"></label>
     <label style="min-width:160px">Type<select id="buyerRequestType"><option value="all">All</option><option value="inquiry">Inquiries</option><option value="quote">Quotes & Estimates</option><option value="booking">Bookings</option><option value="attention">Needs attention</option></select></label>
+    <label style="min-width:150px">Status<select id="buyerRequestStatusFilter"><option value="all">Every status</option><option value="open">Open / pending</option><option value="reviewing">Under review</option><option value="quoted">Quote prepared</option><option value="booked">Confirmed</option><option value="closed">Closed / declined</option></select></label>
+    <label style="min-width:150px">Sort by<select id="buyerRequestSort"><option value="priority">Needs attention first</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="date">Appointment date</option></select></label>
     <button type="button" id="buyerRequestRefresh" class="secondary">↻ Refresh</button>
   </div>
+  <p id="buyerInboxVisibleCount" role="status" aria-live="polite" class="muted" style="font-size:12px;margin:0 0 12px"></p>
   <div class="request-layout">
     <div id="buyerRequestCards" style="display:grid;align-content:start;gap:10px;max-height:72vh;overflow-y:auto"></div>
     <article class="panel" id="buyerRequestDetail" style="padding:18px;min-width:0">
@@ -1022,18 +1063,33 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
           <option value="reply">Reply only</option>
         </select></label>
         <div id="buyerRequestQuoteOffer" class="hidden" style="margin:10px 0 14px"><label>Quote price<input id="buyerRequestQuoteAmount" type="number" min="0.01" max="999999" step="0.01" placeholder="125.00"></label>
-<p class="muted" style="font-size:12px">Enter the final quote amount. When you select Send update, the customer receives Accept, Decline (with reason), and Let's talk. The quote does not confirm a booking.</p></div>
+<p class="muted" style="font-size:12px">Edit the quote amount before sending. Customers can Accept, Decline or Discuss Price. Acceptance confirms the booking only after an available time is selected.</p></div>
 <div id="buyerRequestConfirmSlot" class="hidden" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <label>Booking date<input id="buyerRequestBookingDate" type="date"></label>
           <label>Start time<input id="buyerRequestBookingTime" type="time" step="1800"></label>
         </div>
         <label>Reply to customer<textarea id="buyerRequestMessage" rows="6" maxlength="3000" placeholder="Write a helpful update in the customer's language."></textarea></label>
         <p class="muted" style="font-size:12px">Saving a status does not send a message. Choose Send update to email the customer. Changing a date in this message does not reserve a new slot; confirm availability separately.</p>
+        <div id="buyerRequestFinalChoice" class="hidden" style="border:1px solid #d7e7f2;border-radius:15px;padding:14px;background:#f2f8fc;margin:12px 0">
+          <strong>Two follow-ups completed. Your choice.</strong>
+          <p class="muted" style="font-size:12px">Preview a final personal email and send it, or stop here. Nothing sends automatically.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="secondary" id="buyerRequestFinalStop">Stop contacting</button>
+            <button type="button" id="buyerRequestFinalSend">Send final personal email</button>
+          </div>
+        </div>
         <div style="display:flex;flex-wrap:wrap;gap:9px">
+          <button type="button" class="secondary" id="buyerRequestEmailPreview">Preview email</button>
           <button type="button" id="buyerRequestSave" class="secondary">Save status</button>
           <button type="button" id="buyerRequestSend">Send update</button>
         </div>
         <p id="buyerRequestStatus" role="status" aria-live="polite"></p>
+        <dialog id="buyerRequestEmailPreviewDialog" style="width:min(520px,calc(100vw - 30px));border:1px solid #d6e8f1;border-radius:19px;padding:22px;background:#FAF8F3;color:#191919">
+          <h3>Customer email preview</h3>
+          <p class="muted" style="font-size:12px">This preview does not send an email. Edit the message or quote amount before confirming.</p>
+          <pre id="buyerRequestEmailPreviewText" style="white-space:pre-wrap;font:14px/1.65 Arial,sans-serif;word-wrap:break-word;padding:15px;background:white;border-radius:12px;border:1px solid #dce9f2"></pre>
+          <button type="button" class="secondary" id="buyerRequestEmailPreviewClose">Close preview</button>
+        </dialog>
       </div>
     </article>
   </div>
