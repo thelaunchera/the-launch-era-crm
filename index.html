@@ -676,7 +676,7 @@ body.owner-preview-fullscreen-open #buildFrameShell.tle-preview-fullscreen #buil
 <div class="panel" style="padding:16px 19px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <strong style="font-size:13px">Order status</strong>
 <select id="ownerPurchaseFilter" style="width:auto;max-width:100%;min-width:180px;margin:0" aria-label="Filter buyer purchases">
-<option value="all">All orders</option><option value="intake">New Order</option><option value="production">Customize</option><option value="review">Test</option><option value="delivered">Delivery queued</option>
+<option value="active" selected>Active Projects</option><option value="completed">Completed Clients</option><option value="all">All orders</option><option value="intake">New Order</option><option value="production">Customize</option><option value="review">Test</option><option value="delivered">Delivery queued</option>
 </select>
 <button id="ownerPagesRefresh" type="button" class="secondary">Refresh purchases</button>
 </div>
@@ -2819,6 +2819,7 @@ document.addEventListener('visibilitychange',()=>{
 
 let ownerPurchases=[];
 function ownerPurchaseStage(a){
+ if(a.already_queued&&Number(a.qa_pass_count)===6&&a.buyer_review_status==='approved')return 'completed';
  if(a.already_queued)return 'delivered';
  if(!a.intake_done)return 'intake';
  if(a.booking_page_url&&a.crm_ready&&a.status==='active')return 'review';
@@ -2829,21 +2830,23 @@ function renderOwnerPurchases(){
  const root=$('ownerPagesList'),status=$('ownerPagesStatus'),stats=$('ownerPurchaseStats');
  const es=buyerPageLabel(),all=ownerPurchases;
  const labels={
-  all:es?'Compras pagadas':'Paid purchases',
+  all:es?'Todas las compras':'All purchases',
+  active:es?'Proyectos activos':'Active Projects',
+  completed:es?'Clientes entregados':'Completed Clients',
   intake:es?'Nueva orden':'New Order',
   production:es?'Personalizar':'Customize',
   review:es?'Probar':'Test',
   delivered:es?'En cola de entrega':'Delivery queued'
  };
  stats.replaceChildren();
- for(const key of ['intake','production','review','delivered']){
+ for(const key of ['intake','production','review','delivered','completed']){
   const count=key==='all'?all.length:all.filter(a=>ownerPurchaseStage(a)===key).length;
   const tile=ownerPageElem('div',undefined);tile.className='order-summary-metric';
   const number=ownerPageElem('strong',count),caption=ownerPageElem('span',labels[key]);
   tile.append(number,caption);stats.append(tile);
  }
- const filter=$('ownerPurchaseFilter').value||'all';
- const visible=filter==='all'?all:all.filter(a=>ownerPurchaseStage(a)===filter);
+ const filter=$('ownerPurchaseFilter').value||'active';
+ const visible=filter==='all'?all:all.filter(a=>filter==='active'?ownerPurchaseStage(a)!=='completed':ownerPurchaseStage(a)===filter);
  root.replaceChildren();
  status.textContent=es?(visible.length+' de '+all.length+' compra(s) pagadas'):(visible.length+' of '+all.length+' paid purchases');
  if(!all.length){
@@ -2863,7 +2866,7 @@ function renderOwnerPurchases(){
   if(a.owner_name)box.appendChild(ownerPageElem('div',a.owner_name,'font-size:13px;font-weight:600;color:#405969'));
   if(a.owner_email)box.appendChild(ownerPageElem('div',a.owner_email,'font-size:12px;color:#667d8c;overflow-wrap:anywhere'));
   const progress=(a.intake_done?1:0)+(a.booking_page_url?1:0)+(a.crm_ready?1:0)+(a.already_queued?1:0);
-  const nextByStage={intake:es?'Esperar los datos':'Waiting for intake',production:es?'Personalizar':'Customize Booking Page',review:es?'Completar pruebas':'Complete QA',delivered:es?'Verificar correo de entrega':'Check delivery email'};
+  const nextByStage={intake:es?'Esperar los datos':'Waiting for intake',production:es?'Personalizar':'Customize Booking Page',review:es?'Completar pruebas':'Complete QA',delivered:es?'Verificar correo de entrega':'Check delivery email',completed:es?'Entregado · disponible para soporte':'Delivered · available for support'};
   box.append(ownerPageElem('div',(es?'Siguiente: ':'Next: ')+nextByStage[stage],'font-size:13px;color:#2b6585;font-weight:700;margin-top:8px'));
   const step=ownerPageElem('div',undefined,'border-top:1px solid #e9eff3;padding-top:13px;margin-top:8px;display:grid;gap:5px');
   step.appendChild(ownerPageElem('div',(es?'Preparación: ':'Setup: ')+progress+'/4','font-size:12px;color:#537080;font-weight:700'));
@@ -2876,7 +2879,7 @@ function renderOwnerPurchases(){
   box.appendChild(step);
   const buttons=ownerPageElem('div',undefined,'display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:15px');
   for(const [mode,label] of [
-   ['builder',es?'Continuar pedido →':'Continue order →'],
+   ['builder',stage==='completed'?(es?'Abrir proyecto →':'Open project →'):(es?'Continuar pedido →':'Continue order →')],
    ['preview',es?'Vista previa →':'Preview →']
   ]){
    const button=ownerPageElem('button',label);button.type='button';button.className=mode==='builder'?'':'secondary';
