@@ -1125,7 +1125,7 @@ function showSaveToast(kind='success',en='Changes saved successfully',es='Cambio
 }
 
 /* Buyer-friendly recovery for repeated failed actions. Never navigate away from unsaved work. */
-const buyerErrorTracker={recent:null,counts:new Map(),open:false,lastShown:new Map(),observer:null};
+const buyerErrorTracker={recent:null,counts:new Map(),open:false,lastShown:new Map(),observer:null,nextAttempt:0,lastCountedAttempt:0};
 function buyerErrorLang(en,es){return localStorage.getItem('tle_crm_language')==='es'?es:en}
 function buyerErrorLocale(){
  const es=localStorage.getItem('tle_crm_language')==='es';
@@ -1169,12 +1169,13 @@ document.addEventListener('click',e=>{
  if(!node||node.disabled)return;
  const key=node.id||node.getAttribute('aria-label')||String(node.textContent||'').trim().slice(0,80);
  if(!key||key==='crmLanguageSelect')return;
- buyerErrorTracker.recent={key,label:node.getAttribute('aria-label')||String(node.textContent||'').trim().slice(0,85)||'Command Center',time:Date.now()};
+ buyerErrorTracker.recent={key,label:node.getAttribute('aria-label')||String(node.textContent||'').trim().slice(0,85)||'Command Center',time:Date.now(),attempt:++buyerErrorTracker.nextAttempt};
 },true);
 function buyerRecordActionError(){
  if(!workspace||workspace.is_internal||buyerErrorTracker.open)return;
  const item=buyerErrorTracker.recent;
- if(!item||Date.now()-item.time>20000)return;
+ if(!item||Date.now()-item.time>20000||buyerErrorTracker.lastCountedAttempt===item.attempt)return;
+ buyerErrorTracker.lastCountedAttempt=item.attempt;
  const prev=buyerErrorTracker.counts.get(item.key);
  const count=prev&&Date.now()-prev.last<120000?prev.count+1:1;
  buyerErrorTracker.counts.set(item.key,{count,last:Date.now()});
@@ -1191,9 +1192,9 @@ buyerErrorTracker.observer=new MutationObserver(changes=>{
   const status=node?.closest?.('[role="status"],[aria-live]');
   if(!status||status.closest('#buyerErrorHelpOverlay')||status.id==='crmSaveToastText')continue;
   if(buyerErrorStatusRx.test(status.textContent||'')){
-   const marker=status.getAttribute('data-buyer-error-seen');
-   const text=(status.textContent||'').trim().slice(0,120);
-   if(marker!==text){status.setAttribute('data-buyer-error-seen',text);buyerRecordActionError()}
+   const marker=status.getAttribute('data-buyer-error-attempt');
+   const attempt=String(buyerErrorTracker.recent.attempt);
+   if(marker!==attempt){status.setAttribute('data-buyer-error-attempt',attempt);buyerRecordActionError()}
    break;
   }
  }
