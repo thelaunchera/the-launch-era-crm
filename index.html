@@ -1077,6 +1077,8 @@ body.crm-owner-view #buyerServiceCareHub,body.crm-owner-view #buyerServiceCareNa
 <label>Space / vehicle type<input name="space_type" maxlength="70" required></label>
 <label>Visit frequency<select name="recurrence"><option value="one_time">One-time</option><option value="weekly">Weekly</option><option value="biweekly">Every two weeks</option><option value="monthly">Monthly</option></select></label>
 </div><p class="muted">Recurring frequency does not automatically book future appointments.</p>
+<label class="buyer-care-optin"><input type="checkbox" name="appointment_reminders_opt_in"> The customer agreed to appointment reminders (48 hours before and at 5 AM on the appointment day).</label>
+<label id="buyerManualReminderConsentLabel" class="hidden">How did they authorize appointment reminders?<input name="reminder_consent_detail" maxlength="180" placeholder="e.g. Customer agreed by phone to appointment reminder emails"></label>
 <label class="buyer-care-optin"><input type="checkbox" name="optional_care_opt_in"> The customer agreed to optional care tips and check-ins.</label>
 <label id="buyerManualConsentLabel" class="hidden">How did they give permission?<input name="consent_detail" maxlength="180" placeholder="e.g. Asked for tips by email during our call"></label>
 <p id="buyerManualBookingResult" role="status" aria-live="polite"></p><button type="submit" id="buyerManualBookingSubmit">Save Confirmed Booking</button></form></dialog>
@@ -3556,7 +3558,7 @@ function careClose(id){const node=$(id);if(node.open)node.close()}
 function careOpenBooking(date=''){
  if(!workspace||workspace.is_internal)return;
  const form=$('buyerCreateBookingForm');form.reset();form.elements.namedItem('date').value=/^\d{4}-\d{2}-\d{2}$/.test(date)?date:buyerDateKey(new Date());
- $('buyerManualConsentLabel').classList.add('hidden');$('buyerManualBookingResult').textContent='';$('buyerCreateBookingDialog').showModal();
+ $('buyerManualConsentLabel').classList.add('hidden');$('buyerManualReminderConsentLabel').classList.add('hidden');$('buyerManualBookingResult').textContent='';$('buyerCreateBookingDialog').showModal();
 }
 for(const [id,date] of [['buyerCustomersNewBooking',false],['buyerCareNewBooking',false],['buyerInboxNewBooking',false],['buyerCalendarNewBooking',true],['cbDashCreateBooking',false]]){
  $(id).onclick=()=>careOpenBooking(date?buyerCalendarSelectedDay:'');
@@ -3565,6 +3567,7 @@ for(const id of ['buyerAddCustomer','buyerCareAddCustomer'])$(id).onclick=()=>{i
 $('buyerBookingClose').onclick=()=>careClose('buyerCreateBookingDialog');$('buyerFinishClose').onclick=()=>careClose('buyerFinishServiceDialog');
 for(let h=0;h<24;h++)for(const m of ['00','30']){const v=String(h).padStart(2,'0')+':'+m;$('buyerManualBookingTime').add(new Option(v,v))}
 $('buyerCreateBookingForm').elements.namedItem('optional_care_opt_in').onchange=e=>$('buyerManualConsentLabel').classList.toggle('hidden',!e.target.checked);
+$('buyerCreateBookingForm').elements.namedItem('appointment_reminders_opt_in').onchange=e=>$('buyerManualReminderConsentLabel').classList.toggle('hidden',!e.target.checked);
 $('buyerFinishServiceForm').elements.namedItem('optional_care_opt_in').onchange=e=>$('buyerFinishConsentLabel').classList.toggle('hidden',!e.target.checked);
 function careDraw(){
  if(!workspace||workspace.is_internal)return;
@@ -3605,6 +3608,7 @@ $('buyerCreateBookingForm').onsubmit=async e=>{
  e.preventDefault();if(careBusy||!workspace||workspace.is_internal)return;
  careBusy=true;const form=e.currentTarget,button=$('buyerManualBookingSubmit'),msg=$('buyerManualBookingResult');
  const payload=Object.fromEntries(new FormData(form));payload.optional_care_opt_in=form.elements.namedItem('optional_care_opt_in').checked;
+ payload.appointment_reminders_opt_in=form.elements.namedItem('appointment_reminders_opt_in').checked;
  button.disabled=true;msg.textContent=buyerText('Checking availability…','Comprobando disponibilidad…');
  try{await careApi('manual_booking',payload);msg.textContent=buyerText('✓ Booking confirmed!','✓ ¡Reserva confirmada!');showSaveToast('success','Booking confirmed','Reserva confirmada');
   await loadBuyerRequests();careClose('buyerCreateBookingDialog');premiumNavigate('buyer-calendar')}
