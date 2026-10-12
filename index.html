@@ -1133,6 +1133,7 @@ body.crm-owner-view #buyerServiceCareHub,body.crm-owner-view #buyerServiceCareNa
   <div id="buyerRequestStats" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0"></div>
   <div class="buyer-lead-quick-filters" role="group" aria-label="Quick lead filters">
    <button type="button" data-buyer-lead-filter="attention">Needs attention <span id="buyerLeadAttentionCount"></span></button>
+   <button type="button" data-buyer-lead-filter="permission">Email permissions <span id="buyerLeadPermissionCount"></span></button>
    <button type="button" data-buyer-lead-filter="quotes">Quotes to review</button>
    <button type="button" data-buyer-lead-filter="confirmed">Confirmed</button>
    <button type="button" data-buyer-lead-filter="all" class="active">All leads</button>
@@ -3650,6 +3651,51 @@ async function buyerRequestCall(action,extra){
 }
 function buyerRequestKind(v){return v.status==="booked"?"booking":v.raw_payload?.request_intent==="inquiry"?"inquiry":v.request_type==="quote"?"quote":"booking"}
 function buyerRequestIsEstimate(v){return buyerRequestKind(v)==="quote"&&v.raw_payload?.request_intent==="estimate"}
+/* Consent is separate from the inquiry itself. Never infer approval from a submitted request. */
+function buyerPermissionStatus(v,key){
+ const p=v.raw_payload||{};
+ const withdrawn=key==='appointment_reminders_opt_in'&&String(p.reminders_opt_out||'').toLowerCase()==='true';
+ if(withdrawn)return 'not_opted_in';
+ if(!Object.prototype.hasOwnProperty.call(p,key))return 'unrecorded';
+ return p[key]===true||p[key]==='true'?'authorized':'not_opted_in';
+}
+function buyerNeedsPermissionInfo(v){
+ return buyerPermissionStatus(v,'optional_care_opt_in')!=='authorized'||
+  buyerPermissionStatus(v,'appointment_reminders_opt_in')!=='authorized';
+}
+function buyerPermissionQuestion(v){
+ const es=v.preferred_language==='es';
+ return es
+  ?'Cuando tengas una cita, ¿te gustaría recibir recordatorios por correo 2 días antes y la mañana del servicio? Por separado, ¿quieres recibir consejos útiles de cuidado y un mensaje ocasional de seguimiento? Ambos son opcionales y puedes elegir uno, ambos o ninguno.'
+  :'When you have an appointment, would you like email reminders 2 days before and on the morning of your service? Separately, would you like useful care tips and an occasional follow-up email? Both are optional, and you can choose either, both, or neither.';
+}
+function buyerPermissionNotice(v){
+ const care=buyerPermissionStatus(v,'optional_care_opt_in'),reminders=buyerPermissionStatus(v,'appointment_reminders_opt_in');
+ const panel=buyerCreate('section',undefined,'buyer-permission-notice');
+ panel.style.cssText='grid-column:1/-1;min-width:0;background:#f4f8fb;border:1px solid #d9e7f0;border-radius:13px;padding:14px;margin:0 0 12px;color:#285268';
+ panel.append(buyerCreate('strong',buyerText('Email permissions · What to do next','Permisos de correo · Próximo paso')));
+ for(const [label,state] of [
+   [buyerText('Optional care tips and follow-ups','Consejos y seguimientos opcionales'),care],
+   [buyerText('Appointment reminders','Recordatorios de citas'),reminders]
+ ]){
+  const status=state==='authorized'?buyerText('Authorized','Autorizado'):
+   state==='unrecorded'?buyerText('Not recorded','Sin constancia'):buyerText('Not selected','No seleccionado');
+  const line=buyerCreate('p',label+': '+status,'muted');
+  line.style.cssText='font-size:12px;line-height:1.5;margin:7px 0 0;color:#466478';panel.append(line);
+ }
+ if(care!=='authorized'||reminders!=='authorized'){
+  const guidance=buyerCreate('p',buyerText(
+   'The inquiry or appointment can continue normally. Only emails without recorded permission stay off. If you speak with this customer, ask whether they want each option and record their answer before enabling it. Do not automatically send a permission request.',
+   'La consulta o cita sigue normalmente. Solo quedan desactivados los correos sin permiso registrado. Al conversar con este cliente, pregunta si desea cada opción y registra su respuesta antes de activarla. No envíes automáticamente una solicitud de permiso.'
+  ),'muted');
+  guidance.style.cssText='font-size:12px;line-height:1.55;margin:9px 0;color:#466478';panel.append(guidance);
+  const copy=buyerCreate('button',buyerText('Copy a friendly permission question','Copiar pregunta de permiso'),'secondary');
+  copy.type='button';copy.style.marginTop='5px';
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(buyerPermissionQuestion(v));showSaveToast('success','Question copied','Pregunta copiada')}catch(e){showSaveToast('error','Could not copy. Ask the customer directly.','No se pudo copiar. Pregunta al cliente directamente.')}};
+  panel.append(copy);
+ }
+ return panel;
+}
 function buyerRequestNeedsAttention(v){
  const p=v.raw_payload||{};
  if(p.customer_change_request?.state==="pending_owner_review"||p.quote_response?.status==="lets_talk")return true;
@@ -3816,11 +3862,17 @@ function buyerRequestCard(x){
  const time=x.raw_payload?.requested_date?[x.raw_payload.requested_date,x.raw_payload.requested_time].filter(Boolean).join(" · "):x.requested_start_at?new Date(x.requested_start_at).toLocaleString():"";
  const details=buyerCreate("div",[x.service_name,isDetailingWorkspace()?(x.raw_payload?.vehicle_type||x.raw_payload?.property_type):"",time,x.raw_payload?.estimate_display].filter(Boolean).join(" · "),"request-summary");
  const footer=buyerCreate("div",x.created_at?new Date(x.created_at).toLocaleString():"","request-summary");footer.style.marginTop="8px";
- btn.append(bar,title,details,footer);btn.onclick=()=>{buyerOpenRequest(x);if(window.innerWidth<=850)$('buyerRequestDetail').scrollIntoView({behavior:'smooth',block:'start'})};return btn
+ btn.append(bar,title,details,footer);
+ if(buyerNeedsPermissionInfo(x)){
+  const n=buyerCreate('div',buyerText('Email permissions need review','Revisar permisos de correo'),'request-summary');
+  n.style.cssText='margin-top:9px;font-size:12px;color:#6d5965;background:#faf4ec;padding:7px 9px;border-radius:9px';btn.append(n);
+ }
+ btn.onclick=()=>{buyerOpenRequest(x);if(window.innerWidth<=850)$('buyerRequestDetail').scrollIntoView({behavior:'smooth',block:'start'})};return btn
 }
 function buyerOpenRequest(x){
  buyerSelectedRequest=x;careDraw();$("buyerRequestDetailTitle").textContent=x.customer_name||x.customer_email||buyerText("Customer request","Solicitud de cliente");
  const body=$("buyerRequestDetails");body.replaceChildren();
+ body.append(buyerPermissionNotice(x));
  const payload=x.raw_payload||{};
  const requested=[payload.requested_date,payload.requested_time].filter(Boolean).join(" · ");
  const detailing=isDetailingWorkspace();
@@ -3899,7 +3951,12 @@ function buyerManualCard(x){
  const desc=buyerCreate("div",[x.source,x.email,x.stage].filter(Boolean).join(" · "),"request-summary");
  const next=buyerCreate("div",buyerText("Next: review or reply","Siguiente: revisar o responder"),"buyer-inbox-next");
  next.style.cssText="margin-top:9px;font-size:12px;color:#45677f";
- btn.append(label,name,desc,next);btn.onclick=()=>edit(x);return btn;
+ btn.append(label,name,desc,next);
+ if(x.email_consent_status!=='authorized'||!x.email_consent_source){
+  const tag=buyerCreate('div',buyerText('Email follow-up permission not recorded · Review in contact','Permiso de seguimiento sin registrar · Revisar en contacto'),'request-summary');
+  tag.style.cssText='margin-top:8px;font-size:12px;color:#6d5965';btn.append(tag);
+ }
+ btn.onclick=()=>edit(x);return btn;
 }
 function buyerLeadStatusMatch(x,choice){
  if(choice==='all')return true;
@@ -3910,6 +3967,7 @@ function buyerLeadStatusMatch(x,choice){
 }
 function buyerLeadQuickMatch(x){
  if(buyerLeadQuickFilter==='attention')return buyerRequestNeedsAttention(x);
+ if(buyerLeadQuickFilter==='permission')return buyerNeedsPermissionInfo(x);
  if(buyerLeadQuickFilter==='quotes')return x.request_type==='quote'&&!['booked','closed','declined'].includes(x.status);
  if(buyerLeadQuickFilter==='confirmed')return x.status==='booked';
  return true;
@@ -3930,15 +3988,17 @@ function buyerRenderRequestCards(){
   return Number(buyerRequestNeedsAttention(b))-Number(buyerRequestNeedsAttention(a))||Date.parse(b.created_at||0)-Date.parse(a.created_at||0);
  });
  for(const x of rows)root.append(buyerRequestCard(x));
- const manualAllowed=buyerLeadQuickFilter==='all'||buyerLeadQuickFilter==='attention';
+ const manualAllowed=['all','attention','permission'].includes(buyerLeadQuickFilter);
  const manual=manualAllowed&&['all','inquiry','attention'].includes(type)&&['all','open'].includes(status)?buyerManualLeads().filter(x=>
-  (buyerLeadQuickFilter!=='attention'&&type!=='attention'||['New','Follow-up'].includes(x.stage))&&
+  (buyerLeadQuickFilter==='permission'?(x.email_consent_status!=='authorized'||!x.email_consent_source):
+   (buyerLeadQuickFilter!=='attention'&&type!=='attention'||['New','Follow-up'].includes(x.stage)))&&
   [x.contact,x.business,x.email,x.source,x.notes].some(v=>String(v||'').toLowerCase().includes(q))
  ):[];
  manual.sort((a,b)=>sort==='oldest'?Date.parse(a.created_at||0)-Date.parse(b.created_at||0):Date.parse(b.created_at||0)-Date.parse(a.created_at||0));
  manual.forEach(x=>root.append(buyerManualCard(x)));
  const attention=buyerRequests.filter(buyerRequestNeedsAttention).length+buyerManualLeads().filter(x=>['New','Follow-up'].includes(x.stage)).length;
  $('buyerLeadAttentionCount').textContent=String(attention);
+ $('buyerLeadPermissionCount').textContent=String(buyerRequests.filter(buyerNeedsPermissionInfo).length+buyerManualLeads().filter(x=>x.email_consent_status!=='authorized'||!x.email_consent_source).length);
  for(const button of document.querySelectorAll('[data-buyer-lead-filter]')){
   const isActive=button.dataset.buyerLeadFilter===buyerLeadQuickFilter;
   button.classList.toggle('active',isActive);button.setAttribute('aria-pressed',String(isActive));
@@ -4658,6 +4718,10 @@ function updateAnalytics(){const won=leads.filter(x=>x.stage==='Won').length;con
   customer_reply:['Your customer replied','Tu cliente respondió'],
   design_ready:['Your design is ready to review','Tu diseño está listo para revisar'],
   revision_requested:['A design change was requested','Solicitaron un cambio de diseño']
+ };
+ if(kind==='care_permission_notice')return {
+  title:es?'Permisos de seguimiento pendientes':'Customer email permissions need review',
+  body:es?'Este contacto no seleccionó uno o más correos opcionales. Los mensajes sin permiso permanecen desactivados. Abre su solicitud para revisar los detalles.':'This contact did not select one or more optional emails. Messages without permission remain off. Open the request to review the details.'
  };
  const match=titles[kind];
  // Preserve supplied customer-specific details and don't invent names, times or statuses.
