@@ -4508,6 +4508,8 @@ function verifiedPublicBookingUrl(value){
   // Previous purchased links remain usable; never expose an owner preview URL.
   if(url.origin==='https://thelaunchera.com'&&['/booking/','/base-booking.html'].includes(url.pathname)&&
      /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(url.searchParams.get('key')||''))return url.href;
+  // Separate dedicated CB Depot Pages project. The URL must be exactly its public root.
+  if(url.origin==='https://cb-depot-booking.pages.dev'&&url.pathname==='/'&&!url.search)return url.href;
   // Isolated Pages tenant slug. The authenticated pricing API supplies this URL
   // only for the signed-in buyer's delivered account.
   if(url.origin==='https://the-launch-era-new-website.pages.dev'&&
