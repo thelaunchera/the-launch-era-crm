@@ -4504,9 +4504,15 @@ let buyerBookingShareVersion=0,buyerBookingShareURL='';
 function verifiedPublicBookingUrl(value){
  try{
   const url=new URL(String(value||''));
-  if(url.origin!=='https://thelaunchera.com'||!['/booking/','/base-booking.html'].includes(url.pathname))return '';
-  if(!url.searchParams.get('key')||url.searchParams.has('owner_preview')||url.searchParams.has('preview'))return '';
-  return url.href;
+  if(url.username||url.password||url.hash||url.searchParams.has('owner_preview')||url.searchParams.has('preview'))return '';
+  // Previous purchased links remain usable; never expose an owner preview URL.
+  if(url.origin==='https://thelaunchera.com'&&['/booking/','/base-booking.html'].includes(url.pathname)&&
+     /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(url.searchParams.get('key')||''))return url.href;
+  // Isolated Pages tenant slug. The authenticated pricing API supplies this URL
+  // only for the signed-in buyer's delivered account.
+  if(url.origin==='https://the-launch-era-new-website.pages.dev'&&
+     /^\/[a-z0-9][a-z0-9-]{1,62}\/$/.test(url.pathname)&&!url.search&&url.pathname!=='/booking/')return url.href;
+  return '';
  }catch{return ''}
 }
 async function loadBuyerBookingShare(){
