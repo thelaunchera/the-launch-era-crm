@@ -1016,7 +1016,14 @@ body.crm-owner-view #buyerServiceCareHub,body.crm-owner-view #buyerServiceCareNa
 <p class="muted">After connecting, send one test email <strong>from your Command Center login email</strong> to the reply inbox above. Then refresh.</p></details>
 <div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" id="buyerRefreshMail" class="secondary">Refresh status</button><button type="button" id="buyerActivateMail" disabled>Turn on</button><button type="button" id="buyerPauseMail" class="secondary" disabled>Turn off follow-ups</button></div>
 <p id="buyerMailFootnote" class="muted" style="margin-top:10px">Only eligible open quote requests receive follow-ups. Replies and unsubscribes stop them. The Launch Era manages the sender and incoming responses. Follow-ups begin only after your system is delivered.</p>
-</article><article id="ownerSupportPanel" class="panel hidden crm-owner-only" style="padding:22px;margin-top:16px">
+</article><article id="ownerCheckoutMonitor" class="panel crm-owner-only" style="display:none;padding:20px;margin:16px 0;border:1px solid #d4e3ef;border-radius:20px;background:#fff">
+ <div class="section-title" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">Checkout activity <button class="secondary" id="ownerCheckoutRefresh" type="button">Refresh from Stripe</button></div>
+ <p class="muted" style="margin:7px 0 12px">Live Stripe sessions · Created ≠ confirmed visitor · Expired ≠ confirmed lost customer. Tests are separated.</p>
+ <div id="ownerCheckoutCounts" style="display:flex;gap:10px;flex-wrap:wrap" aria-live="polite"></div>
+ <p id="ownerCheckoutStatus" class="muted" role="status" style="margin:12px 0"></p>
+ <div id="ownerCheckoutRows" style="display:grid;gap:8px;max-height:390px;overflow:auto"></div>
+ </article>
+<article id="ownerSupportPanel" class="panel hidden crm-owner-only" style="padding:22px;margin-top:16px">
  <div class="section-title">Client Support Inbox</div>
  <p class="muted">Private support and suggestions from your buyers. Separate from their customer inquiries.</p>
  <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
@@ -5005,4 +5012,45 @@ const observer=new MutationObserver(()=>{if(!applying)apply()});observer.observe
   observer.observe(document.body,{attributes:true,attributeFilter:["class"]});
   window.addEventListener("pageshow",sync);
 })();
-</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script></body></html>
+</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script><script id="tle-owner-checkout-monitor-script">
+(function(){
+ const endpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-owner-checkout-monitor";
+ const panel=document.getElementById("ownerCheckoutMonitor"),refresh=document.getElementById("ownerCheckoutRefresh"),counts=document.getElementById("ownerCheckoutCounts"),status=document.getElementById("ownerCheckoutStatus"),rows=document.getElementById("ownerCheckoutRows");
+ if(!panel||!refresh||!counts||!status||!rows)return;
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ let busy=false,lastLoad=0;
+ async function update(){
+  if(busy)return;
+  if(!document.body.classList.contains("crm-owner-view")||document.getElementById("app")?.classList.contains("hidden"))return;
+  busy=true;refresh.disabled=true;status.textContent="Checking Stripe LIVE…";
+  try {
+   if(typeof db==="undefined")throw Error("Sign in required");
+   const {data,error}=await db.auth.getSession();
+   if(error||!data?.session?.access_token)throw Error("Sign in required");
+   const response=await fetch(endpoint,{headers:{"Authorization":"Bearer "+data.session.access_token,"apikey":"sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB"},cache:"no-store"});
+   const result=await response.json();
+   if(!response.ok||!result.ok)throw Error(result.error||"Stripe activity unavailable");
+   const set=result.counts||{};
+   counts.innerHTML=[["Created",set.created],["Paid",set.paid],["Expired",set.expired]].map(([n,v])=>'<span style="padding:8px 12px;background:#eff6fc;border-radius:12px;color:#16354a;font-weight:700">'+esc(n)+': '+esc(v||0)+'</span>').join("");
+   rows.innerHTML=(result.items||[]).slice(0,35).map(item=>{
+    const label=item.state==="paid"?"Paid":item.state==="expired"?"Expired":"Created";
+    const price=item.amount===null?"—":new Intl.NumberFormat("en-US",{style:"currency",currency:(item.currency||"usd").toUpperCase()}).format(item.amount/100);
+    const date=item.created_at?new Date(item.created_at*1000).toLocaleString():"—";
+    return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid #e0e9ef;border-radius:12px;padding:10px 12px"><div><strong>'+esc(item.offer)+'</strong> <span style="font-size:12px;color:#526879">'+esc(date)+'</span><div style="color:#526879;font-size:12px">'+(item.email?esc(item.email):"Email not provided")+(item.internal_possible?" · Possible internal test":"")+'</div></div><div style="font-weight:700">'+esc(price)+' · '+esc(label)+'</div></div>';
+   }).join("")||'<p class="muted">No sessions on this page.</p>';
+   status.textContent=(result.has_more?"Showing the 100 most recent sessions. Older sessions are not included. ":"")+result.note;
+   lastLoad=Date.now();
+  }catch(e){status.textContent=e.message||"Unable to load Stripe activity";counts.replaceChildren();rows.replaceChildren()}
+  finally{busy=false;refresh.disabled=false}
+ }
+ refresh.addEventListener("click",update);
+ function sync(){
+  const visible=document.body.classList.contains("crm-owner-view")&&!document.getElementById("app")?.classList.contains("hidden");
+  panel.style.display=visible?"block":"none";
+  if(visible&&Date.now()-lastLoad>60000)update();
+ }
+ new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:false});
+ const app=document.getElementById("app");if(app)new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:["class"]});
+ sync();
+})();
+</script></body></html>
