@@ -4914,6 +4914,50 @@ async function loadStoredNotifications(){if(!workspace)return;const wsId=workspa
  }
 }
 bootAfterPrivateEmailConfirmation();
+
+// Private owner checkout activity — uses authenticated CRM client in this module.
+
+(function(){
+ const endpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-owner-checkout-monitor";
+ const panel=document.getElementById("ownerCheckoutMonitor"),refresh=document.getElementById("ownerCheckoutRefresh"),counts=document.getElementById("ownerCheckoutCounts"),status=document.getElementById("ownerCheckoutStatus"),rows=document.getElementById("ownerCheckoutRows");
+ if(!panel||!refresh||!counts||!status||!rows)return;
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ let busy=false,lastLoad=0;
+ async function update(){
+  if(busy)return;
+  if(!document.body.classList.contains("crm-owner-view")||document.getElementById("app")?.classList.contains("hidden"))return;
+  busy=true;refresh.disabled=true;status.textContent="Checking Stripe LIVE…";
+  try {
+   if(typeof db==="undefined")throw Error("Sign in required");
+   const {data,error}=await db.auth.getSession();
+   if(error||!data?.session?.access_token)throw Error("Sign in required");
+   const response=await fetch(endpoint,{headers:{"Authorization":"Bearer "+data.session.access_token,"apikey":"sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB"},cache:"no-store"});
+   const result=await response.json();
+   if(!response.ok||!result.ok)throw Error(result.error||"Stripe activity unavailable");
+   const set=result.counts||{};
+   counts.innerHTML=[["Created",set.created],["Paid",set.paid],["Expired",set.expired]].map(([n,v])=>'<span style="padding:8px 12px;background:#eff6fc;border-radius:12px;color:#16354a;font-weight:700">'+esc(n)+': '+esc(v||0)+'</span>').join("");
+   rows.innerHTML=(result.items||[]).slice(0,35).map(item=>{
+    const label=item.state==="paid"?"Paid":item.state==="expired"?"Expired":"Created";
+    const price=item.amount===null?"—":new Intl.NumberFormat("en-US",{style:"currency",currency:(item.currency||"usd").toUpperCase()}).format(item.amount/100);
+    const date=item.created_at?new Date(item.created_at*1000).toLocaleString():"—";
+    return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid #e0e9ef;border-radius:12px;padding:10px 12px"><div><strong>'+esc(item.offer)+'</strong> <span style="font-size:12px;color:#526879">'+esc(date)+'</span><div style="color:#526879;font-size:12px">'+(item.email?esc(item.email):"Email not provided")+(item.internal_possible?" · Possible internal test":"")+'</div></div><div style="font-weight:700">'+esc(price)+' · '+esc(label)+'</div></div>';
+   }).join("")||'<p class="muted">No sessions on this page.</p>';
+   status.textContent=(result.has_more?"Showing the 100 most recent sessions. Older sessions are not included. ":"")+result.note;
+   lastLoad=Date.now();
+  }catch(e){status.textContent=e.message||"Unable to load Stripe activity";counts.replaceChildren();rows.replaceChildren()}
+  finally{busy=false;refresh.disabled=false}
+ }
+ refresh.addEventListener("click",update);
+ function sync(){
+  const visible=document.body.classList.contains("crm-owner-view")&&!document.getElementById("app")?.classList.contains("hidden");
+  panel.style.display=visible?"block":"none";
+  if(visible&&Date.now()-lastLoad>60000)update();
+ }
+ new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:false});
+ const app=document.getElementById("app");if(app)new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:["class"]});
+ sync();
+})();
+
 </script><script id="crmLanguageScript">
 (()=>{const translations={"Overview":"Resumen","Leads & pipeline":"Prospectos y embudo","Incoming requests":"Solicitudes recibidas","Help & FAQ":"Ayuda y preguntas frecuentes","WORKSPACE":"ESPACIO DE TRABAJO","YOUR WORKSPACE / OVERVIEW":"TU ESPACIO / RESUMEN","Good to have you here":"Qué bueno tenerte aquí","Thoughtful follow-ups, in one place.":"Seguimientos organizados en un solo lugar.","Password":"Contraseña","Toggle navigation":"Abrir menú","Add lead":"Añadir prospecto","Account settings":"Configuración de cuenta","Workspace settings":"Configuración del espacio","Email settings":"Configuración de correo","Notification settings":"Configuración de notificaciones","Settings & preferences":"Configuración y preferencias",
 "Sign out":"Cerrar sesión","Sign in":"Iniciar sesión","Create account":"Crear cuenta","Forgot password?":"¿Olvidaste tu contraseña?","Privacy":"Privacidad","Terms":"Términos","Contact":"Contacto","FAQ":"Preguntas frecuentes","Search leads":"Buscar prospectos","+ New lead":"+ Nuevo prospecto","Create my workspace":"Crear mi espacio","+ Add lead":"+ Añadir prospecto","View all leads":"Ver todos los prospectos","Export CSV":"Exportar CSV","Pipeline":"Embudo","Follow-up calendar":"Calendario de seguimientos","Won clients":"Clientes ganados","All":"Todos","Freebies":"Recursos gratuitos","Website":"Sitio web","Demo requests":"Solicitudes de demo","Add your first lead":"Añade tu primer prospecto","Update password":"Actualizar contraseña","Cancel":"Cancelar","Send email →":"Enviar correo →","Not now":"Ahora no","Preview follow-up":"Vista previa del seguimiento","Send email to contact":"Enviar correo al contacto","Save changes":"Guardar cambios","Delete":"Eliminar","Home":"Inicio","Leads":"Prospectos","Calendar":"Calendario","Inbox":"Bandeja de entrada","Emails":"Correos","Clients":"Clientes","Help":"Ayuda","Settings":"Configuración","New lead":"Nuevo prospecto","Notifications":"Notificaciones","Search":"Buscar","Language":"Idioma","English":"Inglés","Spanish":"Español","Email follow-up permission":"Permiso para seguimiento por correo","Enable follow-up for this contact":"Activar seguimiento para este contacto","Permission status":"Estado del permiso","Permission source":"Origen del permiso","Follow-up":"Seguimiento","Business":"Negocio","Email":"Correo","Status":"Estado","Notes":"Notas","Source":"Origen","Contact":"Contacto","No leads yet":"Todavía no hay prospectos","Mark read":"Marcar como leído","All caught up.":"Todo al día.","New":"Nuevo","Contacted":"Contactado","Follow-up":"Seguimiento","Won":"Ganado","Lost":"Perdido","Add lead":"Añadir prospecto","New leads":"Prospectos nuevos","Total leads":"Total de prospectos","Follow-ups due":"Seguimientos pendientes","Email sent":"Correo enviado","Email failed":"Error de correo","Email delivered":"Correo entregado","Email opened":"Correo abierto","Email clicked":"Clic en correo","No permission":"Sin permiso","Withdrawn":"Retirado","Not verified — no emails":"Sin verificar — no enviar correos","Authorized":"Autorizado","Withdrawn / unsubscribed":"Retirado / baja","Enable follow-up for this contact":"Activar seguimiento para este contacto","Manual email is available for contacts with documented permission. Confirm the recipient before sending. Campaign sending remains disabled.":"El correo manual está disponible para contactos con autorización documentada. Confirma el destinatario antes de enviar. Los envíos de campañas permanecen desactivados.","Only mark authorized if the contact has given valid permission. Never assume consent.":"Marca autorizado solo cuando el contacto haya dado permiso válido. Nunca supongas consentimiento.","Email subject":"Asunto del correo","Message":"Mensaje","Name":"Nombre","Phone":"Teléfono","Language":"Idioma","English":"Inglés","Spanish":"Español","Search by business or email":"Buscar por negocio o correo","View all":"Ver todos","Today":"Hoy","Tomorrow":"Mañana","Upcoming":"Próximos","Overdue":"Vencidos","No scheduled follow-ups":"Sin seguimientos programados","Sign in required":"Debes iniciar sesión","Save":"Guardar","Close":"Cerrar","Add":"Añadir","Edit":"Editar","Remove":"Eliminar","Loading...":"Cargando...","Please wait...":"Espera...","Email follow-up":"Seguimiento por correo","Automation":"Automatización","Manual":"Manual","Scheduled":"Programado","Completed":"Completado","Skipped":"Omitido","Cancelled":"Cancelado","Ready":"Listo","Your leads":"Tus prospectos","Welcome back":"Bienvenida de nuevo"};
@@ -5012,45 +5056,4 @@ const observer=new MutationObserver(()=>{if(!applying)apply()});observer.observe
   observer.observe(document.body,{attributes:true,attributeFilter:["class"]});
   window.addEventListener("pageshow",sync);
 })();
-</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script><script id="tle-owner-checkout-monitor-script">
-(function(){
- const endpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-owner-checkout-monitor";
- const panel=document.getElementById("ownerCheckoutMonitor"),refresh=document.getElementById("ownerCheckoutRefresh"),counts=document.getElementById("ownerCheckoutCounts"),status=document.getElementById("ownerCheckoutStatus"),rows=document.getElementById("ownerCheckoutRows");
- if(!panel||!refresh||!counts||!status||!rows)return;
- const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- let busy=false,lastLoad=0;
- async function update(){
-  if(busy)return;
-  if(!document.body.classList.contains("crm-owner-view")||document.getElementById("app")?.classList.contains("hidden"))return;
-  busy=true;refresh.disabled=true;status.textContent="Checking Stripe LIVE…";
-  try {
-   if(typeof db==="undefined")throw Error("Sign in required");
-   const {data,error}=await db.auth.getSession();
-   if(error||!data?.session?.access_token)throw Error("Sign in required");
-   const response=await fetch(endpoint,{headers:{"Authorization":"Bearer "+data.session.access_token,"apikey":"sb_publishable_0TueitFYiRF3rAEMLMT8-w_FvbvY0rB"},cache:"no-store"});
-   const result=await response.json();
-   if(!response.ok||!result.ok)throw Error(result.error||"Stripe activity unavailable");
-   const set=result.counts||{};
-   counts.innerHTML=[["Created",set.created],["Paid",set.paid],["Expired",set.expired]].map(([n,v])=>'<span style="padding:8px 12px;background:#eff6fc;border-radius:12px;color:#16354a;font-weight:700">'+esc(n)+': '+esc(v||0)+'</span>').join("");
-   rows.innerHTML=(result.items||[]).slice(0,35).map(item=>{
-    const label=item.state==="paid"?"Paid":item.state==="expired"?"Expired":"Created";
-    const price=item.amount===null?"—":new Intl.NumberFormat("en-US",{style:"currency",currency:(item.currency||"usd").toUpperCase()}).format(item.amount/100);
-    const date=item.created_at?new Date(item.created_at*1000).toLocaleString():"—";
-    return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid #e0e9ef;border-radius:12px;padding:10px 12px"><div><strong>'+esc(item.offer)+'</strong> <span style="font-size:12px;color:#526879">'+esc(date)+'</span><div style="color:#526879;font-size:12px">'+(item.email?esc(item.email):"Email not provided")+(item.internal_possible?" · Possible internal test":"")+'</div></div><div style="font-weight:700">'+esc(price)+' · '+esc(label)+'</div></div>';
-   }).join("")||'<p class="muted">No sessions on this page.</p>';
-   status.textContent=(result.has_more?"Showing the 100 most recent sessions. Older sessions are not included. ":"")+result.note;
-   lastLoad=Date.now();
-  }catch(e){status.textContent=e.message||"Unable to load Stripe activity";counts.replaceChildren();rows.replaceChildren()}
-  finally{busy=false;refresh.disabled=false}
- }
- refresh.addEventListener("click",update);
- function sync(){
-  const visible=document.body.classList.contains("crm-owner-view")&&!document.getElementById("app")?.classList.contains("hidden");
-  panel.style.display=visible?"block":"none";
-  if(visible&&Date.now()-lastLoad>60000)update();
- }
- new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:false});
- const app=document.getElementById("app");if(app)new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:["class"]});
- sync();
-})();
-</script></body></html>
+</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script></body></html>
