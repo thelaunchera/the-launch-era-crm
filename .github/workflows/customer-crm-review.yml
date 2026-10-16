@@ -1,0 +1,39 @@
+name: Review commercial customer CRM
+on:
+  push:
+    branches: [feature/customer-crm-ui-20261016]
+  pull_request:
+    paths:
+      - "customer-crm/**"
+      - "scripts/build-customer-crm.mjs"
+      - "scripts/qa-customer-crm*.mjs"
+      - ".github/workflows/customer-crm-review.yml"
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build isolated commercial release
+        run: node scripts/build-customer-crm.mjs
+      - name: Check code and private-feature separation
+        run: |
+          node --check customer-crm/app.js
+          node scripts/qa-customer-crm.mjs
+      - name: Install browser testing tools
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test synthetic user flows and responsiveness
+        run: node scripts/qa-customer-crm-browser.mjs
+      - name: Save isolated customer preview for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-crm-isolated-preview
+          path: .customer-site/
+          retention-days: 7
