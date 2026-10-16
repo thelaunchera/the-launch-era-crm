@@ -16,12 +16,13 @@ const server=createServer(async(req,res)=>{
 await new Promise(done=>server.listen(0,"127.0.0.1",done));
 const origin="http://127.0.0.1:"+server.address().port;
 const mock="window.supabase={createClient(){\n const rows=[{id:\"fx-1\",workspace_id:\"w-fixture\",business:\"Sample Cleaning Co\",contact:\"Sample Contact\",source:\"Referral\",stage:\"New\",notes:\"\",followup:\"2026-10-25\"},{id:\"fx-2\",workspace_id:\"w-fixture\",business:\"Example House Care\",contact:\"Example Person\",source:\"Website\",stage:\"Follow-up\",notes:\"\",followup:\"2026-10-20\"}];\n const api={auth:{getUser:async()=>({data:{user:{id:\"fixture-user\",email:\"qa@example.invalid\"}},error:null}),signInWithPassword:async()=>({error:null}),signOut:async()=>({error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){\n let action=\"\",values={},id=\"\";\n const chain={select(){return chain},eq(k,v){if(k===\"id\")id=v;return chain},is(){return chain},order(){return chain},\n update(data){action=\"update\";values=data;return chain},insert(data){action=\"insert\";values=data;return chain},\n async limit(){if(table===\"tle_crm_workspaces\")return {data:[{id:\"w-fixture\",created_by:\"fixture-user\",is_internal:false,name:\"Sample Business\"}]};if(table===\"tle_crm_leads\")return {data:rows.map(x=>({...x}))};return {data:[]}},\n async single(){if(action===\"update\"){const row=rows.find(x=>x.id===id);if(row)Object.assign(row,values);return {data:{id},error:null}}if(action===\"insert\"){const row={id:\"fx-\"+(rows.length+1),...values};rows.push(row);return {data:{id:row.id},error:null}}return {data:{id},error:null}}};\n return chain;\n }};\n return api;\n}}";
+const withForeign=mock.replace(' const api={',' rows.push({id:"foreign-fixture",workspace_id:"other-workspace",business:"Foreign Lead",stage:"New",notes:""});\n const api={');
 let instance;
 try{
  instance=await chromium.launch({headless:true});
  for(const width of [375,768,1024,1440]){
   const page=await instance.newPage({viewport:{width,height:900},reducedMotion:"reduce"});
-  await page.route("**/vendor/supabase-js-v2.57.0.umd.js",r=>r.fulfill({status:200,contentType:"application/javascript",body:mock}));
+  await page.route("**/vendor/supabase-js-v2.57.0.umd.js",r=>r.fulfill({status:200,contentType:"application/javascript",body:withForeign}));
   const errors=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(origin,{waitUntil:"load"});
   await page.locator("#pipelineBoard .deal").first().waitFor({timeout:12000});
@@ -45,4 +46,12 @@ try{
   console.log("PASS customer-only CRM viewport and synthetic interactions",width);
   await page.close();
  }
+ // Synthetic auth denial: owner/internal workspaces must not open the buyer product.
+ const denied=await instance.newPage();
+ await denied.route("**/vendor/supabase-js-v2.57.0.umd.js",route=>route.fulfill({status:200,contentType:"application/javascript",body:mock.replace("is_internal:false","is_internal:true")}));
+ await denied.goto(origin,{waitUntil:"load"});
+ await denied.locator("#loginStatus").getByText("Customer workspace access required",{exact:false}).waitFor({timeout:8000});
+ assert.equal(await denied.locator("#app").isVisible(),false,"Internal workspace cannot use customer CRM");
+ console.log("PASS owner/internal workspace denied");
+ await denied.close();
 }finally{await instance?.close();await new Promise(done=>server.close(done))}
