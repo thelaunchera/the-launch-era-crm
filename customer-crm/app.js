@@ -19,6 +19,7 @@ const status=msg=>{$('appStatus').textContent=msg};
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400)}
 function empty(msg){return node('div','empty',msg)}
 function ensureAuthorized(){if(!user||!workspace||workspace.is_internal!==false)throw Error('Customer workspace access required.')}
+function restrictedNewStage(lead){return lead?.email_consent_status==='withdrawn'||lead?.contact_decision==='no'||/unsubscrib|opted out|stop emailing/i.test(String(lead?.notes||''))}
 async function boot(){
  if(!db){$('loginStatus').textContent='Sign-in service unavailable. Refresh and try again.';return}
  const {data,error}=await db.auth.getUser();if(error||!data?.user){loggedOut();return}
@@ -42,7 +43,7 @@ function loggedOut(){user=null;workspace=null;leads=[];steps=[];selected=null;sh
 async function refresh(){
  ensureAuthorized();
  const generation=++loadVersion;status('Loading your workspace…');
- const result=await db.from('tle_crm_leads').select('id,workspace_id,business,contact,email,source,stage,followup,notes,created_at,updated_at,email_consent_status').eq('workspace_id',workspace.id).is('archived_at',null).order('created_at',{ascending:false}).limit(1000);
+ const result=await db.from('tle_crm_leads').select('id,workspace_id,business,contact,email,source,stage,followup,notes,created_at,updated_at,email_consent_status,contact_decision,replied_at').eq('workspace_id',workspace.id).is('archived_at',null).order('created_at',{ascending:false}).limit(1000);
  if(generation!==loadVersion)return;
  if(result.error){status('Could not read your leads. Your existing records were not changed. '+result.error.message);return}
  leads=result.data||[];
@@ -79,6 +80,7 @@ function captureRects(){const map=new Map();$('pipelineBoard').querySelectorAll(
 function flip(before){if(reduce()||!before)return;requestAnimationFrame(()=>{$('pipelineBoard').querySelectorAll('.deal[data-id]').forEach(el=>{const old=before.get(el.dataset.id);if(!old)return;const r=el.getBoundingClientRect(),dx=old.x-r.left,dy=old.y-r.top;if(Math.abs(dx)+Math.abs(dy)<1)return;el.animate([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate(0px,0px)'}],{duration:594,easing:'cubic-bezier(.2,.88,.2,1)'})})})}
 async function moveStage(lead,target){
  if(!STAGES.includes(target)||lead.stage===target)return;
+ if(target==='New'&&restrictedNewStage(lead)){status('This contact has an opt-out or no-contact restriction. It cannot be moved to New.');return}
  const before=captureRects();
  try{await saveLead(lead.id,{stage:target});flip(before);toast(safe(lead.business,70)+' moved to '+target)}
  catch(e){status('Stage could not be saved: '+e.message)}
@@ -191,6 +193,7 @@ async function saveContact(e){
  const lead=leads.find(x=>x.id===selected);if(!lead)return;
  const form=e.currentTarget,stage=form.elements.stage.value,followup=form.elements.followup.value||null;
  if(!STAGES.includes(stage))return;
+ if(stage==='New'&&restrictedNewStage(lead)){status('This contact has an opt-out or no-contact restriction.');return}
  const button=form.querySelector('button[type="submit"]');button.disabled=true;
  try{await saveLead(lead.id,{stage,followup});openContact(lead.id);toast('Contact updated')}
  catch(err){status('Could not save contact: '+err.message)}finally{button.disabled=false}
