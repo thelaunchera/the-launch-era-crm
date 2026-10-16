@@ -184,7 +184,7 @@ function openContact(id){
  const activity=$('contactActivity');activity.replaceChildren();
  const item=node('div','data-row');item.append(node('strong','',lead.stage+' · '+(lead.updated_at?new Date(lead.updated_at).toLocaleString():'Saved record')));
  activity.append(item);
- showContactTab('activity');$('contactDialog').showModal();
+ showContactTab('activity');if(!$('contactDialog').open)$('contactDialog').showModal();
 }
 async function saveContact(e){
  e.preventDefault();if(!selected)return;
@@ -200,7 +200,7 @@ async function addNote(e){
  const lead=leads.find(x=>x.id===selected);if(!lead)return;
  const form=e.currentTarget,note=safe(form.elements.note.value,2000);if(!note)return;
  const stamped='['+new Date().toISOString()+'] '+note;
- const old=safe(lead.notes,60000),combined=(old?old+'\n\n':'')+stamped;
+ const old=String(lead.notes||''),combined=(old?old+'\n\n':'')+stamped;
  const button=form.querySelector('button[type="submit"]');button.disabled=true;
  try{await saveLead(lead.id,{notes:combined});$('noteHistory').textContent=combined;form.reset();toast('Note saved')}
  catch(err){status('Could not save note: '+err.message)}finally{button.disabled=false}
@@ -236,7 +236,7 @@ function renderBookings(){
 }
 function renderForecast(){
  const counts=STAGES.map(stage=>leads.filter(l=>l.stage===stage).length);
- metrics($('forecastCounts'),[['Qualified/Contacted',counts[1]],['Follow-up in progress',counts[2]],['Won contacts',counts[3]],['Total contacts',leads.length]])
+ metrics($('forecastCounts'),[['Contacted',counts[1]],['Follow-up in progress',counts[2]],['Won contacts',counts[3]],['Total contacts',leads.length]])
 }
 async function snooze(id){
  const l=leads.find(x=>x.id===id);if(!l)return;
