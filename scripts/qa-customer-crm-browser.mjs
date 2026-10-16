@@ -27,6 +27,10 @@ try{
   await page.goto(origin,{waitUntil:"load"});
   await page.locator("#pipelineBoard .deal").first().waitFor({timeout:12000});
   assert.equal(await page.locator("#pipelineBoard .deal").count(),2);
+  await page.locator('#pipelineBoard .deal[data-id="fx-1"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await page.locator('.lane[data-stage="Contacted"] .deal[data-id="fx-1"]').waitFor();
+  assert.equal(await page.evaluate(()=>document.activeElement?.dataset.id),'fx-1','Card must retain focus after keyboard move');
   assert.equal(await page.locator("[data-screen]").count(),8);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,"Body overflow at "+width);
   if(width<=760){await page.locator("#menuToggle").click()}
