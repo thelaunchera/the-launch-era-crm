@@ -46,11 +46,11 @@ async function refresh(){
  const result=await db.from('tle_crm_leads').select('id,workspace_id,business,contact,email,source,stage,followup,notes,created_at,updated_at,email_consent_status,contact_decision,replied_at').eq('workspace_id',workspace.id).is('archived_at',null).order('created_at',{ascending:false}).limit(1000);
  if(generation!==loadVersion)return;
  if(result.error){status('Could not read your leads. Your existing records were not changed. '+result.error.message);return}
- leads=result.data||[];
+ leads=(result.data||[]).filter(row=>row.workspace_id===workspace.id);
  // Read only. Failure here must never block the core CRM.
  const seq=await db.from('tle_crm_followup_steps').select('id,workspace_id,lead_id,step_number,due_at,status,delivery_mode').eq('workspace_id',workspace.id).order('due_at',{ascending:false}).limit(250);
  if(generation!==loadVersion)return;
- steps=seq.error?[]:seq.data||[];
+ steps=seq.error?[]:(seq.data||[]).filter(row=>row.workspace_id===workspace.id);
  status(seq.error?'Follow-up step history is not available for this account.':'');
  render();
 }
