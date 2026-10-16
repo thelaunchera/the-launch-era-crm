@@ -1,0 +1,16 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {Script} from 'node:vm';
+const read=x=>readFileSync(x,'utf8');
+const index=read('index.html'),js=read('assets/booking-calendar-motion.js'),css=read('assets/booking-calendar-motion.css');
+assert(index.includes('id="buyerCalendarGrid"')&&index.includes('id="ownerCalGrid"'),'Original calendars required');
+assert(index.includes("buyerCalendarOpenRequest(x)")&&index.includes('tle_booking_owner_calendar_read'),'Native booking and owner backend handlers must remain unchanged');
+assert(index.includes('b.dataset.dayKey=key')&&index.includes('cell.dataset.dayKey=key'),'Date adapter missing');
+assert(index.includes('pill.dataset.calendarKind=event.kind'),'Owner milestone adapter missing');
+assert(index.includes('grid.dataset.monthKey=monthKey')&&index.includes("grid.dataset.monthKey=y+'-'"),'Month adapter missing');
+assert(index.includes('booking-calendar-motion.css?v=20261016-1')&&index.includes('booking-calendar-motion.js?v=20261016-1'),'Motion assets not loaded');
+assert(js.includes("create('owner');create('buyer')"),'Owner and buyer independent overlays required');
+assert(!/fetch\s*\(|\.rpc\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|localStorage\.setItem\s*\(/.test(js),'Motion adapter must not write to API, DB or local storage');
+assert(css.includes('prefers-reduced-motion:reduce'),'Reduced-motion fallback required');
+new Script(js);
+console.log('PASS: CB Depot legacy CRM calendar is read-only and native handlers preserved');
