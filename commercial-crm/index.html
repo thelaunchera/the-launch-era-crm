@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#FAF8F3">
+<meta name="robots" content="noindex,nofollow">
+<title>Business CRM — Private Testing Preview</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="app" class="shell" hidden>
+  <aside class="sidebar" id="sidebar" aria-label="Business CRM navigation">
+    <div class="brand"><span class="brand-tile" aria-hidden="true">✦</span><div><strong>Business CRM</strong><small>YOUR WORKSPACE</small></div></div>
+    <nav id="nav" aria-label="CRM pages">
+      <button type="button" data-view="pipeline" aria-current="page">▦ <span>Pipeline</span></button>
+      <button type="button" data-view="contacts">♧ <span>Contacts</span></button>
+      <button type="button" data-view="leads">◫ <span>Leads</span></button>
+      <button type="button" data-view="inbox">✉ <span>Inbox</span></button>
+      <button type="button" data-view="sequences">⇢ <span>Sequences</span></button>
+      <button type="button" data-view="calendar">▣ <span>Calendar</span></button>
+      <button type="button" data-view="forecast">◈ <span>Forecast</span></button>
+      <button type="button" data-view="tasks">☑ <span>Tasks</span></button>
+    </nav>
+    <div class="sidebar-footer"><div id="workspaceName"></div><button id="signOut" type="button" class="secondary">Log out</button></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><button class="mobile-menu secondary" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><div><small id="breadcrumb">WORKSPACE / PIPELINE</small><h1 id="pageTitle">Pipeline</h1></div><div class="top-actions"><span class="testing-chip">TESTING PREVIEW</span><span class="user-initial" id="userInitial" aria-label="Signed in user">U</span></div></header>
+    <main id="main" tabindex="-1" aria-live="off"></main>
+  </div>
+</div>
+<section class="auth-screen" id="authScreen" aria-labelledby="authTitle">
+  <div class="auth-card"><div class="brand"><span class="brand-tile">✦</span><strong>Business CRM</strong></div>
+  <p class="eyebrow">CUSTOMER PRODUCT · ISOLATED TESTING</p>
+  <h1 id="authTitle">Your business, organized.</h1>
+  <p class="muted">Sign in with an authorized testing account. No real messages or customer records are supplied with this preview.</p>
+  <form id="loginForm"><label>Email<input name="email" type="email" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required minlength="6"></label><button type="submit" class="primary full">Sign in</button></form>
+  <p id="authStatus" class="muted" role="status"></p>
+  <div id="noWorkspace" hidden><p>No workspace is assigned to this account.</p><button type="button" id="createTestWorkspace" class="secondary">Create an empty testing workspace</button></div>
+  </div>
+</section>
+<dialog id="recordDialog"><form id="recordForm" method="dialog"><header class="dialog-header"><h2 id="recordTitle">New record</h2><button type="button" id="closeDialog" class="secondary" aria-label="Close">×</button></header><div id="recordFields"></div><p id="recordError" class="error" role="alert"></p><footer class="dialog-footer"><button type="button" id="cancelDialog" class="secondary">Cancel</button><button type="submit" id="saveRecord" class="primary">Save</button></footer></form></dialog>
+<div class="toast" role="status" aria-live="polite" id="toast"></div>
+<script src="../vendor/supabase-js-v2.57.0.umd.js"></script>
+<script src="./config.staging.js"></script>
+<script src="./app.js" defer></script>
+</body></html>
