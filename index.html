@@ -603,7 +603,7 @@ body.crm-owner-view #buyerServiceCareHub,body.crm-owner-view #buyerServiceCareNa
   }
   #app:not(.hidden) :is(input,select,textarea){min-width:0}
 }
-</style><link rel="stylesheet" href="./assets/cb-depot-theme.css?v=20261014-v1"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
+</style><link rel="stylesheet" href="./assets/cb-depot-theme.css?v=20261014-v1"><link rel="stylesheet" href="./assets/booking-calendar-motion.css?v=20261016-1"></head><body><div id="privateActivationSplash" class="hidden" role="status" aria-live="polite">
 <div class="pa-card">
 <img class="pa-logo" id="paLogo" src="./app-icons/tle-192.png?v=20261012-legacy" alt="">
 <div class="pa-mark" id="paBrand">PRIVATE COMMAND CENTER</div>
@@ -3115,7 +3115,7 @@ function renderOwnerCalendar(){
  }
  const month=ownerCalendarMonth,y=month.getFullYear(),m=month.getMonth();
  $('ownerCalMonth').textContent=new Date(y,m,1).toLocaleDateString(es?'es-US':'en-US',{month:'long',year:'numeric'});
- const grid=$('ownerCalGrid');grid.replaceChildren();
+ const grid=$('ownerCalGrid');grid.replaceChildren();grid.dataset.monthKey=y+'-'+String(m+1).padStart(2,'0');
  const weekday=es?['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
  for(const day of weekday){const head=ownerPageElem('div',day,'font-size:11px;color:#668091;text-align:center;padding:7px 0;font-weight:800');grid.append(head)}
  const offset=new Date(y,m,1).getDay();
@@ -3127,13 +3127,13 @@ function renderOwnerCalendar(){
   const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
   const list=counts.get(key)||[],inside=date.getMonth()===m,chosen=ownerCalendarSelectedDay===key,isToday=key===today;
   const bg=chosen?'#daedf9':inside?'#fff':'#f8fafb';
-  const b=ownerPageElem('button');b.type='button';b.setAttribute('aria-label',ownerCalendarDisplayDate(key)+': '+list.length+' events');b.setAttribute('aria-pressed',String(chosen));
+  const b=ownerPageElem('button');b.type='button';b.dataset.dayKey=key;b.setAttribute('aria-label',ownerCalendarDisplayDate(key)+': '+list.length+' events');b.setAttribute('aria-pressed',String(chosen));
   b.style.cssText='display:flex;flex-direction:column;align-items:stretch;min-height:76px;border:1px solid '+(chosen?'#588eb0':isToday?'#96bcda':'#e7edf2')+';border-radius:12px;text-align:left;background:'+bg+';color:'+(inside?'#233c4b':'#a1b1ba')+';padding:8px 6px;gap:4px;font-size:12px;box-shadow:none;';
   const number=ownerPageElem('strong',String(date.getDate()),'font-size:12px;color:'+(isToday?'#326e97':'inherit'));b.append(number);
   for(const event of list.slice(0,2)){
    const cfg=ownerCalendarKinds[event.kind]||{en:event.kind,es:event.kind,color:'#7999aa'};
    const pill=ownerPageElem('div',(es?cfg.es:cfg.en).slice(0,11),'font-size:9px;font-weight:700;color:#263f4e;border-radius:5px;padding:3px 4px;background:'+(event.planned?'#fff1d6':'#e3eff7')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%');
-   b.append(pill);
+   pill.dataset.calendarKind=event.kind;b.append(pill);
   }
   if(list.length>2)b.append(ownerPageElem('span','+'+(list.length-2),'font-size:9px;color:#688095'));
   b.onclick=()=>{ownerCalendarSelectedDay=key;renderOwnerCalendar();};
@@ -3926,7 +3926,7 @@ function renderBuyerBookingCalendar(){
  const es=buyerEs(),first=new Date(buyerCalendarMonth.getFullYear(),buyerCalendarMonth.getMonth(),1),today=buyerDateKey(new Date());
  title.textContent=first.toLocaleDateString(es?'es-US':'en-US',{month:'long',year:'numeric'});
  const records=buyerCalendarRecords();
- const monthKey=buyerDateKey(first).slice(0,7);
+ const monthKey=buyerDateKey(first).slice(0,7);grid.dataset.monthKey=monthKey;
  const thisMonth=records.filter(x=>buyerRequestedDate(x).startsWith(monthKey));
  const booked=thisMonth.filter(x=>x.status==='booked').length;
  $('buyerCalendarMonthSummary').textContent=buyerText(booked+' confirmed bookings · '+(thisMonth.length-booked)+' pending requests',booked+' reservas confirmadas · '+(thisMonth.length-booked)+' solicitudes pendientes');
@@ -3940,7 +3940,7 @@ function renderBuyerBookingCalendar(){
  for(let i=0;i<cellCount;i++){
   const date=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i),key=buyerDateKey(date),isOutside=date.getMonth()!==first.getMonth();
   const cell=buyerCreate('div',undefined,'buyer-cal-cell'+(isOutside?' outside':'')+(key===today?' today':'')+(key===buyerCalendarSelectedDay?' selected':''));
-  cell.setAttribute('role','gridcell');
+  cell.setAttribute('role','gridcell');cell.dataset.dayKey=key;
   const dayButton=buyerCreate('button',String(date.getDate()),'buyer-cal-day-button');dayButton.type='button';
   dayButton.setAttribute('aria-label',date.toLocaleDateString(es?'es-US':'en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}));
   dayButton.setAttribute('aria-pressed',String(key===buyerCalendarSelectedDay));
@@ -5057,4 +5057,4 @@ const observer=new MutationObserver(()=>{if(!applying)apply()});observer.observe
   observer.observe(document.body,{attributes:true,attributeFilter:["class"]});
   window.addEventListener("pageshow",sync);
 })();
-</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script></body></html>
+</script><script src="./notification-settings.js?v=20261012-per-workspace-v1" defer></script><script src="./assets/cb-depot-theme.js?v=20261014-v1" defer></script><script defer src="./assets/booking-calendar-motion.js?v=20261016-1"></script></body></html>
