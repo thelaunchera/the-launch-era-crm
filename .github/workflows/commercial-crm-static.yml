@@ -1,0 +1,24 @@
+name: Buyer-Only CRM Static QA
+on:
+  pull_request:
+    paths:
+      - 'commercial-crm/**'
+      - 'scripts/qa-commercial-crm-static.mjs'
+      - 'scripts/build-commercial-crm-preview.mjs'
+jobs:
+  buyer-crm-qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate buyer-only sources and JS syntax
+        run: node scripts/qa-commercial-crm-static.mjs
+      - name: Build isolated preview without deploying
+        run: |
+          node scripts/build-commercial-crm-preview.mjs
+          test -f .commercial-crm-preview/index.html
+          test ! -f .commercial-crm-preview/command-center-app.js
