@@ -1,0 +1,43 @@
+name: Review commercial CRM bento features
+on:
+  push:
+    branches: [feature/commercial-bento-features-20261016]
+    paths:
+      - "customer-crm/features-bento.*"
+      - "scripts/build-customer-bento.mjs"
+      - "scripts/qa-customer-bento*.mjs"
+      - ".github/workflows/customer-bento-review.yml"
+  pull_request:
+    paths:
+      - "customer-crm/features-bento.*"
+      - "scripts/build-customer-bento.mjs"
+      - "scripts/qa-customer-bento*.mjs"
+      - ".github/workflows/customer-bento-review.yml"
+permissions:
+  contents: read
+jobs:
+  bento-visual-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Assemble private commercial visual preview
+        run: node scripts/build-customer-bento.mjs
+      - name: Verify layout contract, isolation and JavaScript
+        run: |
+          node --check customer-crm/features-bento.js
+          node scripts/qa-customer-bento.mjs
+      - name: Prepare Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test one-time entrance, 4 widths and reduced motion
+        run: node scripts/qa-customer-bento-browser.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-crm-bento-private-preview
+          path: .bento-preview/
+          retention-days: 7
