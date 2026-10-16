@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#FAF8F3"><meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Your private business CRM workspace">
+<title>Business CRM · The Launch Era</title>
+<link rel="stylesheet" href="./styles.css">
+<script src="../vendor/supabase-js-v2.57.0.umd.js" defer></script>
+<script src="./app.js" defer></script>
+</head>
+<body>
+<div id="auth" class="auth-screen">
+ <div class="auth-card">
+  <span class="brand-tile" aria-hidden="true">◈</span><p class="eyebrow">THE LAUNCH ERA · CUSTOMER CRM</p>
+  <h1>Welcome to your workspace.</h1>
+  <p class="muted">Manage your customers, requests and next steps in one place.</p>
+  <form id="loginForm"><label>Email<input type="email" name="email" autocomplete="email" required></label><label>Password<input type="password" name="password" autocomplete="current-password" required></label><button class="primary" type="submit">Sign in</button></form>
+  <p id="loginStatus" role="status" class="status"></p>
+  <p class="auth-foot">Already have access? Use the credentials issued for your business. No new account or payment is required.</p>
+ </div>
+</div>
+<div id="app" class="app hidden">
+ <div id="mobileScrim" class="scrim hidden"></div>
+ <aside id="sidebar" class="sidebar" aria-label="CRM navigation">
+  <div class="brand"><span class="brand-tile" aria-hidden="true">◈</span><span><strong id="brandName">Business CRM</strong><small>YOUR WORKSPACE</small></span></div>
+  <div class="nav-caption">MANAGE</div>
+  <nav id="nav" aria-label="CRM sections">
+   <button data-view="pipeline" aria-current="page"><span aria-hidden="true">◫</span> Pipeline</button>
+   <button data-view="leads"><span aria-hidden="true">☷</span> Leads</button>
+   <button data-view="contacts"><span aria-hidden="true">♙</span> Contacts</button>
+   <button data-view="inbox"><span aria-hidden="true">✉</span> Inbox</button>
+   <button data-view="sequences"><span aria-hidden="true">⌁</span> Sequences</button>
+   <button data-view="bookings"><span aria-hidden="true">▦</span> Booking Calendar</button>
+   <button data-view="forecast"><span aria-hidden="true">▥</span> Sales Forecast</button>
+   <button data-view="tasks"><span aria-hidden="true">✓</span> Tasks &amp; Follow-ups</button>
+  </nav>
+  <div class="sidebar-bottom"><span class="avatar" id="userAvatar">U</span><span id="signedInEmail"></span><button id="logout" type="button" class="iconbutton" aria-label="Sign out" title="Sign out">↪</button></div>
+ </aside>
+ <main class="main">
+  <div class="mobilebar"><button id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><strong id="mobileBrand">Business CRM</strong><button id="mobileRefresh" type="button" aria-label="Refresh data">↻</button></div>
+  <header class="pagehead"><div><p class="eyebrow" id="viewEyebrow">YOUR BUSINESS / SALES</p><h1 id="viewTitle">Pipeline</h1><p class="subtitle" id="viewDescription">Your active leads, organized by stage.</p></div><div class="header-actions"><button id="refresh" type="button" class="secondary">↻ Refresh</button><button id="newLead" type="button" class="primary">+ Add lead</button></div></header>
+  <p id="appStatus" role="status" class="status" aria-live="polite"></p>
+  <section id="pipeline" data-screen="pipeline" class="screen">
+    <div class="metrics" id="pipelineMetrics"></div>
+    <div class="board-scroll"><div id="pipelineBoard" class="board" aria-label="Sales pipeline"></div></div>
+    <p class="hint">Move leads between stages with the six-dot handle or focus a card and press ← or →. Changes are saved to your workspace.</p>
+  </section>
+  <section id="leads" data-screen="leads" class="screen hidden">
+   <div class="filters"><label class="search-label">Search leads<input id="leadSearch" type="search" placeholder="Business or contact"></label><div id="statusChips" class="chips" role="group" aria-label="Filter by stage"></div></div>
+   <div class="table-scroller"><table class="leadtable"><thead><tr><th>Contact</th><th>Stage</th><th>Source</th><th>Next follow-up</th><th>Action</th></tr></thead><tbody id="leadRows"></tbody></table></div>
+   <p id="leadEmpty" class="empty hidden">No matching leads. Try a different filter.</p>
+  </section>
+  <section id="contacts" data-screen="contacts" class="screen hidden">
+   <p class="muted">Your contact profiles and saved history.</p><div id="contactList" class="contact-grid"></div>
+  </section>
+  <section id="inbox" data-screen="inbox" class="screen hidden">
+   <div class="feature-state"><span aria-hidden="true" class="feature-icon">✉</span><h2>Conversations</h2><p>Email, SMS and chat will appear here after each channel is connected and its permissions are verified. This workspace never generates simulated customer messages.</p><p class="muted">Use Contacts to view saved lead details. Sending from this new screen stays disabled until messaging channels are configured.</p><span class="label-pill">Channels not connected</span></div>
+  </section>
+  <section id="sequences" data-screen="sequences" class="screen hidden">
+   <div class="section-head"><div><h2>Follow-up sequences</h2><p class="muted">Real scheduled steps already associated with your contacts.</p></div></div>
+   <div id="sequenceRows" class="stack"></div><p class="hint">Sending, editing campaign rules and automated retries remain controlled by the existing authorized backend. No demo timers or fabricated rates.</p>
+  </section>
+  <section id="bookings" data-screen="bookings" class="screen hidden">
+   <div class="section-head"><div><h2>Booking Calendar</h2><p class="muted">Confirmed and pending booking requests associated with your business.</p></div></div>
+   <div id="bookingRows" class="stack"><div class="empty">Checking booking access…</div></div>
+  </section>
+  <section id="forecast" data-screen="forecast" class="screen hidden">
+   <div class="metrics" id="forecastCounts"></div><div class="feature-state"><span class="feature-icon" aria-hidden="true">▥</span><h2>Revenue forecast is not configured</h2><p>Lead status is available, but this workspace does not yet store consistent deal amounts or close probabilities. A weighted dollar forecast would be misleading.</p><p class="muted">Stage counts above use your real data. Revenue forecasting can be enabled once deal values, dates and probabilities are stored securely.</p></div>
+  </section>
+  <section id="tasks" data-screen="tasks" class="screen hidden">
+   <div class="section-head"><div><h2>Tasks &amp; Follow-ups</h2><p class="muted">Upcoming and overdue contact follow-ups. Completed task history requires a dedicated task record.</p></div></div>
+   <div id="taskGroups" class="task-groups"></div>
+  </section>
+ </main>
+</div>
+<dialog id="contactDialog" class="drawer">
+ <form method="dialog" class="drawer-head"><div><p class="eyebrow">CONTACT PROFILE</p><h2 id="detailName">Contact</h2></div><button class="iconbutton" aria-label="Close contact profile" type="submit">✕</button></form>
+ <div class="drawer-body">
+  <div class="profile-meta"><span class="avatar big" id="detailAvatar">C</span><div><strong id="detailCompany"></strong><p id="detailSource" class="muted"></p></div></div>
+  <dl id="detailFields"></dl>
+  <form id="detailForm" class="form-stack"><label>Stage<select name="stage" required><option>New</option><option>Contacted</option><option>Follow-up</option><option>Won</option></select></label><label>Next follow-up<input type="date" name="followup"></label><button type="submit" class="primary">Save changes</button></form>
+  <div class="segment" role="tablist" aria-label="Contact details"><button type="button" role="tab" data-contact-tab="activity" aria-selected="true">Activity</button><button type="button" role="tab" data-contact-tab="notes" aria-selected="false">Notes</button></div>
+  <div id="contactActivity" class="tab-content"></div>
+  <div id="contactNotes" class="tab-content hidden"><h3>Saved notes</h3><div id="noteHistory" class="note-history"></div><form id="noteForm" class="form-stack"><label>Add note<textarea name="note" rows="3" maxlength="2000" placeholder="Write a note about this contact…" required></textarea></label><button class="primary" type="submit">Save note</button></form></div>
+ </div>
+</dialog>
+<dialog id="leadDialog" class="modal">
+ <form method="dialog" class="modal-close"><button type="submit" class="iconbutton" aria-label="Close">✕</button></form>
+ <h2>Add a lead</h2><p class="muted">Saved to your business workspace only.</p>
+ <form id="addLeadForm" class="form-stack"><label>Business name<input name="business" maxlength="120" required></label><label>Contact name<input name="contact" maxlength="120"></label><label>Email<input name="email" type="email" maxlength="200"></label><label>Source<input name="source" maxlength="120" placeholder="Website, referral, or other"></label><button type="submit" class="primary">Save lead</button></form>
+</dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>
