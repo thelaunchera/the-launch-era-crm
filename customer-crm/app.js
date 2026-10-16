@@ -78,11 +78,11 @@ function metrics(root,items){root.replaceChildren(...items.map(([label,value])=>
 function render(){if(!workspace)return;renderPipeline();renderLeads();renderContacts();renderSequences();renderBookings();renderForecast();renderTasks()}
 function captureRects(){const map=new Map();$('pipelineBoard').querySelectorAll('.deal[data-id]').forEach(el=>{const r=el.getBoundingClientRect();map.set(el.dataset.id,{x:r.left,y:r.top})});return map}
 function flip(before){if(reduce()||!before)return;requestAnimationFrame(()=>{$('pipelineBoard').querySelectorAll('.deal[data-id]').forEach(el=>{const old=before.get(el.dataset.id);if(!old)return;const r=el.getBoundingClientRect(),dx=old.x-r.left,dy=old.y-r.top;if(Math.abs(dx)+Math.abs(dy)<1)return;el.animate([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate(0px,0px)'}],{duration:594,easing:'cubic-bezier(.2,.88,.2,1)'})})})}
-async function moveStage(lead,target){
+async function moveStage(lead,target,restoreFocus=false){
  if(!STAGES.includes(target)||lead.stage===target)return;
  if(target==='New'&&restrictedNewStage(lead)){status('This contact has an opt-out or no-contact restriction. It cannot be moved to New.');return}
  const before=captureRects();
- try{await saveLead(lead.id,{stage:target});flip(before);toast(safe(lead.business,70)+' moved to '+target)}
+ try{await saveLead(lead.id,{stage:target});flip(before);if(restoreFocus){const changed=$('pipelineBoard').querySelector('.deal[data-id="'+CSS.escape(lead.id)+'"]');changed?.focus({preventScroll:true})}toast(safe(lead.business,70)+' moved to '+target)}
  catch(e){status('Stage could not be saved: '+e.message)}
 }
 function handleGrab(card,lead,handle){
@@ -132,7 +132,7 @@ function renderPipeline(){
     if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();openContact(lead.id)}
     if(['ArrowLeft','ArrowRight'].includes(ev.key)){
      const next=STAGES[STAGES.indexOf(lead.stage)+(ev.key==='ArrowRight'?1:-1)];
-     if(next){ev.preventDefault();void moveStage(lead,next)}
+     if(next){ev.preventDefault();void moveStage(lead,next,true)}
     }
    });
    handleGrab(card,lead,grab);stack.append(card);
