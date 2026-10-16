@@ -31,3 +31,9 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test synthetic user flows and responsiveness
         run: node scripts/qa-customer-crm-browser.mjs
+      - name: Save isolated customer preview for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-crm-isolated-preview
+          path: .customer-site/
+          retention-days: 7
