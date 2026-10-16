@@ -194,9 +194,9 @@ async function saveContact(e){
  const form=e.currentTarget,stage=form.elements.stage.value,followup=form.elements.followup.value||null;
  if(!STAGES.includes(stage))return;
  if(stage==='New'&&restrictedNewStage(lead)){status('This contact has an opt-out or no-contact restriction.');return}
- const button=form.querySelector('button[type="submit"]');button.disabled=true;
- try{await saveLead(lead.id,{stage,followup});openContact(lead.id);toast('Contact updated')}
- catch(err){status('Could not save contact: '+err.message)}finally{button.disabled=false}
+ const button=form.querySelector('button[type="submit"]');window.TLESubmitMotion?.start(button);
+ try{await saveLead(lead.id,{stage,followup});window.TLESubmitMotion?.done(button);await window.TLESubmitMotion?.pause(780);openContact(lead.id);toast('Contact updated')}
+ catch(err){window.TLESubmitMotion?.error(button);status('Could not save contact: '+err.message)}finally{window.TLESubmitMotion?.reset(button)}
 }
 async function addNote(e){
  e.preventDefault();if(!selected)return;
@@ -204,21 +204,22 @@ async function addNote(e){
  const form=e.currentTarget,note=safe(form.elements.note.value,2000);if(!note)return;
  const stamped='['+new Date().toISOString()+'] '+note;
  const old=String(lead.notes||''),combined=(old?old+'\n\n':'')+stamped;
- const button=form.querySelector('button[type="submit"]');button.disabled=true;
- try{await saveLead(lead.id,{notes:combined});$('noteHistory').textContent=combined;form.reset();toast('Note saved')}
- catch(err){status('Could not save note: '+err.message)}finally{button.disabled=false}
+ const button=form.querySelector('button[type="submit"]');window.TLESubmitMotion?.start(button);
+ try{await saveLead(lead.id,{notes:combined});window.TLESubmitMotion?.done(button);await window.TLESubmitMotion?.pause(780);$('noteHistory').textContent=combined;form.reset();toast('Note saved')}
+ catch(err){window.TLESubmitMotion?.error(button);status('Could not save note: '+err.message)}finally{window.TLESubmitMotion?.reset(button)}
 }
 async function addLead(e){
  e.preventDefault();ensureAuthorized();if(busy)return;
  const form=e.currentTarget,name=safe(form.elements.business.value,120);
  if(name.length<2){status('Enter a business name.');return}
  const value={workspace_id:workspace.id,business:name,contact:safe(form.elements.contact.value,120)||null,email:safe(form.elements.email.value,200)||null,source:safe(form.elements.source.value,120)||'Manual',stage:'New'};
- const button=form.querySelector('button[type="submit"]');button.disabled=true;busy=true;
+ const button=form.querySelector('button[type="submit"]');window.TLESubmitMotion?.start(button);busy=true;
  try{
   const result=await db.from('tle_crm_leads').insert(value).select('id').single();
   if(result.error)throw result.error;
+  window.TLESubmitMotion?.done(button);await window.TLESubmitMotion?.pause(780);
   $('leadDialog').close();form.reset();await refresh();navigate('leads');toast('Lead saved')
- }catch(err){status('Could not add lead: '+err.message)}finally{button.disabled=false;busy=false}
+ }catch(err){window.TLESubmitMotion?.error(button);status('Could not add lead: '+err.message)}finally{window.TLESubmitMotion?.reset(button);busy=false}
 }
 function renderSequences(){
  const root=$('sequenceRows');root.replaceChildren();
