@@ -4,9 +4,8 @@
 
 ## Production clock
 
-- Default production window: **48 hours**, beginning after verified payment **and receipt of all required intake and brand assets** at the next permitted production start.
-- Team hours: Monday–Friday 9:00 AM–5:00 PM; Saturday 8:00 AM–noon (America/New_York).
-- Orders after **Saturday 12 PM** do not begin production until the next business day. Do not imply Sunday kickoff.
+- Default **estimated** production time: **48 hours**, starting once payment is verified, the complete intake and necessary brand assets/access are received, and the agency confirms kickoff. This is an estimate, not a guaranteed deadline.
+- **No day-of-week purchase cutoff.** Do not advertise Saturday, Sunday, after-hours, next-business-day, or working-period delays as an automatic restriction on agency production. Intake and payment may be completed on any day; the confirmed kickoff, not the purchase timestamp alone, starts the estimate.
 - Use identical language in the product pages, agreements, FAQ, purchase confirmation and handoff message; checkout success must mention checking **Promotions** and **Spam/Junk**.
 - Never falsely show production started merely because a checkout completed.
 
@@ -104,7 +103,7 @@
 - Final release: private activation and verified buyer sign-in are distinct from final delivery. The buyer's explicit approval, server-side isolation/routing checks, all six QA timestamps and the owner's final click remain mandatory. An incomplete system stays inaccessible to real public bookings.
 - Immediately after QA signoff, a single final delivery email sends the buyer their Booking Page, private Command Center and localized guide. The email correctly states The Launch Era manages confirmations and up to two eligible quote follow-ups; buyers do not need their own Resend accounts.
 - Emails use Warm Ivory / Soft Black / Butter Yellow / restrained Soft Blue, two-language variants with no mixed UI labels, real business names, visible status and working CTA buttons. The purchase email hides its sensitive intake URL behind a button.
-- 48-hour estimated production begins at the next working period **only after** payment, complete intake and required materials/access/approvals; Saturday after noon Eastern rolls to Monday or the next business day.
+- The estimated 48-hour production period begins **after** verified payment, complete intake, required materials/access/approvals and confirmed kickoff, regardless of purchase weekday. Never imply that checkout alone means work has started.
 - Owner notifications on new paid purchase, completed intake and buyer review decision are in-app only; do not auto-send external marketing messages.
 
 ## October 10 sales and follow-up handoff
