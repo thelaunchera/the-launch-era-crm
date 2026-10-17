@@ -1,0 +1,31 @@
+name: CRM delivery copy — no weekend cutoffs
+on:
+  pull_request:
+    paths:
+      - 'docs/client-delivery-standard.md'
+      - 'buyer-account-preview.html'
+      - 'email-templates/**'
+      - 'scripts/qa-no-weekend-cutoffs.mjs'
+      - '.github/workflows/no-weekend-cutoff-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/client-delivery-standard.md'
+      - 'buyer-account-preview.html'
+      - 'email-templates/**'
+      - 'scripts/qa-no-weekend-cutoffs.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-delivery-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify estimate, preview, email templates and removed cutoffs
+        run: |
+          node --check scripts/qa-no-weekend-cutoffs.mjs
+          node scripts/qa-no-weekend-cutoffs.mjs
