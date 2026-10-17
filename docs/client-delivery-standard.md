@@ -84,7 +84,7 @@
 - A server-side transaction claims each reminder once, prevents duplicates across devices and checks buyer status before sending. A failed/ambiguous provider response must be investigated rather than automatically retried.
 - The bilingual email directs the buyer to their own private Test Center to choose Approve & Continue or Request Changes. No automatic reminder job is scheduled.
 - Both the **purchase welcome email** and the **private activation email** include a brief, human EN/ES heads-up: only after the design is ready and private access is sent, a pending approval may receive **one friendly reminder after at least 8 hours**. Wording is gender-neutral and does not promise an automatic or immediate send.
-- Suggested quieter manual-send window: **Monday–Friday, 3–5 p.m. in the buyer's local time when known**, subject to owner availability. This is a preference, **not** a server-enforced window. Do not send at an inconvenient time just because eight hours have elapsed; do not resend a welcome email simply to show the revised copy.
+- Choose a considerate, buyer-appropriate local time for an optional manually sent design-approval reminder; there is **no day-of-week cutoff**. Never send at an inconvenient time simply because eight hours elapsed, and never resend a welcome email just to show revised copy.
 
 ### Standard email presentation and preview for all future buyers
 
