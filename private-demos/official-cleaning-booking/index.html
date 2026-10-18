@@ -271,8 +271,7 @@ function sc(){var h=document.documentElement,y=h.scrollTop;$('pg').style.width=(
 var r=bkEl.getBoundingClientRect();sb.classList.toggle('on',y>500&&!(r.top<innerHeight*.7&&r.bottom>0))}
 addEventListener('scroll',sc,{passive:true});sc();
 /* reveal + count up + marker */
-function cnt(e){var n=+e.dataset.n,x=e.dataset.x,t0=performance.now(),d=n%1?1:0;if(rm){e.textContent=n.toFixed(d)+x;return}
-(function f(t){var p=Math.min((t-t0)/1400,1),v=n*(1-Math.pow(1-p,3));e.textContent=v.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g,',')+x;if(p<1)requestAnimationFrame(f)})(t0)}
+function cnt(e){if(e.dataset.counted)return;e.dataset.counted='true';var n=Number(e.dataset.n)||0,x=e.dataset.x||'',d=n%1?1:0;if(rm||!n){e.textContent=n.toFixed(d)+x;return}var t0=0,duration=2050;function frame(t){if(!t0)t0=t;var p=Math.min((t-t0)/duration,1),ease=1-Math.pow(1-p,2.3),v=p===1?n:n*ease;e.textContent=(d?v.toFixed(d):Math.floor(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')+x;if(p<1)requestAnimationFrame(frame)}requestAnimationFrame(frame)}
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;io.unobserve(el);
 var sib=[].indexOf.call(el.parentNode.children,el);el.style.transitionDelay=Math.min(sib,5)*.08+'s';el.classList.add('in');
 [].forEach.call(el.querySelectorAll('[data-n]'),cnt);if(el.tagName=='MARK')el.classList.add('in')})},{threshold:.15});
@@ -372,6 +371,139 @@ const watch=new MutationObserver(schedule);
 watch.observe(document.body,{subtree:true,childList:true,characterData:true});
 })();
 
+</script>
+
+<style id="tle-sonny-widget-style">
+#tle-sonny-chat{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:79;font-family:Prompt,"Avenir Next",system-ui,sans-serif;color:#191919}
+#tle-sonny-chat *{box-sizing:border-box}
+#tle-sonny-launch{display:flex;align-items:center;gap:9px;min-height:56px;max-width:min(84vw,245px);border:1px solid #9AC6DF;border-radius:999px;padding:6px 13px 6px 6px;background:#fff;color:#205579;box-shadow:0 12px 36px #142f4350;cursor:pointer;font-size:12px;font-weight:700;line-height:1.25;text-align:left}
+#tle-sonny-launch img{width:42px;height:42px;object-fit:cover;flex:none;border-radius:50%;background:#DBEEF9}
+#tle-sonny-launch:hover,#tle-sonny-launch:focus-visible{box-shadow:0 13px 32px #25567555;outline-offset:3px}
+#tle-sonny-prompt{position:absolute;right:7px;bottom:calc(100% + 9px);width:max-content;max-width:min(82vw,260px);border-radius:15px;background:#191919;color:white;box-shadow:0 8px 25px #1114;padding:9px 13px;font-size:12px;line-height:1.3;pointer-events:none}
+#tle-sonny-chat[data-open="true"] #tle-sonny-launch,#tle-sonny-prompt[hidden],#tle-sonny-panel[hidden]{display:none!important}
+#tle-sonny-panel{width:min(360px,calc(100vw - 28px));height:min(545px,calc(100dvh - 130px));min-height:310px;max-height:calc(100dvh - 125px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #B9D7E9;border-radius:23px;background:#FAF8F3;box-shadow:0 20px 65px #182e4166}
+.tle-sonny-head{display:flex;align-items:center;gap:10px;padding:13px;background:#E6F3FB;border-bottom:1px solid #C5E0EF}
+.tle-sonny-head img{width:39px;height:39px;object-fit:cover;border-radius:50%;background:white}
+.tle-sonny-head strong{display:block;font-size:15px;line-height:1.2}
+.tle-sonny-head small{display:block;color:#4C6270;font-size:11px;line-height:1.35;margin-top:3px}
+#tle-sonny-close{margin-left:auto;flex:none;display:grid;place-items:center;width:36px;height:36px;border:1px solid #ABCBDC;border-radius:50%;background:white;color:#191919;font-size:20px;cursor:pointer}
+#tle-sonny-messages{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:15px 14px 12px;background:#FAF8F3;scrollbar-width:thin}
+.tle-sonny-bubble{padding:10px 12px;border-radius:16px;max-width:91%;font-size:13px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap;background:#E8F2F9;color:#191919;align-self:flex-start}
+.tle-sonny-bubble.mine{background:#205579;color:#fff;align-self:flex-end}
+#tle-sonny-status{padding:0 14px;color:#385E73;font-size:11px;min-height:20px;line-height:1.4}
+#tle-sonny-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #D4E3EB;background:white}
+#tle-sonny-input{min-width:0;flex:1;border:1px solid #BAD7E7;border-radius:13px;padding:10px 12px;font:400 16px/1.3 "Avenir Next",system-ui,sans-serif;background:white;color:#191919}
+#tle-sonny-send{border:0;border-radius:13px;background:#BFE5F9;color:#173B51;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer}
+#tle-sonny-send:disabled{opacity:.56;cursor:wait}
+#tle-sonny-disclaimer{margin:0;background:white;padding:2px 13px 12px;color:#597080;font-size:10px;line-height:1.45}
+#tle-sonny-chat button:focus-visible,#tle-sonny-chat input:focus-visible{outline:3px solid #205579;outline-offset:2px}
+@media(max-width:700px){#tle-sonny-chat{right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(95px + env(safe-area-inset-bottom,0px))}#tle-sonny-panel{width:min(370px,calc(100vw - 24px));height:min(510px,calc(100dvh - 170px));max-height:calc(100dvh - 155px)}}
+@media(prefers-reduced-motion:reduce){#tle-sonny-chat *{scroll-behavior:auto!important;animation:none!important}}
+</style>
+<div id="tle-sonny-chat" data-open="false" aria-label="Sonny AI booking assistant">
+ <div id="tle-sonny-prompt" hidden>Hi! Want to try a booking?</div>
+ <button id="tle-sonny-launch" type="button" aria-controls="tle-sonny-panel" aria-expanded="false" aria-label="Chat with AI Assistant Sonny"><img src="/assets/lead-demo/ai-demo-robot.webp" alt="" loading="lazy"><span id="tle-sonny-launch-label">Chat with AI Assistant</span></button>
+ <section id="tle-sonny-panel" role="dialog" aria-label="Sonny AI Assistant" aria-modal="false" hidden>
+  <div class="tle-sonny-head"><img src="/assets/lead-demo/ai-demo-robot.webp" alt=""><span><strong>Sonny</strong><small id="tle-sonny-role">AI Booking Assistant · Optional add-on</small></span><button type="button" id="tle-sonny-close" aria-label="Close Sonny chat">×</button></div>
+  <div id="tle-sonny-messages" role="log" aria-label="Conversation with Sonny" aria-live="polite" aria-relevant="additions"><div class="tle-sonny-bubble" id="tle-sonny-welcome">Hi! I'm Sonny. Want to try a sample cleaning request?</div></div>
+  <div id="tle-sonny-status" role="status" aria-live="polite"></div>
+  <form id="tle-sonny-form"><input type="text" id="tle-sonny-input" maxlength="300" autocomplete="off" aria-label="Ask Sonny" placeholder="Ask me about cleaning services…" required><button type="submit" id="tle-sonny-send">Send</button></form>
+  <p id="tle-sonny-disclaimer">Demo only. Chat messages are processed by the AI service; no booking or payment is created.</p>
+ </section>
+</div>
+
+<script id="tle-sonny-booking-ai">
+(function(){
+"use strict";
+const origin="https://thelaunchera.com";
+const endpoint="https://bowacxhmjvrqixtwaikv.supabase.co/functions/v1/tle-ai-booking-demo";
+const $=id=>document.getElementById(id);
+const root=$("tle-sonny-chat"),launch=$("tle-sonny-launch"),panel=$("tle-sonny-panel"),close=$("tle-sonny-close");
+const input=$("tle-sonny-input"),send=$("tle-sonny-send"),messages=$("tle-sonny-messages"),status=$("tle-sonny-status"),hint=$("tle-sonny-prompt");
+const language=()=>$("demoLanguage")?.value==="es"?"es":"en";
+const copy={
+ en:{open:"Chat with AI Assistant",role:"AI Booking Assistant · Optional add-on",hello:"Hi! I'm Sonny. Want to try a sample cleaning request?",hint:"Hi! Want to try a booking?",ask:"Ask me about cleaning services…",send:"Send",close:"Close Sonny chat",privacy:"Demo only. Chat messages are processed by the AI service; no booking or payment is created.",thinking:"Sonny is typing…",failed:"I couldn't connect right now. Please try again.",rate:"The demo is busy right now. Try again later.",empty:"Please enter a short message."},
+ es:{open:"Chat with AI Assistant",role:"Asistente de reservas con IA · Complemento opcional",hello:"¡Hola! Soy Sonny. ¿Quieres probar una solicitud de limpieza?",hint:"¡Hola! ¿Probamos una reserva?",ask:"Pregúntame sobre los servicios…",send:"Enviar",close:"Cerrar chat con Sonny",privacy:"Solo demostración. El servicio de IA procesa los mensajes; no se crean reservas ni pagos.",thinking:"Sonny está escribiendo…",failed:"No pude conectar ahora. Inténtalo nuevamente.",rate:"La demo está ocupada. Prueba más tarde.",empty:"Escribe un mensaje corto."}
+};
+let opened=false,busy=false,introOnly=true,greetingTimer=0;
+const randomUUID=()=>{if(typeof crypto.randomUUID==="function")return crypto.randomUUID();const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;return [...b].map((v,i)=>((i===4||i===6||i===8||i===10)?"-":"")+v.toString(16).padStart(2,"0")).join("")};
+const thread=randomUUID(),transcript=[];
+const pending=new Map();
+const insideOwnerFrame=window!==window.parent&&location.protocol==="about:";
+const ownerRelayAllowed=insideOwnerFrame;
+function translate(){
+ const t=copy[language()];
+ $("tle-sonny-launch-label").textContent=t.open;
+ $("tle-sonny-role").textContent=t.role;
+ if(introOnly)$("tle-sonny-welcome").textContent=t.hello;
+ hint.textContent=t.hint;
+ input.placeholder=t.ask;input.setAttribute("aria-label",t.ask);
+ send.textContent=t.send;close.setAttribute("aria-label",t.close);
+ launch.setAttribute("aria-label",t.open+" Sonny");
+ $("tle-sonny-disclaimer").textContent=t.privacy;
+ if(!busy)status.textContent="";
+}
+function append(text,mine){
+ const bubble=document.createElement("div");
+ bubble.className="tle-sonny-bubble"+(mine?" mine":"");
+ bubble.textContent=String(text||"").slice(0,400);
+ messages.appendChild(bubble);
+ messages.scrollTop=messages.scrollHeight;
+}
+function toggle(value){
+ opened=Boolean(value);root.dataset.open=String(opened);panel.hidden=!opened;launch.setAttribute("aria-expanded",String(opened));hint.hidden=true;
+ if(opened)input.focus({preventScroll:true});
+ else launch.focus({preventScroll:true});
+}
+launch.addEventListener("click",()=>toggle(true));
+close.addEventListener("click",()=>toggle(false));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&opened)toggle(false)});
+$("demoLanguage")?.addEventListener("change",translate);
+translate();
+if(!matchMedia("(prefers-reduced-motion: reduce)").matches){
+ greetingTimer=setTimeout(()=>{if(opened||document.hidden||document.activeElement===launch)return;hint.hidden=false;setTimeout(()=>{hint.hidden=true},4000)},1400);
+}
+async function sendDirect(payload){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),27000);
+ try{
+  const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:controller.signal,cache:"no-store"});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.reply)throw Error(res.status===429?"rate":"failed");
+  return data;
+ }finally{clearTimeout(timer)}
+}
+function sendViaOwner(payload){
+ return new Promise((resolve,reject)=>{
+  const id=randomUUID(),timer=setTimeout(()=>{pending.delete(id);reject(Error("failed"))},29000);
+  pending.set(id,{resolve,reject,timer});
+  window.parent.postMessage({type:"TLE_SONNY_DEMO_REQUEST",id,payload},origin);
+ });
+}
+window.addEventListener("message",e=>{
+ if(!ownerRelayAllowed||e.origin!==origin||e.source!==window.parent)return;
+ if(e.data?.type!=="TLE_SONNY_DEMO_RESPONSE"||typeof e.data.id!=="string")return;
+ const p=pending.get(e.data.id);if(!p)return;
+ pending.delete(e.data.id);clearTimeout(p.timer);
+ if(e.data.ok===true&&typeof e.data.reply==="string")p.resolve({reply:e.data.reply});
+ else p.reject(Error(e.data.rateLimited?"rate":"failed"));
+});
+$("tle-sonny-form").addEventListener("submit",async e=>{
+ e.preventDefault();if(busy)return;
+ const message=input.value.trim().slice(0,300),lang=language(),c=copy[lang];
+ if(!message){status.textContent=c.empty;return}
+ input.value="";introOnly=false;append(message,true);transcript.push("Customer: "+message);if(transcript.length>8)transcript.shift();
+ const payload={customer_message:message,business_name:"Sample Cleaning Co.",service_area:"Example service area",services_offered:"Standard Cleaning, Deep Cleaning, Move In/Out Cleaning, Commercial Cleaning",language:lang,thread_id:thread,conversation_history:transcript.slice(0,-1).join("\n").slice(-1200),booking_draft:{}};
+ busy=true;send.disabled=true;input.disabled=true;status.textContent=c.thinking;
+ try{
+  const data=await (ownerRelayAllowed?sendViaOwner(payload):sendDirect(payload));
+  if(!data.reply||typeof data.reply!=="string")throw Error("failed");
+  append(data.reply,false);transcript.push("Sonny: "+data.reply.slice(0,210));if(transcript.length>8)transcript.shift();
+  status.textContent="";
+ }catch(error){status.textContent=error.message==="rate"?c.rate:c.failed}
+ finally{busy=false;send.disabled=false;input.disabled=false;input.focus({preventScroll:true})}
+});
+})();
 </script>
 </body>
 </html>
