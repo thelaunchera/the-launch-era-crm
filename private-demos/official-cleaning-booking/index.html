@@ -361,7 +361,7 @@ function translateTree(){
   el.setAttribute("aria-label",current==="es"?(dictionary.get(orig)||orig):orig);
  });
  const footer=document.getElementById("ft");
- if(footer)footer.textContent=current==="es"?"Página demostrativa · Sample Cleaning Co. · No se aceptan reservas reales":"Illustrative booking page · Sample Cleaning Co. · No real bookings accepted";
+ if(footer){const desired=current==="es"?"Página demostrativa · Sample Cleaning Co. · No se aceptan reservas reales":"Illustrative booking page · Sample Cleaning Co. · No real bookings accepted";if(footer.textContent!==desired)footer.textContent=desired;}
  document.documentElement.lang=current;
  document.title=current==="es"?"Demo de Reserva de Limpieza · The Launch Era":"Cleaning Booking Demo · The Launch Era";
 }
