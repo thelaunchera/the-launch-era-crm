@@ -92,7 +92,13 @@ input[type=text],input[type=tel],input[type=date]{width:100%;padding:13px;border
 .sv h3{font-size:20px;margin:0 16px 6px}.sv p{margin:0 16px 12px;color:var(--mut);font-size:14px}.sv a{margin:0 16px;color:var(--blue);font-weight:700;font-size:14px;text-decoration:none}
 .why{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center}
 @media(max-width:780px){.why{grid-template-columns:1fr}}
-.wl{display:grid;gap:14px}.wl div{display:flex;gap:14px;align-items:center}.wl b{display:block}.wl span{color:var(--mut);font-size:14px}
+.wl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.wl .photo-benefit{display:block;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:var(--card);min-width:0}
+.wl .photo-benefit img{display:block;width:100%;height:104px;object-fit:cover}
+.wl .photo-benefit .benefit-copy{padding:12px 12px 15px;display:block}
+.wl .photo-benefit b{display:block;font:700 15px/1.35 Prompt,'Avenir Next',sans-serif;color:var(--ink);margin-bottom:5px}
+.wl .photo-benefit span{display:block;color:var(--mut);font-size:12px;line-height:1.45}
+@media(max-width:370px){.wl{gap:9px}.wl .photo-benefit .benefit-copy{padding:10px}.wl .photo-benefit img{height:92px}}
 .ba{position:relative;max-width:760px;aspect-ratio:16/8;border-radius:22px;overflow:hidden;border:6px solid var(--card);box-shadow:0 14px 34px -22px rgba(20,40,75,.5);user-select:none}
 .ba>div{position:absolute;inset:0;background-size:cover;background-position:center}
 .bf{background-image:radial-gradient(circle at 20% 30%,#5b3b1e 0 8%,transparent 9%),radial-gradient(circle at 60% 60%,#6d4a25 0 10%,transparent 11%),linear-gradient(135deg,#9a7a52,#6f5233)}
@@ -101,9 +107,14 @@ input[type=text],input[type=tel],input[type=date]{width:100%;padding:13px;border
 .ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
 .hd{position:absolute;top:0;bottom:0;width:3px;background:#fff;pointer-events:none}
 .hd:after{content:"↔";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.hw{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;padding:26px}
-@media(max-width:700px){.hw{grid-template-columns:1fr 1fr}}
-.hw .ic{margin:0 auto 10px}.hw b{display:block;font-size:17px}.hw span{color:var(--mut);font-size:14px}
+.hw{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;text-align:left;padding:14px}
+.hw .photo-step{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--card)}
+.hw .photo-step img{display:block;width:100%;height:108px;object-fit:cover}
+.hw .photo-step .step-copy{padding:12px}
+.hw .photo-step b{display:block;font:700 15px/1.35 Prompt,'Avenir Next',sans-serif;color:var(--ink);margin-bottom:5px}
+.hw .photo-step span{display:block;color:var(--mut);font-size:12px;line-height:1.45}
+@media(max-width:700px){.hw{grid-template-columns:1fr 1fr;gap:10px;padding:10px}}
+@media(max-width:370px){.hw .photo-step img{height:92px}.hw .photo-step .step-copy{padding:10px}}
 /* reviews marquee */
 .mq{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .mt{display:flex;gap:16px;width:max-content;animation:mq 40s linear infinite}.mq:hover .mt{animation-play-state:paused}
@@ -112,8 +123,11 @@ input[type=text],input[type=tel],input[type=date]{width:100%;padding:13px;border
 .rv .s{color:var(--blue);letter-spacing:2px}.rv p{margin:4px 0 10px;font-size:15px}.rv b{font-size:14px}
 .tr{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center}
 @media(max-width:640px){.tr{grid-template-columns:1fr 1fr}}
-.tr .th{aspect-ratio:1;border-radius:50%;margin-bottom:10px;border:4px solid var(--card);box-shadow:0 10px 24px -16px rgba(20,40,75,.5);display:grid;place-items:center}
-.ex{overflow:hidden;padding-bottom:16px}.ex .th{height:110px;display:grid;place-items:center}.ex b{display:flex;margin:12px 14px 0}
+.tr .th{aspect-ratio:1;border-radius:50%;margin-bottom:10px;border:4px solid var(--card);box-shadow:0 10px 24px -16px rgba(20,40,75,.5);display:block;overflow:hidden}
+.tr .th img{display:block;width:100%;height:100%;object-fit:cover}
+.ex{overflow:hidden;padding-bottom:16px}
+.ex .photo-thumb{display:block;width:100%;height:126px;object-fit:cover}
+.ex b{display:block;margin:12px 13px 0;font:700 15px/1.35 Prompt,'Avenir Next',sans-serif;color:var(--ink)}
 details{border-bottom:1px solid var(--line);padding:16px 0;max-width:760px}summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between}
 summary:after{content:"+";color:var(--blue);font-size:22px;line-height:1;transition:transform .3s}details[open] summary:after{transform:rotate(45deg)}
 details p{color:var(--mut);margin:10px 0 0}
@@ -253,14 +267,20 @@ $('sv').innerHTML=S.map(function(s,i){return '<div class="card sv tl" data-r><di
 function chips(id,n,arr,def){$(id).innerHTML=arr.map(function(a,i){return '<input type="radio" name="'+n+'" id="'+n+i+'" value="'+i+'"'+(i==def?' checked':'')+'><label for="'+n+i+'">'+a+'</label>'}).join('')}
 chips('bd','bd',['Studio/1','2','3','4+'],1);chips('ba','ba',['1','2','3','4+'],0);
 chips('fq','fq',['One time','Weekly (-'+pr.weekly*100+'%)','Every 2 weeks (-'+pr.biweekly*100+'%)'],0);chips('tm','tm',['Morning','Afternoon'],0);
+
+function TLEphoto(src){return '<img src="'+src+'" alt="" loading="lazy" decoding="async">'}
 var D=[['shield','Custom Policies','Display your actual insurance and service terms.'],['user','Business Branding','Use your own team photos and name.'],['leaf','Flexible Services','List what your cleaning business really offers.'],['home','Easy Requests','Keep customer details organized.']];
-$('wl').innerHTML=D.map(function(d){return '<div>'+IC(d[0])+'<p style="margin:0"><b>'+d[1]+'</b><span>'+d[2]+'</span></p></div>'}).join('');
+var whyPhotos=["/assets/lead-demo/cleaner-in-home.png","/assets/cleaning-demo/hero-cleaner-original.jpg","/assets/cleaning-demo/living-room-original.jpg","/assets/cleaning-demo/living-suite.png"];
+$('wl').innerHTML=D.map(function(d,i){return '<article class="photo-benefit" data-r>'+TLEphoto(whyPhotos[i])+'<div class="benefit-copy"><b>'+d[1]+'</b><span>'+d[2]+'</span></div></article>'}).join('');
 var H=[['cal','01 · Choose a service','Explore cleaning options.'],['check','02 · Describe your space','Provide home details.'],['spark','03 · Request a date','Share the preferred time.'],['home','04 · Owner reviews','A real business confirms availability.']];
-$('hw').innerHTML=H.map(function(h){return '<div>'+IC(h[0])+'<b>'+h[1]+'</b><span>'+h[2]+'</span></div>'}).join('');
+var stepPhotos=["/assets/drive-booking-journey/choose-time-living-room.png","/assets/drive-booking-journey/share-details-bathroom.png","/assets/drive-booking-journey/review-ready-bedroom.png","/assets/lead-demo/drive-cleaner-kitchen.webp"];
+$('hw').innerHTML=H.map(function(s,i){return '<article class="photo-step" data-r>'+TLEphoto(stepPhotos[i])+'<div class="step-copy"><b>'+s[1]+'</b><span>'+s[2]+'</span></div></article>'}).join('');
 var rv=C.reviews.map(function(r){return '<div class="card rv"><span class="av">'+r[0][0]+'</span><div><span class="s">\u2605\u2605\u2605\u2605\u2605</span><p>\u201C'+r[1]+'\u201D</p><b>'+r[0]+'</b></div></div>'}).join('');
 $('rv').innerHTML=rv+rv;
-$('tr').innerHTML=[['Homes','home'],['Apartments','bld'],['Condos','cond'],['Townhomes','tub']].map(function(t,i){return '<div data-r><div class="th t'+i+'">'+IC(t[1])+'</div><b>'+t[0]+'</b></div>'}).join('');
-$('ex').innerHTML=[['Recurring Cleaning','cal'],['Custom Checklists','list'],['Special Requests','spark'],['Pet Friendly','paw']].map(function(x,i){return '<div class="card ex tl" data-r><div class="th t'+i+'">'+IC(x[1])+'</div><b>'+x[0]+'</b></div>'}).join('');
+var spacePhotos=["/assets/drive-house-gallery/whole-home.png","/assets/drive-house-gallery/pristine-kitchen.png","/assets/drive-house-gallery/miami-condo.png","/assets/drive-house-gallery/dining-room.png"];
+$('tr').innerHTML=[['Homes','home'],['Apartments','bld'],['Condos','cond'],['Townhomes','tub']].map(function(t,i){return '<div data-r><div class="th t'+i+'">'+TLEphoto(spacePhotos[i])+'</div><b>'+t[0]+'</b></div>'}).join('');
+var extraPhotos=["/assets/hero-cleaner-lights-20261017.jpg","/assets/lead-demo/pristine-kitchen.png","/assets/lead-demo/hero-luxury-home.png","/assets/lead-demo/sunroom.png"];
+$('ex').innerHTML=[['Recurring Cleaning','cal'],['Custom Checklists','list'],['Special Requests','spark'],['Pet Friendly','paw']].map(function(x,i){return '<article class="card ex tl" data-r>'+TLEphoto(extraPhotos[i]).replace('<img ','<img class="photo-thumb" ')+'<b>'+x[0]+'</b></article>'}).join('');
 $('fq2').innerHTML=C.faq.map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>'}).join('');
 $('ts').firstChild.innerHTML=I('check');
 $('ob').hidden=!C.offer.percent;$('ob').textContent=C.offer.banner;
@@ -399,6 +419,20 @@ watch.observe(document.body,{subtree:true,childList:true,characterData:true});
 #tle-sonny-chat button:focus-visible,#tle-sonny-chat input:focus-visible{outline:3px solid #205579;outline-offset:2px}
 @media(max-width:700px){#tle-sonny-chat{right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(95px + env(safe-area-inset-bottom,0px))}#tle-sonny-panel{width:min(370px,calc(100vw - 24px));height:min(510px,calc(100dvh - 170px));max-height:calc(100dvh - 155px)}}
 @media(prefers-reduced-motion:reduce){#tle-sonny-chat *{scroll-behavior:auto!important;animation:none!important}}
+
+/* Sonny is a small circular avatar when closed; never an obtrusive text pill. */
+#tle-sonny-chat:not([data-open="true"]){width:52px}
+#tle-sonny-launch{display:grid;place-items:center;width:52px;height:52px;min-height:52px;max-width:52px;padding:3px;gap:0;border-radius:50%;font-size:0}
+#tle-sonny-launch img{width:44px;height:44px;border-radius:50%}
+#tle-sonny-launch-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#tle-sonny-prompt{display:none!important}
+#tle-sonny-panel{width:min(330px,calc(100vw - 24px));height:min(430px,calc(100dvh - 145px));min-height:260px;max-height:calc(100dvh - 145px)}
+@media(max-width:700px){
+ #tle-sonny-chat{right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+ body:has(#sb.on) #tle-sonny-chat{bottom:calc(87px + env(safe-area-inset-bottom,0px))}
+ #tle-sonny-panel{width:min(330px,calc(100vw - 24px));height:min(410px,calc(100dvh - 155px));max-height:calc(100dvh - 155px)}
+ body:has(#f input:focus) #tle-sonny-chat:not([data-open="true"]){opacity:0;pointer-events:none}
+}
 </style>
 <div id="tle-sonny-chat" data-open="false" aria-label="Sonny AI booking assistant">
  <div id="tle-sonny-prompt" hidden>Hi! Want to try a booking?</div>
@@ -460,9 +494,7 @@ close.addEventListener("click",()=>toggle(false));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&opened)toggle(false)});
 $("demoLanguage")?.addEventListener("change",translate);
 translate();
-if(!matchMedia("(prefers-reduced-motion: reduce)").matches){
- greetingTimer=setTimeout(()=>{if(opened||document.hidden||document.activeElement===launch)return;hint.hidden=false;setTimeout(()=>{hint.hidden=true},4000)},1400);
-}
+// No unsolicited greeting: the circular Sonny launcher never obscures page content.
 async function sendDirect(payload){
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),27000);
