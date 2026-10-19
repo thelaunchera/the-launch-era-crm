@@ -17,3 +17,11 @@
 - Production Supabase `tle-booking-demo-gate` is still **v28 ACTIVE**, which serves the previous visuals. Two attempts to update **only** `booking-template.ts` via the deployment connector were rejected by platform safety checks. Do not assume the backend was updated and do not keep retrying a blocked action.
 - Resume only via an authorized deployment route after reviewing the block. Preserve the current `index.ts`, `booking-legacy-template.ts`, `tracker-template.ts` and `verify_jwt=false` with its existing server-side owner/lead authorization.
 - Once deployed, test private owner modal on iPhone, prospect signed EN/ES invitations, Sonny bubble open/close/AI reply, service cards, photos loaded, booking 3 steps, and mobile scroll/CTA visibility. Do not create real bookings or send lead emails in QA.
+
+## 2026-10-19 — branch-only repeat-booking reset fix
+- Verified defect: the sample prefilled a future date using the live input value only; the local form reset cleared it. The private demo now recomputes and restores the minimum and selected date after reset.
+- Scope: private canonical source only; public `/booking-demo/` request funnel, production function, existing slider styling, and other tenants were not modified. No production deployment or booking submission occurred.
+- Local QA: 24 assertions passed at each of 320, 360, 375, 390, 768, 820, 1024, 1280, and 1440 px (216/216 total), including two consecutive local completions, step navigation, name/phone/address/ZIP/date validation, Spanish validation/success copy switching, and slider movement. No horizontal overflow or JavaScript console errors; all four inline scripts parse.
+- Google Drive was unavailable in the QA session (no connector or OAuth credentials), so no approved matching photo pair could be verified. The existing illustrative slider gradients remain unchanged; no stock or unrelated images were used.
+- End-to-end private owner/invitation access and email delivery remain unverified. The sample form is local-only; production verification must use an authorized test route/inbox and must not send real bookings or lead emails.
+- Existing bilingual limitation noted: the dynamic Spanish completion summary still contains English service/date/time/estimate fragments; this branch did not alter that behavior.

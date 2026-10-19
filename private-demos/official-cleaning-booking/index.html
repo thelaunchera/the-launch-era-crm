@@ -308,7 +308,7 @@ if(!rm&&C.toasts.length){var ti=0,tt=$('ts');setTimeout(function k(){$('tt').tex
 /* before/after */
 var rg=$('rg');function sl(){$('bfx').style.clipPath='inset(0 '+(100-rg.value)+'% 0 0)';$('hd').style.left='calc('+rg.value+'% - 1px)'}rg.addEventListener('input',sl);sl();
 /* booking flow */
-var step=1,f=$('f'),dt=$('dt'),t=new Date();t.setDate(t.getDate()+1);function localDate(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}dt.min=dt.value=localDate(t);
+var step=1,f=$('f'),dt=$('dt');function localDate(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}function nextLocalDate(){var x=new Date();x.setDate(x.getDate()+1);return localDate(x)}dt.min=dt.value=nextLocalDate();
 function v(n){return +f.querySelector('input[name='+n+']:checked').value}
 function raw(){var s=S[v('svc')];return (s[3]+v('bd')*pr.perBedroom+v('ba')*pr.perBathroom)*(1-[0,pr.weekly,pr.biweekly][v('fq')])}
 function price(){var s=S[v('svc')];if(!s[3])return 0;return Math.round(raw()*(1-(C.offer.percent||0))/5)*5}
@@ -328,7 +328,7 @@ if(!dt.value||dt.value<dt.min){er.textContent='Choose a valid future date.';retu
 var d=new Date(dt.value+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),s=S[v('svc')],tm=['Morning','Afternoon'][v('tm')],est=s[3]?' Estimate: $'+price()+'.':'';
 $('okt').textContent=nm.split(' ')[0]+', you completed the preview for '+s[0].toLowerCase()+' on '+d+' ('+tm+').'+est+' No request, payment or personal information was transmitted.';
 f.hidden=true;$('steps').hidden=true;$('ok').classList.add('on')});
-$('wa').addEventListener('click',function(e){e.preventDefault();f.reset();step=1;f.hidden=false;$('steps').hidden=false;$('ok').classList.remove('on');$('er').textContent='';draw();$('book').scrollIntoView({behavior:rm?'auto':'smooth',block:'start'})});
+$('wa').addEventListener('click',function(e){e.preventDefault();f.reset();dt.min=dt.value=nextLocalDate();step=1;f.hidden=false;$('steps').hidden=false;$('ok').classList.remove('on');$('er').textContent='';draw();$('book').scrollIntoView({behavior:rm?'auto':'smooth',block:'start'})});
 })();
 </script>
 <script id="tle-booking-demo-bilingual">
