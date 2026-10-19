@@ -17,3 +17,8 @@
 - Production Supabase `tle-booking-demo-gate` is still **v28 ACTIVE**, which serves the previous visuals. Two attempts to update **only** `booking-template.ts` via the deployment connector were rejected by platform safety checks. Do not assume the backend was updated and do not keep retrying a blocked action.
 - Resume only via an authorized deployment route after reviewing the block. Preserve the current `index.ts`, `booking-legacy-template.ts`, `tracker-template.ts` and `verify_jwt=false` with its existing server-side owner/lead authorization.
 - Once deployed, test private owner modal on iPhone, prospect signed EN/ES invitations, Sonny bubble open/close/AI reply, service cards, photos loaded, booking 3 steps, and mobile scroll/CTA visibility. Do not create real bookings or send lead emails in QA.
+
+## 2026-10-19 — branch-only Spanish completion-summary fix
+- Verified issue: the generic bilingual text walker translated fixed phrases but left the dynamic service, date, time, and estimate fragments in English after a Spanish sample booking.
+- Fix: preserve the original English summary, render the complete Spanish equivalent from selected service/date/time/estimate data, and restore the exact English summary when switching back. The public `/booking-demo/` request funnel and protected access/deployment code were not modified.
+- Local QA: 306/306 assertions passed across 320, 360, 375, 390, 768, 820, 1024, 1280, and 1440 px; covered all four services, localized dates/times, estimate and quote-only copy, and Spanish-to-English switching. No horizontal overflow or console errors; all four inline scripts parse. No booking, email, payment, or production request was sent.
