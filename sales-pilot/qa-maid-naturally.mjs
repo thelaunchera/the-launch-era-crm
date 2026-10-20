@@ -28,6 +28,14 @@ try{
   assert.ok(imageReport.filter(x=>x.loaded).length>=5,'Photos or logo missing: '+JSON.stringify(imageReport));
   await page.screenshot({path:'sales-pilot/qa-artifacts/hero-'+width+'.png',fullPage:true,animations:'disabled'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true,'Horizontal overflow at '+width);
+  // Tabs in the owner-facing sample dashboard must actually filter rows.
+  await page.locator('.dash-filter[data-filter="quote"]').click();
+  assert.equal(await page.locator('.dashboard-row:visible').count(),1,'Quote-ready filter returned unexpected result at '+width);
+  assert.match(await page.locator('.dashboard-row:visible').innerText(),/Quote ready/i);
+  await page.locator('.dash-filter[data-filter="all"]').click();
+  assert.equal(await page.locator('.dashboard-row:visible').count(),3,'All requests should restore sample rows at '+width);
+  assert.equal(await page.locator('.dash-filter[data-filter="all"]').getAttribute('aria-pressed'),'true');
+
   const heroPhoto=await page.locator('.hero-visual img').evaluate(img=>img.complete&&img.naturalWidth>0);
   if (!heroPhoto) errors.push('Hero image failed to load at '+width);
   await page.locator('[data-pick="Scheduled Housekeeping"]').click();
