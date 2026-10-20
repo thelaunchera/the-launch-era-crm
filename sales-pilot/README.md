@@ -71,3 +71,12 @@ Sources: https://maidnaturally.com/ (CTA 'Book a Cleaning' points to https://mai
 **Before pitching:** obtain approval to discuss a tailored concept; confirm their existing CRM, intake fields, response workflow, willingness to adopt another system and actual friction; only then decide whether implementation would save time. Avoid claims that their current tool is broken or they do not have automation.
 
 **Static QA** (GitHub file readback): required element selectors present, no duplicate IDs, no external POST/network calls in script, responsive breakpoints, reduced-motion CSS and clear non-affiliation statement. A **real browser QA pass on mobile/tablet/desktop and image-loading verification remain pending**. No public release.
+
+## Photo accuracy update — 2026-10-20
+Updated the **private** Maid Naturally concept with photography selected from The Launch Era's Google Drive assets, committed as local GitHub assets so the preview does not rely on expiring Drive URLs:
+- `assets/service-post-renovation-detail.png` — source: "Dust-free ceiling fan with cleaning ladder.png". This depicts **high-reach detailed cleaning**, not a documented post-construction job; it is an illustrative stand-in until a confirmed post-construction image is supplied.
+- `assets/service-office-concept.png` — source: "Sunlit spotless home office.png". The office visual sits in a separately labelled **proposed / unconfirmed** Office & Workspace section. Maid Naturally's inspected public site does not confirm they sell that service.
+- `assets/team-coordination-illustration.png` — source: "Trust_04_TeamCoordination_Atlanta.png". Teamwork illustration from TLE asset library. **These individuals have not been verified as Maid Naturally employees**; the concept discloses this adjacent to the photo.
+- The original four publicly confirmed service selections remain intact and functional, with an intact 3-step quote-request demo and simulated owner workflow. The office concept is informative, not falsely selectable as a currently sold Maid Naturally service.
+- GitHub Actions Chromium QA checks that the 3 local assets load at **390px, 768px and 1440px**, their disclosures are present, the 3-step/owner workflow works, and there is no horizontal overflow.
+- Prospect-facing reuse still requires appropriate rights for Drive stock imagery, brand approval where applicable, and further commercial fit discovery. No production deployment.
