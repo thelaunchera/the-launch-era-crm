@@ -21,6 +21,11 @@ try{
   page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))unsafe.push(r.method()+' '+r.url())});
   await page.goto(pathToFileURL(htmlPath).href,{waitUntil:'domcontentloaded'});
   await page.locator('.hero h1').waitFor();
+  // Ensure remote imagery has finished loading BEFORE visual screenshots.
+  await page.locator('img').evaluateAll(imgs=>imgs.forEach(img=>img.loading='eager'));
+  await page.waitForFunction(()=>Array.from(document.images).every(img=>img.complete),null,{timeout:20000});
+  const imageReport=await page.locator('img').evaluateAll(imgs=>imgs.map(img=>({url:img.currentSrc,loaded:img.naturalWidth>0})));
+  assert.ok(imageReport.filter(x=>x.loaded).length>=5,'Photos or logo missing: '+JSON.stringify(imageReport));
   await page.screenshot({path:'sales-pilot/qa-artifacts/hero-'+width+'.png',fullPage:true,animations:'disabled'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true,'Horizontal overflow at '+width);
   const heroPhoto=await page.locator('.hero-visual img').evaluate(img=>img.complete&&img.naturalWidth>0);
