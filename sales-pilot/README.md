@@ -7,7 +7,7 @@ Improve the path from prospect discovery to a useful private preview and measura
 
 ## Work completed / evidence
 - Audited Seamless saved contacts on 2026-10-20: 60 contact records; 41 had provider-reported 'valid' email and were outside Florida. This is NOT proof of mailbox deliverability, interest, consent or qualification.
-- Reviewed 600 most recent Resend outgoing email records; none of these 41 email addresses exactly matched the reviewed recipients. This is partial: the account had older records and other channels were not reviewed. Do not mark anyone "never contacted" until the full CRM, suppression list and communication history are checked.
+- Reviewed 600 most recent Resend outgoing email records; none of these 41 email addresses exactly matched the reviewed recipients. This is partial: the account had older records and other channels were not reviewed. Separately checked all 125 currently returned CRM leads in the TLE owner workspace (including archived records); 0 of 41 candidate companies matched on exact email, normalized business name, or matching company-domain evidence. Do not mark anyone "never contacted" until older sends, suppression list, prior Drive research and other channels have also been checked.
 - Reviewed Maid in Nashville (maidinnash.com) homepage and quote request page as public sources, and produced a proposal for a clearer three-step booking inquiry. They **already offer a quote request path**; do not claim they have no online booking or that their current form is broken.
 - Built a standalone, responsive three-step demo at sales-pilot/maid-in-nashville-preview.html. This is NOT an official site and does not transmit or save customer data. Live slots, estimates, addresses, notifications, reviews, payments, and backend operations remain unconnected.
 - Read pricing pages for ZenMaid, BookingKoala and Launch27. Monitoring through Firecrawl was NOT activated because its simple monitor schedule rejected weekly text, followed by an account rate limit. No subscription or monitoring plan was purchased.
@@ -30,7 +30,7 @@ These are leads to REVIEW, not endorsements and not an assertion that they need 
 
 ## Pre-send gate (mandatory)
 1. Inspect website for actual need and possible objection, with source and date.
-2. Deduplicate by both **domain and email** against the full CRM, previous outreach, Resend send history (not just contacts), suppression and opt-outs, and any previous contact channel.
+2. Deduplicate by both **domain and email** against previous outreach, the full historical Resend send list (not just contacts), suppression and opt-outs, and any other contact channel. The TLE Supabase CRM 125-row read was completed on 2026-10-20, with no exact candidate matches; re-check immediately before sending.
 3. Check commercial fit, business geography, current email status, relevant rules and opt-out/consent requirements. Provider status 'valid' is not a real-time mailbox verification.
 4. Draft an individual, genuinely useful first email (no link initially). Do not send from this pilot or automatically.
 5. When someone responds interested, supply verified, tested private preview as appropriate; never claim a concept preview is their live system.
