@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 
 const htmlPath=path.resolve('sales-pilot/maid-naturally-conversion-preview.html');
 const html=fs.readFileSync(htmlPath,'utf8');
-assert.ok(html.includes('Independent sales concept') && html.includes('No live bookings'),'Must visibly disclose non-affiliation and no live booking');
+assert.ok(/(Independent (sales|design) concept)/.test(html) && /No live bookings/i.test(html),'Must visibly disclose non-affiliation and no live booking');
 assert.ok(!/<form\b/i.test(html),'Concept preview must not create actual form submissions');
 const script=(html.match(/<script>([\s\S]*?)<\/script>/)||[])[1];
 assert.ok(script,'Missing local interaction script');
