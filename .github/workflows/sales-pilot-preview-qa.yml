@@ -1,4 +1,4 @@
-name: Sales pilot: Maid Naturally branded preview QA
+name: "Sales pilot: Maid Naturally branded preview QA"
 on:
   pull_request:
     paths:
