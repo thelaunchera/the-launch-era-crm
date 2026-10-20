@@ -1,0 +1,37 @@
+{
+  "observed_on": "2026-10-20",
+  "currency": "USD",
+  "frequency": "monthly",
+  "source": "public official pricing pages viewed via Firecrawl",
+  "monitors_active": false,
+  "reason": "Weekly schedule syntax rejected, then Firecrawl rate limit reached; native task limit also reached. No paid monitoring deployed.",
+  "vendors": [
+    {
+      "name": "ZenMaid",
+      "url": "https://get.zenmaid.com/pricing",
+      "plans": {
+        "Starter": 19,
+        "Pro": 39,
+        "Pro Max": 49
+      }
+    },
+    {
+      "name": "BookingKoala",
+      "url": "https://www.bookingkoala.com/pricing",
+      "plans": {
+        "Starter": 27,
+        "Growing": 57,
+        "Premium": 197
+      }
+    },
+    {
+      "name": "Launch27",
+      "url": "https://www.launch27.com/pricing/",
+      "plans": {
+        "Base": 75,
+        "Pro": 150,
+        "Plus": 299
+      }
+    }
+  ]
+}
