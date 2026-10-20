@@ -54,3 +54,20 @@ The comparison is informational, not a like-for-like feature comparison, and pri
 
 ## Seven-day agenda
 Day 1: Dedup / fit review; Day 2: Preview QA; Day 3: 1:1 outreach drafts only; Day 4: Measure responses; Day 5: Follow-up eligibility review; Day 6: Review demos requested; Day 7: decide stop, change or continue based on evidence.
+
+
+## Prospect-fit correction — 2026-10-20 (important)
+
+### Maid in Nashville: demoted, do not send generic booking-page pitch
+Public website: https://maidinnash.com/ and https://maidinnash.com/request-a-quote/ . The quote page embeds a **LeadConnector / GoHighLevel form** (form ID embedded in page source). Their public home page says they offer online scheduling. Therefore, there is NO evidence they lack quote capture, scheduling or follow-up software. We should not claim those capabilities are missing. Retain the first concept for internal comparison only; do not pitch it as their unmet need without a separate discovery call and evidence of a gap. This does not establish their actual automations, CRM usage or customer response quality.
+
+### Maid Naturally: better-fit observed customer-journey opportunity
+Sources: https://maidnaturally.com/ (CTA 'Book a Cleaning' points to https://maidnaturally.com/residential-cleaning) and https://maidnaturally.com/contact/ (WordPress WPForms contact form visually prompts first name, last name, email and comment/message; public form does not display service/home-size/scheduling-preference fields). Residential service page links onward to Contact. This is a verifiable **visible journey / structure gap** on inspected pages, not proof that the company misses inquiries, has no CRM, fails to follow up, or needs replacement software. Existing contact form and 24-hour response promise must be respected.
+
+**New file:** `sales-pilot/maid-naturally-conversion-preview.html`. Brand cues sampled from Maid Naturally's public website: green #3F7F39, sage/ivory and nature-first imagery, Jost-led typography. Their name, logo and page imagery remain owned by them and are referenced only for this **private unsolicited concept**; do not imply a customer relationship or publish without permission and licensing review.
+
+**Incremental value shown:** (1) customer selects real publicly listed service, (2) structured household and frequency details and optional preferred date, (3) quote-ready summary, and (4) simulated owner-side request → quote → booking status handoff. This is **not** a live booking page, integration, follow-up automation, confirmed calendar, or production-ready replacement. There is no network post, email sending or storage.
+
+**Before pitching:** obtain approval to discuss a tailored concept; confirm their existing CRM, intake fields, response workflow, willingness to adopt another system and actual friction; only then decide whether implementation would save time. Avoid claims that their current tool is broken or they do not have automation.
+
+**Static QA** (GitHub file readback): required element selectors present, no duplicate IDs, no external POST/network calls in script, responsive breakpoints, reduced-motion CSS and clear non-affiliation statement. A **real browser QA pass on mobile/tablet/desktop and image-loading verification remain pending**. No public release.
