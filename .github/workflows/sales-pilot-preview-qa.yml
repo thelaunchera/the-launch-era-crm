@@ -25,6 +25,17 @@ jobs:
         run: |
           mkdir -p sales-pilot/qa-artifacts
           node sales-pilot/qa-maid-naturally.mjs
+      - name: Build self-contained private preview bundle
+        run: |
+          mkdir -p .private-maid-naturally-preview/assets
+          cp sales-pilot/maid-naturally-conversion-preview.html .private-maid-naturally-preview/index.html
+          cp sales-pilot/assets/*.png .private-maid-naturally-preview/assets/
+      - name: Downloadable HTML demo (private artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: maid-naturally-interactive-private-demo
+          path: .private-maid-naturally-preview/
+          retention-days: 7
       - name: Attach private review screenshots
         if: always()
         uses: actions/upload-artifact@v4
