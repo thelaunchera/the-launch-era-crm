@@ -26,6 +26,15 @@ try{
   await page.waitForFunction(()=>Array.from(document.images).every(img=>img.complete),null,{timeout:20000});
   const imageReport=await page.locator('img').evaluateAll(imgs=>imgs.map(img=>({url:img.currentSrc,loaded:img.naturalWidth>0})));
   assert.ok(imageReport.filter(x=>x.loaded).length>=5,'Photos or logo missing: '+JSON.stringify(imageReport));
+  // Photo proofing: service-specific and team imagery must never silently break.
+  for (const imagePath of ['service-post-renovation-detail.png','service-office-concept.png','team-coordination-illustration.png']) {
+    const actual=imageReport.find(x=>x.url.endsWith('/'+imagePath));
+    assert.ok(actual?.loaded,'Required editorial asset did not load at '+width+': '+imagePath);
+  }
+  assert.equal(await page.locator('.office-concept').count(),1,'Office concept section missing');
+  assert.match(await page.locator('.office-note').innerText(),/not confirmed/i,'Unverified service must be clearly marked as a concept');
+  assert.match(await page.locator('.image-disclosure').innerText(),/not Maid Naturally staff/i,'Illustrative stock team cannot be presented as real employees');
+
   await page.screenshot({path:'sales-pilot/qa-artifacts/hero-'+width+'.png',fullPage:true,animations:'disabled'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true,'Horizontal overflow at '+width);
   // Tabs in the owner-facing sample dashboard must actually filter rows.
