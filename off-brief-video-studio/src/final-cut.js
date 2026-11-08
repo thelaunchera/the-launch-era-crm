@@ -1170,6 +1170,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     return lines.join('\n') || 'No dialogue in this shot.';
   };
   const render = () => {
+    setChapterOverlay(false);
     if(!record){root.innerHTML='<p>Opening Final Cut…</p>';return;}
     const ep=meta();
     const shots=frames();
@@ -1197,7 +1198,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
         const html='<button class="fc-shot '+(activeScene===i?'selected ':'')+(ok?'has-video':'is-missing')+'" data-fc="shot" data-index="'+i+'" type="button"><span class="fc-shot-num">'+k.replace(/^.*F/,'F')+'</span><span class="fc-shot-label"><b>'+escapeHtml(f.title||'Scene '+(i+1))+'</b><small>'+escapeHtml(role)+' · '+(ok?parts.length+' video part(s) · '+seconds(partsLength(parts)):'awaiting Higgsfield MP4')+'</small></span><span class="fc-check">'+(ok?'✓':'＋')+'</span></button>';
         return i===2?'<div class="fc-intro-rail"><span>OFF BRIEF · OFFICIAL VIDEO INTRO</span><b>5 sec · audio included</b><button type="button" data-fc="intro">Preview intro</button></div>'+html:html;
       }).join('')+'</div>' +
-      '<div class="fc-preview"><div class="fc-section-head"><div><span class="fc-kicker">02 / REVIEW</span><h2>Preview before export</h2></div><span>16:9 · voice + effects</span></div><div class="fc-preview-stage"><video id="fc-video" controls playsinline preload="metadata"></video><canvas id="fc-fx-preview" width="1280" height="720" aria-hidden="true"></canvas></div><div class="fc-preview-actions"><button type="button" data-fc="preview-shot" '+(!takes.length?'disabled':'')+'>Play selected part</button><button type="button" data-fc="play-cut" '+(!pieces?'disabled':'')+'>'+(canExport()?'Preview whole episode':'Preview assembled scenes')+'</button></div></div></div>' +
+      '<div class="fc-preview"><div class="fc-section-head"><div><span class="fc-kicker">02 / REVIEW</span><h2>Preview before export</h2></div><span>16:9 · voice + effects</span></div><div class="fc-preview-stage"><video id="fc-video" controls playsinline preload="metadata"></video><canvas id="fc-fx-preview" width="1280" height="720" aria-hidden="true"></canvas><canvas id="fc-chapter-canvas" width="1280" height="720" aria-label="Drag CHAPTER and its number to position the lettering"></canvas></div><div class="fc-preview-actions"><button type="button" data-fc="preview-shot" '+(!takes.length?'disabled':'')+'>Play selected part</button><button type="button" data-fc="play-cut" '+(!pieces?'disabled':'')+'>'+(canExport()?'Preview whole episode':'Preview assembled scenes')+'</button></div></div></div>' +
       '<aside class="fc-inspector"><div class="fc-kicker">03 / DIRECTOR NOTES</div><h2>'+escapeHtml(currentFrame()?.title||'Scene')+'</h2><p class="fc-beat">'+escapeHtml(currentFrame()?.beat||'')+'</p><div class="fc-detail"><b>Shot direction</b><p>'+escapeHtml(currentFrame()?.action||'')+'</p></div><div class="fc-detail"><b>Original dialogue</b><pre>'+escapeHtml(scriptText(currentFrame()||{}))+'</pre></div><div class="fc-detail"><b>Scene runtime</b><p>'+shotSeconds.toFixed(1)+' sec imported / '+Number(currentFrame()?.plannedDuration||0).toFixed(1)+' sec scripted</p></div>' +
       '<div class="fc-flow-workflow"><div class="fc-kicker">GOOGLE FLOW / APPROVED SCENE</div><h3>Animate the next take</h3><p>Upload the approved still to Google Flow and paste these original script directions. Keep titles and pauses in Final Cut.</p><div class="fc-flow-actions"><a href="https://flow.google.com" target="_blank" rel="noopener noreferrer">Open Google Flow</a><button type="button" data-fc="copy-flow-prompt">Copy Flow scene prompt</button></div><textarea id="fc-flow-prompt" class="fc-flow-copy-fallback" hidden readonly aria-label="Flow prompt"></textarea><small>Use F01–F10 in filenames. Connected takes use A, B, C. Original media stays in your private Drive; this app does not auto-generate videos inside Flow.</small></div>' +
       '<label class="fc-import-bulk" for="fc-all-files">＋ Import finished Google Flow clips</label>' +
@@ -1206,12 +1207,13 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       (clip&&clip.duration>0.4?'<div class="fc-split"><div class="fc-kicker">CUT / SPLIT VIDEO</div><p>Split the selected part without editing the original file or its audio.</p><label for="fc-split-point">Cut at <output id="fc-split-output">'+(clip.duration/2).toFixed(2)+'</output> seconds within this part</label><input type="range" id="fc-split-point" min="0.15" max="'+(clip.duration-0.15).toFixed(3)+'" step="0.05" value="'+(clip.duration/2).toFixed(2)+'"><div class="fc-split-actions"><button type="button" data-fc="split-at-playhead">Use playhead</button><button type="button" data-fc="split-video">Split here</button></div></div>':'')+
       (takes.length?'<div class="fc-part-list">'+takes.map((part,i)=>'<div class="fc-file '+(i===activeTake?'is-selected':'')+'"><button type="button" class="fc-part-pick" data-fc="take" data-index="'+i+'"><b>Part '+(i+1)+' · '+escapeHtml(part.fileName)+'</b><span>'+seconds(part.duration)+' · sound preserved</span></button><button type="button" data-fc="remove-take" data-index="'+i+'">Remove</button></div>').join('')+'</div>':'<p class="fc-muted">No rendered videos have been imported for this scene.</p>')+
       transitionPanelHTML()+
+      chapterEditorHTML()+
       soundEditorHTML()+
       '<div class="fc-export"><div class="fc-kicker">04 / FINAL EXPORT</div><label for="fc-quality">Resolution</label><select id="fc-quality"><option value="1080" '+(exportQuality==='1080'?'selected':'')+'>1080p · YouTube</option><option value="720" '+(exportQuality==='720'?'selected':'')+'>720p · smaller file</option></select><button type="button" data-fc="export" '+(!canExport()||busy?'disabled':'')+'>Export completed episode</button>'+
       '<small>Export requires footage for all 10 scenes; each may have multiple parts. Original spoken audio stays with the clips. MP4 where supported; otherwise WebM. Keep Safari open.</small>' +
       (exportUrl?'<a class="fc-download" href="'+exportUrl+'" download="'+escapeHtml(exportName)+'">Download '+escapeHtml(exportName)+'</a>':'')+'</div></aside></div>' +
       '<nav class="fc-mobile-dock" aria-label="Mobile editing tools">' +
-        [['clips','Clips'],['audio','Audio'],['effects','Pauses'],['flow','Flow'],['script','Script'],['export','Export']].map(([key,label])=>
+        [['clips','Clips'],['audio','Audio'],['titles','Text'],['effects','Pauses'],['flow','Flow'],['script','Script'],['export','Export']].map(([key,label])=>
           '<button type="button" data-fc-panel="'+key+'" aria-selected="'+(mobilePanel===key)+'" class="'+(mobilePanel===key?'active':'')+'">'+label+'</button>'
         ).join('')+
       '</nav>' +
@@ -1223,10 +1225,21 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const panelButton=e.target.closest('[data-fc-panel]');
     if (panelButton) {
       const next=panelButton.dataset.fcPanel;
-      if (!['clips','audio','effects','flow','script','export'].includes(next)) return;
+      if (!['clips','audio','titles','effects','flow','script','export'].includes(next)) return;
       mobilePanel=next;
       try { sessionStorage.setItem('offbrief-mobile-panel',next); } catch (_) {}
       root.dataset.mobilePanel=next;
+      if(next==='titles'){
+        if(!chapter().enabled){
+          record.chapterTitles={...chapter(),enabled:true};
+          queueChapterSave();
+          const toggle=root.querySelector('[data-fc="chapter-enable"]');
+          if(toggle)toggle.textContent='Hide text on this intro';
+        }
+        void openPreview('intro');
+      } else if(chapterOverlayOn){
+        setChapterOverlay(false);
+      }
       root.querySelectorAll('[data-fc-panel]').forEach(button=>{
         const active=button.dataset.fcPanel===next;
         button.classList.toggle('active',active);
@@ -1253,6 +1266,43 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
         if(field){field.hidden=false;field.value=prompt;field.focus();field.select();}
         inform('Clipboard unavailable; copy the selected prompt manually from the text field.',true);
       }
+      return;
+    }
+    if(action==='chapter-select'){
+      chapterEditLayer=b.dataset.layer==='label'?'label':'number';
+      root.querySelectorAll('[data-fc="chapter-select"]').forEach(btn=>{
+        const current=btn.dataset.layer===chapterEditLayer;
+        btn.setAttribute('aria-pressed',String(current));
+        btn.textContent=current?'Drag selected':'Select to drag';
+      });
+      if(!chapter().enabled){record.chapterTitles={...chapter(),enabled:true};queueChapterSave();}
+      setChapterOverlay(true);
+      inform('Drag '+(chapterEditLayer==='label'?'CHAPTER':'the chapter number')+' on the video with your finger.');
+      return;
+    }
+    if(action==='chapter-enable'){
+      stopPreview();
+      record.chapterTitles={...chapter(),enabled:!chapter().enabled};
+      clearTimeout(chapterSaveTimer);chapterSaveTimer=null;
+      try{await saveCut();inform(record.chapterTitles.enabled?'Chapter title added.':'Chapter title hidden for this episode.');}
+      catch(err){inform('Could not save chapter title.',true);}
+      render();
+      if(record.chapterTitles.enabled)void openPreview('intro');
+      return;
+    }
+    if(action==='chapter-reset'){
+      stopPreview();
+      record.chapterTitles={...chapterDefaults(meta()?.episode||1),enabled:true};
+      clearTimeout(chapterSaveTimer);chapterSaveTimer=null;
+      try{await saveCut();inform('CHAPTER and number reset to their default styles.');}
+      catch(err){inform('Could not save reset.',true);}
+      render();
+      void openPreview('intro');
+      return;
+    }
+    if(action==='chapter-preview'){
+      if(!chapter().enabled){record.chapterTitles={...chapter(),enabled:true};queueChapterSave();}
+      void openPreview('intro');
       return;
     }
     if(action==='split-video'){await splitSelected();return;}
@@ -1299,6 +1349,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     }
   });
   root.addEventListener('input',e=>{
+    if(e.target?.dataset?.fcTitle){applyChapterInput(e.target);return;}
     if(e.target?.id==='fc-fx-duration'){
       const out=root.querySelector('#fc-fx-time');
       if(out)out.textContent=Number(e.target.value).toFixed(1);
@@ -1314,6 +1365,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   });
   root.addEventListener('change', async e=>{
     const input=e.target;
+    if(input.dataset?.fcTitle){applyChapterInput(input);return;}
     if(input.id==='fc-episode'){await selectEpisode(input.value);return;}
     if(input.id==='fc-all-files'){await addFiles(Array.from(input.files||[]));input.value='';return;}
     if(input.id==='fc-single-file'){await addFiles(Array.from(input.files||[]),activeScene,'replace');input.value='';}
@@ -1331,6 +1383,59 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       return;
     }
   });
+
+  // Canvas positions use 0..1 coordinates; dragging in portrait iPhone
+  // writes the SAME positions used by the high-resolution final MP4.
+  const pointerCoords=e=>{
+    const canvas=root.querySelector('#fc-chapter-canvas');
+    if(!canvas)return null;
+    const rect=canvas.getBoundingClientRect();
+    if(!rect.width||!rect.height)return null;
+    return {x:clamp((e.clientX-rect.left)/rect.width,.09,.91),y:clamp((e.clientY-rect.top)/rect.height,.12,.90)};
+  };
+  root.addEventListener('pointerdown',e=>{
+    const canvas=e.target.closest?.('#fc-chapter-canvas');
+    if(!canvas||root.dataset.mobilePanel!=='titles'||!chapter().enabled||busy)return;
+    const point=pointerCoords(e);
+    if(!point)return;
+    const settings=chapter();
+    const score=key=>{
+      const part=settings[key];
+      return Math.hypot(point.x-part.x,(point.y-part.y)*1.65);
+    };
+    chapterEditLayer=score('label')<score('number')?'label':'number';
+    chapterDrag=e.pointerId;
+    try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
+    root.querySelectorAll('[data-fc="chapter-select"]').forEach(btn=>{
+      const active=btn.dataset.layer===chapterEditLayer;
+      btn.textContent=active?'Drag selected':'Select to drag';
+      btn.setAttribute('aria-pressed',String(active));
+    });
+    putChapter(chapterEditLayer,'x',point.x);
+    putChapter(chapterEditLayer,'y',point.y);
+  });
+  root.addEventListener('pointermove',e=>{
+    if(chapterDrag===null||e.pointerId!==chapterDrag)return;
+    const point=pointerCoords(e);
+    if(!point)return;
+    e.preventDefault();
+    // Update both coordinates atomically in storage; don't schedule two writes.
+    const settings=chapter();
+    record.chapterTitles={...settings,[chapterEditLayer]:{...settings[chapterEditLayer],x:point.x,y:point.y}};
+    paintChapterOverlay();
+    queueChapterSave();
+  });
+  const finishChapterDrag=e=>{
+    if(chapterDrag===null||e.pointerId!==chapterDrag)return;
+    chapterDrag=null;
+    const canvas=root.querySelector('#fc-chapter-canvas');
+    try{canvas?.releasePointerCapture(e.pointerId);}catch(_){}
+    queueChapterSave();
+  };
+  root.addEventListener('pointerup',finishChapterDrag);
+  root.addEventListener('pointercancel',finishChapterDrag);
+
   window.addEventListener('pagehide',stopPreview);
   (async ()=>{
     try {
