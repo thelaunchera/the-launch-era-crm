@@ -273,6 +273,7 @@ body.offbrief-finalcut-mode #ob-return-hub {
     .fc-import-bulk,.fc-upload-single,.fc-upload-extra,.fc-split,.fc-part-list,.fc-muted
   ) { display: block !important; }
   #offbrief-final-cut[data-mobile-panel="audio"] .fc-inspector > .fc-sound-editor,
+  #offbrief-final-cut[data-mobile-panel="titles"] .fc-inspector > .fc-chapter-editor,
   #offbrief-final-cut[data-mobile-panel="effects"] .fc-inspector > .fc-effects-editor,
   #offbrief-final-cut[data-mobile-panel="flow"] .fc-inspector > .fc-flow-workflow,
   #offbrief-final-cut[data-mobile-panel="export"] .fc-inspector > .fc-export {
@@ -309,11 +310,13 @@ body.offbrief-finalcut-mode #ob-return-hub {
   #offbrief-final-cut .fc-flow-workflow,
   #offbrief-final-cut .fc-effects-editor,
   #offbrief-final-cut .fc-sound-editor,
+  #offbrief-final-cut .fc-chapter-editor,
   #offbrief-final-cut .fc-export { margin: 0; }
   #offbrief-final-cut .fc-part-list { margin-top: 10px; }
   #offbrief-final-cut .fc-flow-workflow,
   #offbrief-final-cut .fc-effects-editor,
-  #offbrief-final-cut .fc-sound-editor {
+  #offbrief-final-cut .fc-sound-editor,
+  #offbrief-final-cut .fc-chapter-editor {
     padding: 4px 0 8px;
     border: 0;
     background: transparent;
@@ -329,7 +332,7 @@ body.offbrief-finalcut-mode #ob-return-hub {
 
   #offbrief-final-cut .fc-mobile-dock {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     position: fixed;
     left: 0;
     right: 0;
