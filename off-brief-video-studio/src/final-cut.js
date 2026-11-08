@@ -28,6 +28,13 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   let db = null;
   let activeScene = 0;
   let activeTake = 0;
+  // Mobile tool selection is UI-only: never changes saved episode or media.
+  let mobilePanel = 'clips';
+  try {
+    const rememberedPanel = sessionStorage.getItem('offbrief-mobile-panel');
+    if (['clips','audio','effects','flow','script','export'].includes(rememberedPanel)) mobilePanel = rememberedPanel;
+  } catch (_) {}
+
   let exportQuality = '1080';
   let status = '';
   let busy = false;
@@ -47,7 +54,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   const nav = document.createElement('nav');
   nav.className = 'fc-mode-nav';
   nav.setAttribute('aria-label', 'OFF BRIEF workspaces');
-  nav.innerHTML = '<span class="fc-mode-brand"><b>OFF BRIEF</b> / VIDEO STUDIO</span><div><button type="button" data-workspace="final">Final Cut · Google Flow</button><button type="button" data-workspace="legacy">Storyboards & Production</button></div>';
+  nav.innerHTML = '<span class="fc-mode-brand"><b>OFF BRIEF</b><span class="fc-mode-subtitle"> / VIDEO STUDIO</span></span><div><button type="button" data-workspace="final">Video editor</button><button type="button" data-workspace="legacy">Storyboards</button></div>';
   document.body.insertBefore(nav, app);
 
   const escapeHtml = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -989,6 +996,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
       '<div class="fc-preview"><div class="fc-section-head"><div><span class="fc-kicker">02 / REVIEW</span><h2>Preview before export</h2></div><span>16:9 · voice + effects</span></div><div class="fc-preview-stage"><video id="fc-video" controls playsinline preload="metadata"></video><canvas id="fc-fx-preview" width="1280" height="720" aria-hidden="true"></canvas></div><div class="fc-preview-actions"><button type="button" data-fc="preview-shot" '+(!takes.length?'disabled':'')+'>Play selected part</button><button type="button" data-fc="play-cut" '+(!pieces?'disabled':'')+'>'+(canExport()?'Preview whole episode':'Preview assembled scenes')+'</button></div></div></div>' +
       '<aside class="fc-inspector"><div class="fc-kicker">03 / DIRECTOR NOTES</div><h2>'+escapeHtml(currentFrame()?.title||'Scene')+'</h2><p class="fc-beat">'+escapeHtml(currentFrame()?.beat||'')+'</p><div class="fc-detail"><b>Shot direction</b><p>'+escapeHtml(currentFrame()?.action||'')+'</p></div><div class="fc-detail"><b>Original dialogue</b><pre>'+escapeHtml(scriptText(currentFrame()||{}))+'</pre></div><div class="fc-detail"><b>Scene runtime</b><p>'+shotSeconds.toFixed(1)+' sec imported / '+Number(currentFrame()?.plannedDuration||0).toFixed(1)+' sec scripted</p></div>' +
       '<div class="fc-flow-workflow"><div class="fc-kicker">GOOGLE FLOW / APPROVED SCENE</div><h3>Animate the next take</h3><p>Upload the approved still to Google Flow and paste these original script directions. Keep titles and pauses in Final Cut.</p><div class="fc-flow-actions"><a href="https://flow.google.com" target="_blank" rel="noopener noreferrer">Open Google Flow</a><button type="button" data-fc="copy-flow-prompt">Copy Flow scene prompt</button></div><textarea id="fc-flow-prompt" class="fc-flow-copy-fallback" hidden readonly aria-label="Flow prompt"></textarea><small>Use F01–F10 in filenames. Connected takes use A, B, C. Original media stays in your private Drive; this app does not auto-generate videos inside Flow.</small></div>' +
+      '<label class="fc-import-bulk" for="fc-all-files">＋ Import finished Google Flow clips</label>' +
       '<label class="fc-upload-single" for="fc-single-file">'+(takes.length?'Replace all parts of this scene':'Import first scene video')+'</label><input id="fc-single-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>'+
       '<label class="fc-upload-extra" for="fc-extra-file">＋ Add another part (keep existing)</label><input id="fc-extra-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>'+
       (clip&&clip.duration>0.4?'<div class="fc-split"><div class="fc-kicker">CUT / SPLIT VIDEO</div><p>Split the selected part without editing the original file or its audio.</p><label for="fc-split-point">Cut at <output id="fc-split-output">'+(clip.duration/2).toFixed(2)+'</output> seconds within this part</label><input type="range" id="fc-split-point" min="0.15" max="'+(clip.duration-0.15).toFixed(3)+'" step="0.05" value="'+(clip.duration/2).toFixed(2)+'"><div class="fc-split-actions"><button type="button" data-fc="split-at-playhead">Use playhead</button><button type="button" data-fc="split-video">Split here</button></div></div>':'')+
@@ -998,10 +1006,34 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
       '<div class="fc-export"><div class="fc-kicker">04 / FINAL EXPORT</div><label for="fc-quality">Resolution</label><select id="fc-quality"><option value="1080" '+(exportQuality==='1080'?'selected':'')+'>1080p · YouTube</option><option value="720" '+(exportQuality==='720'?'selected':'')+'>720p · smaller file</option></select><button type="button" data-fc="export" '+(!canExport()||busy?'disabled':'')+'>Export completed episode</button>'+
       '<small>Export requires footage for all 10 scenes; each may have multiple parts. Original spoken audio stays with the clips. MP4 where supported; otherwise WebM. Keep Safari open.</small>' +
       (exportUrl?'<a class="fc-download" href="'+exportUrl+'" download="'+escapeHtml(exportName)+'">Download '+escapeHtml(exportName)+'</a>':'')+'</div></aside></div>' +
+      '<nav class="fc-mobile-dock" aria-label="Mobile editing tools">' +
+        [['clips','Clips'],['audio','Audio'],['effects','Pauses'],['flow','Flow'],['script','Script'],['export','Export']].map(([key,label])=>
+          '<button type="button" data-fc-panel="'+key+'" aria-selected="'+(mobilePanel===key)+'" class="'+(mobilePanel===key?'active':'')+'">'+label+'</button>'
+        ).join('')+
+      '</nav>' +
       '<div class="fc-footer"><span id="fc-notice" class="fc-notice">'+escapeHtml(status)+'</span><small>Saved: '+escapeHtml(savedLabel())+' · Powered by The Launch Era</small></div></div>';
+    root.dataset.mobilePanel = mobilePanel;
   };
 
   root.addEventListener('click', async e => {
+    const panelButton=e.target.closest('[data-fc-panel]');
+    if (panelButton) {
+      const next=panelButton.dataset.fcPanel;
+      if (!['clips','audio','effects','flow','script','export'].includes(next)) return;
+      mobilePanel=next;
+      try { sessionStorage.setItem('offbrief-mobile-panel',next); } catch (_) {}
+      root.dataset.mobilePanel=next;
+      root.querySelectorAll('[data-fc-panel]').forEach(button=>{
+        const active=button.dataset.fcPanel===next;
+        button.classList.toggle('active',active);
+        button.setAttribute('aria-selected',String(active));
+      });
+      const inspector=root.querySelector('.fc-inspector');
+      if (inspector && window.matchMedia('(max-width: 700px)').matches) {
+        inspector.scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+      return;
+    }
     const b=e.target.closest('[data-fc]');
     if(!b || busy) return;
     const action=b.dataset.fc;
