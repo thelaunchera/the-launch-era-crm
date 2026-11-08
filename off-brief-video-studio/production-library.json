@@ -1,0 +1,105 @@
+{
+  "schema": "offbrief-production-library-v1",
+  "updated": "2026-11-08",
+  "status": "Verified locations; original media stays in Google Drive, not duplicated in GitHub.",
+  "channel": {
+    "label": "OFF BRIEF YouTube",
+    "url": "https://www.youtube.com/@Offbriefchannel",
+    "verification": "Recorded handle; live channel page not independently confirmed"
+  },
+  "folders": {
+    "parent": {
+      "label": "OFF BRIEF — YouTube",
+      "url": "https://drive.google.com/drive/folders/1Ym_Tqov970lP2K_4trIBr4dpj1FhGRIh"
+    },
+    "season1": {
+      "label": "Season 1",
+      "url": "https://drive.google.com/drive/folders/1myBlNZfJrYezbV38mMnq_TXUyjh6vbqW"
+    },
+    "season2": {
+      "label": "Season 2",
+      "url": "https://drive.google.com/drive/folders/1cQXnFiOzhuGQXEEVSjJrUGN6SGxWQcpF"
+    },
+    "characters": {
+      "label": "Character reference library",
+      "url": "https://drive.google.com/drive/folders/1C4dbwx-4BbtIgqZQREJjmeHT-y3MOWK5"
+    },
+    "branding": {
+      "label": "Official branding and intro",
+      "url": "https://drive.google.com/drive/folders/1MEK6ToN5TZfEVQFoBOIa7JZkarjkxEJS"
+    },
+    "previews": {
+      "label": "9 approved animatic previews",
+      "url": "https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m"
+    }
+  },
+  "intro": {
+    "name": "OFFBRIEF_Official_Universal_Intro_5s.mp4",
+    "url": "https://drive.google.com/file/d/14oZBDmHZoUQK_iYHPhirAtvpSuTL3p64/view",
+    "durationSeconds": 5,
+    "position": "After cold-open F01-F02",
+    "sha256": "4472a53abb0b50bc3a18868266efad07d78ade6913178f6ee8c6cda8d10eb644"
+  },
+  "episodes": [
+    {
+      "key": "S01E01",
+      "title": "The Viral Emergency",
+      "folder": "1SOjQOVRq2HoFczfVANGPWNggM0FtaPMX",
+      "preview": "1XA7xVooJ1MLHmEH13mNcSv_1Kl2-c418"
+    },
+    {
+      "key": "S01E02",
+      "title": "The Client Said Beige",
+      "folder": "1H9ZVmc1t3wPrR81J2l497hpkjCn8WGan",
+      "preview": "1aPlTGVwMli_K9Qmai7SwSjGRUQDX6XLg"
+    },
+    {
+      "key": "S01E03",
+      "title": "Influencer for a Day",
+      "folder": "1XDkFyE5RF6ryWUi1_U_juPcrpkCxTz9K",
+      "preview": "1QZ5yxEpZnAhgWPBUlS1mrix4Bv3wB_u4"
+    },
+    {
+      "key": "S01E04",
+      "title": "The AI Intern",
+      "folder": "1uW3IIoSLqUKoF_m-w_FIMsNMuufh3Pas",
+      "preview": "1JmJyt_wuJE85fVUfbaQrP-uGK6uAI09S"
+    },
+    {
+      "key": "S01E05",
+      "title": "One Product, 100 Photos",
+      "folder": "1NqeHhEpQyPLUNYOhk0A4CKufywz3Z2Pz",
+      "preview": "1TzVid98UNhYsPp07bPKoxaCj13Oh5IIs"
+    },
+    {
+      "key": "S01E06",
+      "title": "The Competitor",
+      "folder": "1N_TxxJn5XVk5DZqGHnj-QX9TmtbV8Kqm",
+      "preview": "1gRKAwhtF8ynqsU7o5abR6qKeQHe0hbZk"
+    },
+    {
+      "key": "S01E07",
+      "title": "The Biggest Pitch",
+      "folder": "1nQo8EOZEFOeqLZWbbQBr0DOp5ZtG6b9f",
+      "preview": "1DIkqM24EASykA7RysN8wKaUCDT8hi8mz"
+    },
+    {
+      "key": "S01E08",
+      "title": "We Almost Quit",
+      "folder": "1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA",
+      "preview": "16JgjMVGEC94cYJamYEqXjUpkAhQQtbhU"
+    },
+    {
+      "key": "S02E01",
+      "title": "We Need a Bigger Table",
+      "folder": "1tUHvRTvc1pqlKvx1kt-B8oX2cklq_g6R",
+      "preview": "1yDFsib7aHzkwJNtxf1s2Js35AKTLBu5N"
+    },
+    {
+      "key": "S02E02",
+      "title": "Ten Directors, One Shot",
+      "folder": "1In6dSiqF7NJjqjzgN1VMFHNouOuaXzsZ",
+      "preview": null
+    }
+  ]
+}
