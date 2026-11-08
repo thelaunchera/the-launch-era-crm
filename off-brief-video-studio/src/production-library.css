@@ -1,0 +1,20 @@
+#ob-open-library{border-color:#c9c3b7!important;color:#fff!important}
+#ob-library-dialog{border:1px solid #ddd5c4;border-radius:17px;background:#faf8f3;color:#191919;box-shadow:0 24px 90px rgba(0,0,0,.25);padding:24px;max-width:min(680px,95vw);max-height:88vh;overflow:auto;font-family:Arial,sans-serif}
+#ob-library-dialog::backdrop{background:rgba(25,25,25,.72)}
+#ob-library-dialog header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+#ob-library-dialog header small{font-size:10px;font-weight:800;letter-spacing:1.4px;color:#8d8067}
+#ob-library-dialog h2{font-size:32px;letter-spacing:-1px;margin:8px 0 10px}
+#ob-library-dialog header button{min-width:42px;min-height:42px;font-size:22px;background:#fff;border:1px solid #e3dfd7;border-radius:8px;color:#191919}
+#ob-library-dialog p,#ob-library-dialog footer{font-size:12px;line-height:1.6;color:#716b61}
+.ob-library-group{border-top:1px solid #e4ded2;padding-top:15px;margin-top:15px}
+.ob-library-group h3{font-size:15px;margin:0 0 12px}
+.ob-library-links{display:flex;flex-wrap:wrap;gap:8px}
+.ob-library-links a,.ob-library-episode a{border:1px solid #ded6c7;background:#fff;border-radius:8px;color:#191919;text-decoration:none;font-size:11px;font-weight:800;padding:10px}
+.ob-library-episodes{display:grid;gap:7px}
+.ob-library-episode{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fff;border:1px solid #eee8dd;border-radius:9px;padding:11px}
+.ob-library-episode>div:first-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ob-library-episode b{font-size:11px}.ob-library-episode span{font-size:12px;color:#766f64;line-height:1.35}
+.ob-library-episode>div:last-child{display:flex;gap:5px;flex-shrink:0}
+.ob-library-episode small{font-size:10px;color:#8e877a}
+#ob-library-dialog footer{margin-top:17px}
+@media(max-width:700px){#ob-library-dialog{padding:16px}#ob-library-dialog h2{font-size:26px}#ob-open-library{grid-column:span 2}.ob-library-episode{display:block}.ob-library-episode>div:last-child{margin-top:8px}}
