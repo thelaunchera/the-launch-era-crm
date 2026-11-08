@@ -135,6 +135,9 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     const final = tab !== 'legacy';
     app.hidden = final;
     root.hidden = !final;
+    // Production Hub is a separate body-level workspace. Hide it whenever
+    // Final Cut is active so it cannot add thousands of offscreen pixels.
+    document.body.classList.toggle('offbrief-finalcut-mode',final);
     nav.querySelectorAll('[data-workspace]').forEach(el => {
       el.classList.toggle('is-active', el.dataset.workspace === (final ? 'final' : 'legacy'));
     });
