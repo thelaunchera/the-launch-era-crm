@@ -1,0 +1,54 @@
+name: OFF BRIEF Video Studio — GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'off-brief-video-studio/**'
+      - '.github/workflows/off-brief-studio-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: off-brief-studio-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: off-brief-video-studio/package.json
+      - name: Install app dependencies
+        working-directory: off-brief-video-studio
+        run: npm install --no-audit --no-fund
+      - name: Verify original intro and build
+        working-directory: off-brief-video-studio
+        run: npm run build
+      - name: Check final app and intro
+        run: |
+          test -s off-brief-video-studio/dist/index.html
+          test -s off-brief-video-studio/dist/resources/offbrief-official-universal-intro.mp4
+          find off-brief-video-studio/dist -maxdepth 2 -type f | head -30
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: off-brief-video-studio/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
