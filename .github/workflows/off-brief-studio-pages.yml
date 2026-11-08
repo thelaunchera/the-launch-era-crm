@@ -37,6 +37,13 @@ jobs:
           test -s off-brief-video-studio/dist/index.html
           test -s off-brief-video-studio/dist/resources/offbrief-official-universal-intro.mp4
           find off-brief-video-studio/dist -maxdepth 2 -type f | head -30
+      - name: Preserve complete built Video Studio
+        uses: actions/upload-artifact@v4
+        with:
+          name: off-brief-video-studio-complete-site
+          path: off-brief-video-studio/dist
+          retention-days: 90
+          if-no-files-found: error
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
