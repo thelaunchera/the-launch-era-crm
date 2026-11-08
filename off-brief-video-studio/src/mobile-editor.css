@@ -1,3 +1,10 @@
+/* The Production Hub is mounted as a second body-level workspace.
+   It must not occupy page height behind Final Cut, at any viewport width. */
+body.offbrief-finalcut-mode #ob-production-root,
+body.offbrief-finalcut-mode #ob-return-hub {
+  display: none !important;
+}
+
 /* OFF BRIEF · mobile video editor
    One video, one horizontal scene strip and one active tool panel.
    Desktop layout and all stored media remain unchanged. */
