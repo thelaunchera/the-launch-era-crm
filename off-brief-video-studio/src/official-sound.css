@@ -1,0 +1,17 @@
+/* OFF BRIEF official sound library — compact on phone and iPad */
+.fc-official-audio{margin:12px 0 17px;padding:12px;border:1px solid #e8dcb1;background:#fff9e2;border-radius:12px}
+.fc-official-audio h4{font:800 15px/1.3 'Space Grotesk',Arial,sans-serif;letter-spacing:-.3px;color:#191919;margin:7px 0 11px}
+.fc-official-audio-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid rgba(25,25,25,.1)}
+.fc-official-audio-row>div:first-child{flex:1;min-width:0}
+.fc-official-audio-row b{font:800 11px/1.45 'Space Grotesk',Arial,sans-serif;display:block;color:#191919}
+.fc-official-audio-row small{display:block;font-size:10px;line-height:1.45;color:#726549;margin-top:4px}
+.fc-official-audio-actions{display:flex;gap:6px;flex:0 0 auto}
+.fc-official-audio-actions button{min-height:42px;padding:9px 10px;border:1px solid #191919;border-radius:8px;background:#fff;font-size:10px;font-weight:800;color:#191919;touch-action:manipulation}
+.fc-official-audio-actions button:last-child{background:#191919;color:#fff}
+.fc-official-audio-actions button:disabled{background:#eadcaa;border-color:#ccb970;color:#57492d;cursor:default}
+.fc-official-audio>p{font-size:10px!important;line-height:1.6!important;margin:10px 0 0!important;color:#746748!important}
+@media(max-width:385px){
+  .fc-official-audio{padding:11px}
+  .fc-official-audio-row{align-items:stretch;flex-direction:column;gap:8px}
+  .fc-official-audio-actions button{flex:1}
+}
