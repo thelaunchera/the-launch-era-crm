@@ -585,7 +585,8 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const loop=()=>{
       if(!chapterOverlayOn)return;
       paintChapterOverlay();
-      chapterRaf=requestAnimationFrame(loop);
+      const player=root.querySelector('#fc-video');
+      chapterRaf=player && !player.paused && !player.ended ? requestAnimationFrame(loop) : 0;
     };
     if(chapterOverlayOn)loop();
     else if(canvas){const ctx=canvas.getContext('2d');ctx?.clearRect(0,0,canvas.width,canvas.height);}
@@ -1393,6 +1394,9 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     if(!rect.width||!rect.height)return null;
     return {x:clamp((e.clientX-rect.left)/rect.width,.09,.91),y:clamp((e.clientY-rect.top)/rect.height,.12,.90)};
   };
+  root.addEventListener('play',e=>{
+    if(e.target?.id==='fc-video'&&chapterOverlayOn)setChapterOverlay(true);
+  },true);
   root.addEventListener('pointerdown',e=>{
     const canvas=e.target.closest?.('#fc-chapter-canvas');
     if(!canvas||root.dataset.mobilePanel!=='titles'||!chapter().enabled||busy)return;
