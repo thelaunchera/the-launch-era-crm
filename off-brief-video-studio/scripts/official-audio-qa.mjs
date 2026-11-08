@@ -31,8 +31,11 @@ try{
       const response=await fetch(path);
       if(!response.ok)throw Error('Missing audio asset '+path+': '+response.status);
       const bytes=await response.arrayBuffer();
+      // decodeAudioData() transfers and detaches its input ArrayBuffer.
+      // Measure original length *before* decoding, otherwise it reads 0.
+      const byteCount=bytes.byteLength;
       const sound=await ctx.decodeAudioData(bytes);
-      result.push({path,bytes:bytes.byteLength,seconds:sound.duration,channels:sound.numberOfChannels,sampleRate:sound.sampleRate});
+      result.push({path,bytes:byteCount,seconds:sound.duration,channels:sound.numberOfChannels,sampleRate:sound.sampleRate});
     }
     await ctx.close();
     return result;
