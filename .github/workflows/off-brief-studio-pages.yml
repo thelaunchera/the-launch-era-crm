@@ -44,6 +44,8 @@ jobs:
           path: off-brief-video-studio/dist
           retention-days: 90
           if-no-files-found: error
+      # GitHub Pages must be enabled once in Settings > Pages > Source: GitHub Actions.
+      # The public repository and GitHub-hosted runner require no paid plan.
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
