@@ -1,0 +1,41 @@
+name: OFF BRIEF — iPhone editor QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'off-brief-video-studio/src/mobile-editor.css'
+      - 'off-brief-video-studio/scripts/mobile-layout-check.mjs'
+      - '.github/workflows/off-brief-mobile-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install app and browser test runner
+        working-directory: off-brief-video-studio
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Build the real video studio
+        working-directory: off-brief-video-studio
+        run: npm run build
+      - name: Run iPhone-width interface checks
+        working-directory: off-brief-video-studio
+        run: |
+          (npx vite preview --host 127.0.0.1 --port 4173 > /tmp/offbrief-vite.log 2>&1 &)
+          sleep 4
+          node scripts/mobile-layout-check.mjs
+      - name: Upload mobile screenshots and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offbrief-mobile-screen-review
+          path: off-brief-video-studio/mobile-qa-results/
+          if-no-files-found: warn
