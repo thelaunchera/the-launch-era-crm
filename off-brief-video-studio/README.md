@@ -26,8 +26,8 @@ Select episode and F01–F10 scene, press Copy Flow scene prompt, and open https
 - Video Studio: the channel link is available in the Final Cut header.
 - OFF BRIEF identity: THE CREATIVE HOUSE — "Great ideas. Terrible timing."
 
-## Staging / privacy / limitations
-This branch is a private staging copy in an existing private GitHub repository, NOT yet the final dedicated OFF BRIEF repository and NOT a live GitHub Pages deployment. The unrelated default branch stays untouched. Move this standalone source tree to a dedicated off-brief-video-studio repository before configuring Pages.
+## GitHub location / privacy / deployment
+OFF BRIEF Video Studio is now stored in **the private The Launch Era repository**, in the `off-brief-video-studio/` folder on `main`. The existing CRM files were preserved. The public The Launch Era website repository only contains a project/channel reference under `docs/`; private scripts and original media were not published there. This is **not yet a GitHub Pages deployment**. The current production website remains the previously published Video Studio.
 
 Browser IndexedDB data belongs to its original domain and device. Copying code does NOT carry existing browser-local projects, MP4s, voices, Sound tracks, split points, or transitions from AppDeploy. Keep the original AppDeploy Studio accessible until these assets are intentionally imported and QA-verified on the new domain.
 
