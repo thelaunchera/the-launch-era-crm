@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Existing saved pause survives expanded transition library",
+    "sanity": true,
+    "viewport": "mobile",
+    "description": "Existing pause data is kept after additional presets are installed.",
+    "covers": [
+      "backwards compatible transitions",
+      "saved pause title duration and sound"
+    ],
+    "setup": [
+      "In F02 save an existing Comedy freeze with a custom caption and duration."
+    ],
+    "steps": [
+      "Refresh Final Cut and select F02.",
+      "Inspect the selected effect and all saved settings."
+    ],
+    "expected": "The original Comedy freeze remains selected with its previous title, duration and accent."
+  },
+  {
+    "name": "Punch zoom, glitch and reaction stamp are distinct animated effects",
+    "viewport": "mobile",
+    "description": "Different original graphics animate from the footage without changing the scene's character.",
+    "covers": [
+      "zoom",
+      "glitch",
+      "reaction stamp",
+      "intensity control"
+    ],
+    "setup": [
+      "Import a five-second rendered Higgsfield MP4 in F03."
+    ],
+    "steps": [
+      "Choose Punch zoom and preview.",
+      "Change to Mini glitch and preview.",
+      "Choose Reaction stamp, adjust intensity and preview."
+    ],
+    "expected": "All three look different; no video file is rewritten; intensity persists."
+  },
+  {
+    "name": "Presentation and comic pauses remain after their scenes and before intro",
+    "viewport": "desktop",
+    "description": "The official intro stays correctly placed after F02 and newly selected effects render on the episode timeline.",
+    "covers": [
+      "ivory wipe",
+      "type-on caption",
+      "countdown",
+      "intro order",
+      "export effect rendering"
+    ],
+    "setup": [
+      "Import all 10 scene videos."
+    ],
+    "steps": [
+      "Choose a Type-on title pause for F02.",
+      "Preview assembled cut and export on a supported browser."
+    ],
+    "expected": "The type-on title appears after F02 and before the 5-second intro, and renders as video frames in the export."
+  },
+  {
+    "name": "Soft flash, slide and news ticker do not change original audio",
+    "viewport": "mobile",
+    "description": "More visual variety without replacing spoken audio files.",
+    "covers": [
+      "single soft flash",
+      "side slide",
+      "news ticker",
+      "original sound"
+    ],
+    "steps": [
+      "Open F04 Pauses & Transitions.",
+      "Select Soft flash, Side slide and News ticker one at a time and preview each."
+    ],
+    "expected": "All options are selectable and animated; source dialogue audio is unchanged."
+  }
+]

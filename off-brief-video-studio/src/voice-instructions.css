@@ -1,0 +1,18 @@
+
+.ob-voice-explain{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:16px;border-radius:12px;background:#f2ebcf;margin:0 0 24px}
+.ob-voice-explain>b{font-size:12px}.ob-voice-explain span{font-size:11px;line-height:1.6;max-width:620px;color:#756e50;flex:1}
+.ob-voice-explain a{font-size:11px;font-weight:900;color:#1a1c1d;text-decoration:underline}
+.ob-voice-grid{align-items:start}
+.ob-voice-director-card{min-height:0}
+.ob-voice-card-content{min-width:0;flex:1}
+.ob-voice-card-heading{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:start}
+.ob-voice-card-heading h3{margin:0 0 4px}.ob-voice-card-heading p{margin:0 0 12px;font-size:10px;line-height:1.5;color:#8a8e87}
+.ob-voice-recommendation{font-size:9px;border-radius:50px;background:#f1e9cc;padding:6px 8px;white-space:nowrap}
+.ob-voice-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ob-voice-instructions-label{display:block;font-size:10px;font-weight:800;color:#626960;margin-top:13px}
+.ob-voice-instructions-label textarea{font:inherit;font-size:11px;line-height:1.65;display:block;width:100%;margin-top:7px;padding:12px;min-height:180px;border:1px solid #dad9cf;background:#fffefa;border-radius:9px;resize:vertical;color:#262826}
+.ob-voice-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ob-voice-buttons button,.ob-voice-buttons a{font-size:10px!important;padding:10px 12px!important}
+.ob-voice-delivery{display:block;font-size:10px;font-weight:800;color:#686e67;margin-top:9px}
+.ob-voice-delivery input{display:block;font-size:11px;border:1px solid #dedbd2;padding:10px;border-radius:8px;background:white;width:100%;margin-top:6px}
+@media(max-width:680px){.ob-voice-explain{display:block}.ob-voice-explain span{display:block;margin:9px 0}.ob-voice-options{grid-template-columns:1fr}.ob-voice-director-card{display:block}.ob-voice-director-card>.ob-cast-reference,.ob-voice-director-card>.ob-cast-icon{float:left;margin-right:13px;margin-bottom:10px}.ob-voice-card-content{clear:both}.ob-voice-buttons{display:grid}.ob-voice-buttons>*{width:100%}}

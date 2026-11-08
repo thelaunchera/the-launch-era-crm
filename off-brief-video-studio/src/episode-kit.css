@@ -1,0 +1,42 @@
+/* Season 01 episode library additions */
+.episode-kit {
+  margin: 0 0 24px;
+  padding: 18px 20px;
+  background: #fffdf6;
+  border: 1px solid #e7ddbf;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.episode-kit h3 {
+  margin: 8px 0 6px;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: clamp(19px,2vw,25px);
+  letter-spacing: -.5px;
+}
+.episode-kit p {
+  margin: 0;
+  color: #67675f;
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 560px;
+}
+.episode-media-links {display:flex;flex-direction:column;align-items:stretch;gap:9px;min-width:200px}.episode-cover-link {padding:9px 11px;text-align:center;border-radius:8px;text-decoration:none;border:1px solid #ded5bc;color:#252525;font-size:11px;font-weight:700}
+.episode-drive-link {
+  border: 1px solid #191919;
+  border-radius: 10px;
+  color: #faf8f3;
+  background: #191919;
+  padding: 12px 15px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.episode-drive-link:hover { background: #343434; }
+@media (max-width: 900px) {
+  .episode-kit { flex-direction: column; align-items: stretch; }
+  .episode-drive-link { white-space: normal; text-align: center; }
+}

@@ -1,0 +1,23 @@
+
+.ob-season-group>.ob-menu-label{display:flex;justify-content:space-between;gap:7px}
+.ob-season-group>.ob-menu-label span{font-size:8px;letter-spacing:0;color:#aea59a;font-weight:700}
+.ob-season-group+.ob-season-group{border-top:1px solid #3e4041;margin-top:12px;padding-top:9px}
+.ob-season-title-editor{display:flex;align-items:center;gap:13px;background:#fffdf6;border:1px solid #e1ddce;border-radius:9px;padding:13px;margin-bottom:17px}
+.ob-season-title-editor label{font-weight:800;font-size:10px;color:#777b73}
+.ob-season-title-editor input{flex:1;min-width:0;border:1px solid #ddd9d0;border-radius:8px;padding:10px;background:white;font-size:12px}
+.ob-episode-source{display:block;font-size:10px;color:#847440;margin-top:8px}
+.ob-drive-quick-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:17px}
+.ob-drive-panel{max-width:760px;padding:25px;background:#fffefa;border-radius:15px;border:1px solid #e4dfd5}
+.ob-drive-panel>h2{font-size:28px;margin:12px 0 20px}
+.ob-drive-status{display:flex;flex-direction:column;gap:5px;padding:17px;border-radius:9px;background:#f2ebd1}
+.ob-drive-status b{font-size:14px}.ob-drive-status small{font-size:11px;color:#847c64;line-height:1.6}
+.ob-drive-form{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:15px}
+.ob-drive-form label{display:flex;flex-direction:column;gap:7px;width:100%;font-size:11px;font-weight:800}
+.ob-drive-form label small{font-size:10px;color:#8f9189;font-weight:500;line-height:1.5}
+.ob-drive-form input{width:100%;border:1px solid #d9d6ca;border-radius:9px;padding:11px;font-size:12px;background:#fff}
+.ob-drive-help{padding:15px;border:1px solid #ebe2cd;background:#f8f6ee;border-radius:9px;width:100%;font-size:11px;line-height:1.7;color:#73746d}
+.ob-drive-help p{margin:4px 0 8px}.ob-drive-help code{word-break:break-all;font-size:10px}
+.ob-drive-help a{color:#474a42;font-weight:800}
+.ob-drive-note{font-size:10px;color:#8f9087;line-height:1.7}
+#ob-drive-message{font-size:11px;min-height:15px;line-height:1.6;color:#846632}
+@media(max-width:650px){.ob-season-group>.ob-menu-label{display:block}.ob-season-title-editor{display:block}.ob-season-title-editor input{margin-top:7px;width:100%}.ob-drive-panel{padding:16px}}
