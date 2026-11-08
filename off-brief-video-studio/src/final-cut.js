@@ -1,6 +1,7 @@
 
 import { CANON_EPISODES } from './canonical-production.js';
 import { generateGoogleFlowPrompt } from './flow-production.js';
+import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles } from './chapter-titles.js';
 
 (function initializeFinalCut() {
   'use strict';
@@ -45,7 +46,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   let mobilePanel = 'clips';
   try {
     const rememberedPanel = sessionStorage.getItem('offbrief-mobile-panel');
-    if (['clips','audio','effects','flow','script','export'].includes(rememberedPanel)) mobilePanel = rememberedPanel;
+    if (['clips','audio','titles','effects','flow','script','export'].includes(rememberedPanel)) mobilePanel = rememberedPanel;
   } catch (_) {}
 
   let exportQuality = '1080';
@@ -58,6 +59,11 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   let cancelPlayback = null;
   let activeSoundSession = null;
   let soundSample = null;
+  let chapterOverlayOn = false;
+  let chapterRaf = 0;
+  let chapterDrag = null;
+  let chapterSaveTimer = null;
+  let chapterEditLayer = 'number';
 
   const root = document.createElement('section');
   root.id = 'offbrief-final-cut';
@@ -98,6 +104,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   const currentFrame = () => frames()[activeScene];
   const canExport = () => frames().length === 10 && clipCount() === 10;
   const audioCues = () => Array.isArray(record?.sounds) ? record.sounds : [];
+  const chapter = () => normalizeChapter(record?.chapterTitles,meta()?.episode||1);
   const savedLabel = () => record?.savedAt ? new Date(record.savedAt).toLocaleString() : 'Not saved yet';
 
   const getDB = () => new Promise((resolve, reject) => {
@@ -130,6 +137,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     }
   };
   const stopPreview = () => {
+    setChapterOverlay(false);
     previewActive = false;
     if (cancelPlayback) cancelPlayback();
     cancelPlayback = null;
@@ -339,6 +347,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     video.controls=true;
     video.playsInline=true;
     video.load();
+    setChapterOverlay(kind==='intro');
     try {
       await new Promise((resolve,reject)=>{
         const timeout=setTimeout(()=>reject(new Error('Clip could not load')),20000);
@@ -493,6 +502,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
       for(const step of fullSequence()){
         if(stopped)break;
         if(step.type==='beat'){
+          setChapterOverlay(false);
           const canvas=root.querySelector('#fc-fx-preview');
           if(!canvas){inform('Transition preview canvas unavailable.',true);break;}
           inform('Transition: '+step.fx.type+' · '+step.duration.toFixed(1)+' seconds');
@@ -516,6 +526,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
           continue;
         }
         const url=step.type==='intro'?INTRO_SRC:URL.createObjectURL(step.clip.blob);
+        setChapterOverlay(step.type==='intro');
         inform('Playing '+step.label);
         video.src=url;video.controls=true;video.playsInline=true;video.load();
         try{
@@ -549,6 +560,84 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     const scale = Math.min(w/video.videoWidth,h/video.videoHeight);
     const dw = video.videoWidth * scale, dh = video.videoHeight * scale;
     ctx.drawImage(video,(w-dw)/2,(h-dh)/2,dw,dh);
+  };
+
+  // This transparent, touch-enabled layer previews the exact canvas lettering
+  // that the final capture paints into its frames. It never changes the intro MP4.
+  const paintChapterOverlay = () => {
+    const canvas=root.querySelector('#fc-chapter-canvas');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    if(!ctx)return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!chapterOverlayOn)return;
+    const video=root.querySelector('#fc-video');
+    const current=video && Number.isFinite(video.currentTime) ? video.currentTime : 5;
+    const elapsed=video && !video.paused ? current : Math.max(current,4.5);
+    drawChapterTitles(ctx,canvas,chapter(),elapsed,{episodeNumber:meta()?.episode||1});
+  };
+  const setChapterOverlay = enabled => {
+    chapterOverlayOn=Boolean(enabled);
+    cancelAnimationFrame(chapterRaf);
+    chapterRaf=0;
+    const canvas=root.querySelector('#fc-chapter-canvas');
+    if(canvas)canvas.classList.toggle('fc-chapter-active',chapterOverlayOn);
+    const loop=()=>{
+      if(!chapterOverlayOn)return;
+      paintChapterOverlay();
+      chapterRaf=requestAnimationFrame(loop);
+    };
+    if(chapterOverlayOn)loop();
+    else if(canvas){const ctx=canvas.getContext('2d');ctx?.clearRect(0,0,canvas.width,canvas.height);}
+  };
+  const queueChapterSave = () => {
+    clearTimeout(chapterSaveTimer);
+    chapterSaveTimer=setTimeout(()=>{
+      chapterSaveTimer=null;
+      saveCut().then(()=>inform('CHAPTER title saved for '+selected+'.')).catch(err=>
+        inform('Could not save chapter title: '+String(err?.message||err),true));
+    },350);
+  };
+  const putChapter = (layer,prop,value) => {
+    const settings=chapter();
+    if(!['label','number'].includes(layer))return;
+    const next=normalizeChapter({...settings,enabled:true,[layer]:{...settings[layer],[prop]:value}},meta()?.episode||1);
+    record.chapterTitles=next;
+    queueChapterSave();
+    paintChapterOverlay();
+  };
+  const chapterEditorHTML = () => {
+    const settings=chapter();
+    const colors=[['#FAF8F3','Ivory'],['#F2D85B','Yellow'],['#191919','Black'],['#B8D9EA','Soft blue'],['#FFFFFF','White']];
+    const effects=CHAPTER_EFFECTS.map(([v,label])=>'<option value="'+v+'">{LABEL}</option>'.replace('{LABEL}',escapeHtml(label)));
+    const control=key=>{
+      const t=settings[key];
+      return '<article class="fc-chapter-layer"><div class="fc-chapter-layer-title"><b>'+(key==='label'?'01 · CHAPTER WORD':'02 · EPISODE NUMBER')+'</b><button type="button" data-fc="chapter-select" data-layer="'+key+'" aria-pressed="'+(chapterEditLayer===key)+'">'+(chapterEditLayer===key?'Drag selected':'Select to drag')+'</button></div>'+
+        '<label>Text<input maxlength="'+(key==='label'?28:12)+'" type="text" data-fc-title="'+key+'.text" value="'+escapeHtml(t.text)+'" placeholder="'+(key==='label'?'CHAPTER':'01')+'"></label>'+
+        '<label>Animation<select data-fc-title="'+key+'.effect">'+effects.map(o=>o.replace('value="'+t.effect+'"','value="'+t.effect+'" selected')).join('')+'</select></label>'+
+        '<label>Color<select data-fc-title="'+key+'.color">'+colors.map(([c,n])=>'<option value="'+c+'" '+(c===t.color?'selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+        '<label>Text size <span>'+Math.round(t.size*720)+'px</span><input type="range" data-fc-title="'+key+'.size" min="0.035" max="'+(key==='label'?'0.16':'0.27')+'" step="0.005" value="'+t.size+'"></label>'+
+        '<label>Start after <span>'+t.delay.toFixed(1)+'s</span><input type="range" data-fc-title="'+key+'.delay" min="0" max="3.8" step="0.1" value="'+t.delay+'"></label></article>';
+    };
+    return '<section class="fc-chapter-editor"><div class="fc-kicker">OFF BRIEF · EDIT INTRO TEXT</div>'+
+      '<h3>CHAPTER + number</h3><p>Write your own chapter title and number. Choose independent animations, drag each text on the intro, and preview before exporting.</p>'+
+      '<button type="button" class="fc-chapter-toggle" data-fc="chapter-enable">'+(settings.enabled?'Hide text on this intro':'Add text to this intro')+'</button>'+
+      '<div class="fc-chapter-layers">'+control('label')+control('number')+'</div>'+
+      '<div class="fc-chapter-actions"><button type="button" data-fc="chapter-preview">▶ Preview animated intro</button><button type="button" data-fc="chapter-reset">Reset text & positions</button></div>'+
+      '<small>Only your selected chapter is updated. Titles animate on the approved 5-second intro AFTER F01–F02. The original intro is not modified. Each chapter saves its own text and animation.</small></section>';
+  };
+  const applyChapterInput = input => {
+    const field=input?.dataset?.fcTitle;
+    if(!field)return false;
+    const [layer,prop]=field.split('.');
+    if(!['label','number'].includes(layer)||!['text','effect','color','size','delay'].includes(prop))return false;
+    const value=['size','delay'].includes(prop)?Number(input.value):input.value;
+    putChapter(layer,prop,value);
+    const label=input.closest('label');
+    const output=label?.querySelector('span');
+    if(output&&prop==='size')output.textContent=Math.round(Number(value)*720)+'px';
+    if(output&&prop==='delay')output.textContent=Number(value).toFixed(1)+'s';
+    return true;
   };
 
   const exportCut = async () => {
@@ -631,9 +720,10 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
           });
         }
         drawVideo(ctx,canvas,video);
+        if(step.type==='intro')drawChapterTitles(ctx,canvas,chapter(),video.currentTime,{episodeNumber:meta()?.episode||1});
         inform('Rendering '+shotIndex+'/'+allSteps.length+' · '+step.label+' — keep the tab open');
         let running=true;
-        const paint=()=>{if(!running)return;drawVideo(ctx,canvas,video);raf=requestAnimationFrame(paint);};
+        const paint=()=>{if(!running)return;drawVideo(ctx,canvas,video);if(step.type==='intro')drawChapterTitles(ctx,canvas,chapter(),video.currentTime,{episodeNumber:meta()?.episode||1});raf=requestAnimationFrame(paint);};
         paint();
         try {
           await playRange(video,step.clip,{onStarted:()=>activeSoundSession?.schedule(step)});
