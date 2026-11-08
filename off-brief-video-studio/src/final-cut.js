@@ -6,6 +6,19 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   'use strict';
 
   const INTRO_SRC = import.meta.env.BASE_URL + 'resources/offbrief-official-universal-intro.mp4';
+  // Studio-owned sources are static, shared across episodes and never stored
+  // as duplicate 5 MB blobs in a user's iPhone IndexedDB.
+  const OFFICIAL_AUDIO = [
+    { id:'offbrief-series-bed',title:'OFF BRIEF · Series Background',
+      fileName:'OFFBRIEF_Series_Background.mp3',kind:'music',anchor:'episode',
+      src:import.meta.env.BASE_URL+'audio/offbrief-series-background.mp3',
+      duration:153.051,volume:0.13,loop:true,start:0 },
+    { id:'offbrief-presentation',title:'OFF BRIEF · Presentation Sound',
+      fileName:'OFFBRIEF_Presentation_Sound.wav',kind:'sfx',anchor:'intro',
+      src:import.meta.env.BASE_URL+'audio/offbrief-presentation-sound.wav',
+      duration:7.511,maxSeconds:5,volume:0.6,start:0 }
+  ];
+  const OFFICIAL_BY_ID = new Map(OFFICIAL_AUDIO.map(item=>[item.id,item]));
   const DRIVE_PREVIEWS = 'https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m';
   const OFF_BRIEF_CHANNEL_URL = 'https://www.youtube.com/@Offbriefchannel';
   const DB_NAME = 'offbrief-finalcut-v1';
@@ -44,6 +57,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   let previewActive = false;
   let cancelPlayback = null;
   let activeSoundSession = null;
+  let soundSample = null;
 
   const root = document.createElement('section');
   root.id = 'offbrief-final-cut';
@@ -120,6 +134,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     if (cancelPlayback) cancelPlayback();
     cancelPlayback = null;
     if(activeSoundSession){activeSoundSession.stop();activeSoundSession=null;}
+    if(soundSample){soundSample.pause();soundSample=null;}
     const fxCanvas=root.querySelector('#fc-fx-preview');
     if(fxCanvas)fxCanvas.classList.remove('fc-fx-active');
     const el = root.querySelector('#fc-video');
@@ -332,6 +347,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
       });
       const step=kind==='intro'?fullSequence().find(s=>s.type==='intro')
         :fullSequence().find(s=>s.type==='clip'&&s.frameId===frameKey(currentFrame(),activeScene)&&s.takeIndex===activeTake);
+      video.muted=kind==='intro'&&hasPresentationAudio();
       if(step) {
         activeSoundSession=await createSoundSession();
         await playRange(video,clip,{onStarted:()=>activeSoundSession?.schedule(step)});
@@ -371,35 +387,46 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   };
   const soundAbsoluteStart = (cue,sequence) => {
     if(cue.anchor==='episode')return Math.max(0,Number(cue.start)||0);
+    if(cue.anchor==='intro') {
+      const step=sequence.find(x=>x.type==='intro');
+      return step?step.startSeconds+Math.max(0,Number(cue.start)||0):Infinity;
+    }
     const first=sequence.find(x=>x.type==='clip'&&x.frameId===cue.frameId);
     return first ? first.startSeconds+Math.max(0,Number(cue.start)||0) : Infinity;
   };
+  const hasPresentationAudio = () => audioCues().some(c=>c.id==='offbrief-presentation');
   const createSoundSession = async (ctx=null,output=null) => {
     const cues=audioCues();
     if(!cues.length)return null;
     const AudioConstructor=window.AudioContext||window.webkitAudioContext;
-    if(!AudioConstructor)throw new Error('This browser cannot decode external audio tracks.');
+    if(!AudioConstructor)throw new Error('This browser cannot decode additional sound tracks.');
     const ownsContext=!ctx;
     const context=ctx||new AudioConstructor();
     if(context.state==='suspended')await context.resume();
     const route=output||context.destination;
     const entries=[];
-    for(const cue of cues){
-      if(!cue.blob)continue;
-      try{
-        const bytes=await cue.blob.arrayBuffer();
+    try {
+      for(const cue of cues){
+        const preset=OFFICIAL_BY_ID.get(cue.id);
+        if(!cue.blob&&!preset)continue;
+        let bytes;
+        if(preset){
+          const response=await fetch(preset.src,{cache:'force-cache'});
+          if(!response.ok)throw new Error('Official sound '+preset.title+' is unavailable (HTTP '+response.status+').');
+          bytes=await response.arrayBuffer();
+        } else bytes=await cue.blob.arrayBuffer();
         const buffer=await context.decodeAudioData(bytes);
-        entries.push({cue,buffer});
-      }catch(err){
-        if(ownsContext)await context.close().catch(()=>{});
-        throw new Error('Audio '+cue.fileName+' could not be decoded; import MP3, WAV or M4A.');
+        entries.push({cue,buffer,preset});
       }
+    } catch(err){
+      if(ownsContext)await context.close().catch(()=>{});
+      throw new Error('Could not load OFF BRIEF soundtrack: '+String(err.message||err));
     }
     const sequence=fullSequence();
     const playing=[];
     const engine={
       stop(){
-        while(playing.length){try{playing.pop().stop();}catch(_){}}
+        for(const source of playing.splice(0)){try{source.stop();}catch(_){}}
         if(ownsContext)context.close().catch(()=>{});
       },
       schedule(step){
@@ -407,22 +434,46 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
         const end=start+Number(step.duration||0);
         if(end<=start)return;
         for(const entry of entries){
-          const {cue,buffer}=entry;
+          const {cue,buffer,preset}=entry;
+          // Musical comedy needs its deliberate silence: don't cover pauses.
+          // When the presentation jingle is selected, the long music bed
+          // intentionally drops out during the five-second intro.
+          if(preset?.id==='offbrief-series-bed' && (step.type==='intro'||step.type==='beat'))continue;
           const cueStart=soundAbsoluteStart(cue,sequence);
+          if(!Number.isFinite(cueStart))continue;
           const clipStart=Math.max(start,cueStart);
-          const clipEnd=Math.min(end,cueStart+buffer.duration);
-          const overlap=clipEnd-clipStart;
-          if(!Number.isFinite(overlap)||overlap<=0.02)continue;
-          const node=context.createBufferSource();
-          const gain=context.createGain();
-          node.buffer=buffer;
-          gain.gain.value=clamp(Number(cue.volume??0.7),0,1);
-          node.connect(gain);gain.connect(route);
-          const delay=Math.max(0,clipStart-start);
-          const sourceOffset=Math.max(0,clipStart-cueStart);
-          node.start(context.currentTime+delay,sourceOffset,Math.min(overlap,buffer.duration-sourceOffset));
-          playing.push(node);
-          node.onended=()=>{const at=playing.indexOf(node);if(at>=0)playing.splice(at,1);};
+          const limit=Number(cue.maxSeconds)||Number(preset?.maxSeconds)||buffer.duration;
+          const cueEnd=cue.loop ? Infinity : cueStart+Math.min(limit,buffer.duration);
+          const clipEnd=Math.min(end,cueEnd);
+          if(clipEnd-clipStart<=0.02)continue;
+          const volume=clamp(Number(cue.volume??0.7),0,1);
+          let position=clipStart;
+          while(position<clipEnd-0.02){
+            const relative=position-cueStart;
+            const sourceOffset=cue.loop ? (relative%buffer.duration) : relative;
+            if(sourceOffset>=buffer.duration)break;
+            const seconds=Math.min(clipEnd-position,buffer.duration-sourceOffset);
+            if(seconds<=0.02)break;
+            const source=context.createBufferSource();
+            const gain=context.createGain();
+            source.buffer=buffer;
+            gain.gain.setValueAtTime(volume,context.currentTime);
+            if(preset?.id==='offbrief-presentation'){
+              const fadeStart=Math.max(position, cueEnd-0.28);
+              if(fadeStart<position+seconds){
+                const startAt=context.currentTime+(fadeStart-start);
+                const endAt=context.currentTime+(position+seconds-start);
+                gain.gain.setValueAtTime(volume,Math.max(context.currentTime,startAt));
+                gain.gain.linearRampToValueAtTime(0.0001,Math.max(startAt+0.005,endAt));
+              }
+            }
+            source.connect(gain);gain.connect(route);
+            const delay=Math.max(0,position-start);
+            source.start(context.currentTime+delay,sourceOffset,seconds);
+            playing.push(source);
+            source.onended=()=>{const at=playing.indexOf(source);if(at>=0)playing.splice(at,1);};
+            position+=seconds;
+          }
         }
       }
     };
@@ -473,6 +524,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
             video.onloadedmetadata=()=>{clearTimeout(timer);resolve();};
             video.onerror=()=>{clearTimeout(timer);reject(new Error('Source is unavailable'));};
           });
+          video.muted=step.type==='intro'&&hasPresentationAudio();
           await playRange(video,step.clip,{registerStop:fn=>{finishCurrent=fn;},onStarted:()=>activeSoundSession?.schedule(step)});
           lastStill=snapshotFrame(video);
         }catch(err){
@@ -533,7 +585,9 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
       context = new AudioContextClass();
       const audioOut = context.createMediaStreamDestination();
       const audioSource = context.createMediaElementSource(video);
-      audioSource.connect(audioOut);
+      const sourceGain=context.createGain();
+      audioSource.connect(sourceGain);
+      sourceGain.connect(audioOut);
       await context.resume();
       const exportSoundSession=await createSoundSession(context,audioOut);
       activeSoundSession=exportSoundSession;
@@ -560,6 +614,7 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
           continue;
         }
         const url=step.type==='intro'?INTRO_SRC:URL.createObjectURL(step.clip.blob);
+        sourceGain.gain.value=step.type==='intro'&&hasPresentationAudio()?0:1;
         video.src=url;
         video.load();
         await new Promise((resolve,reject)=>{
@@ -883,6 +938,62 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     }catch(err){inform('Could not preview the effect: '+String(err.message||err),true);}
     finally{if(ctx)ctx.close().catch(()=>{});canvas.classList.remove('fc-fx-active');}
   };
+  const previewOfficialSound = id => {
+    const preset=OFFICIAL_BY_ID.get(id);
+    if(!preset)return;
+    const current=soundSample;
+    if(current){
+      current.pause();
+      soundSample=null;
+      if(current.dataset.soundId===id){
+        inform('Official audio sample stopped.');return;
+      }
+    }
+    const audio=new Audio(preset.src);
+    audio.dataset.soundId=id;
+    audio.volume=preset.id==='offbrief-series-bed'?0.4:0.8;
+    audio.preload='none';
+    soundSample=audio;
+    audio.onended=()=>{if(soundSample===audio)soundSample=null;};
+    audio.onerror=()=>inform('Cannot play '+preset.fileName+'. Check the GitHub audio assets.',true);
+    audio.play().then(()=>inform('Listening to '+preset.title+'. Tap Listen again to stop.'))
+      .catch(err=>inform('Tap Listen to allow audio on this device: '+String(err.message||err),true));
+  };
+  const addOfficialSound = async id => {
+    if(busy||!record)return;
+    const preset=OFFICIAL_BY_ID.get(id);
+    if(!preset)return;
+    const before=audioCues().slice();
+    if(before.some(c=>c.id===id)){inform('Already added to this episode.');return;}
+    record.sounds=[...before,{
+      id:preset.id,fileName:preset.fileName,kind:preset.kind,
+      anchor:preset.anchor,frameId:null,start:preset.start,
+      duration:preset.duration,maxSeconds:preset.maxSeconds||null,
+      loop:Boolean(preset.loop),volume:preset.volume
+    }];
+    try {
+      await saveCut();
+      inform(preset.title+' added to '+selected+'. Adjust volume in Audio.');
+    }catch(err){
+      record.sounds=before;
+      inform('Could not save the soundtrack. Existing audio remains unchanged.',true);
+    }
+    render();
+  };
+  const officialSoundLibraryHTML = () => {
+    const applied=new Set(audioCues().map(x=>x.id));
+    return '<div class="fc-official-audio"><div class="fc-kicker">OFF BRIEF · OFFICIAL SOUND LIBRARY</div>'+
+      '<h4>Two signature sounds</h4>'+
+      OFFICIAL_AUDIO.map(p=>
+        '<div class="fc-official-audio-row"><div><b>'+escapeHtml(p.title)+'</b><small>'+
+        (p.id==='offbrief-series-bed'?'2:33 · Looping, gentle under dialogue':'7.5s source · Plays 5s with the official video intro')+
+        '</small></div><div class="fc-official-audio-actions">'+
+        '<button type="button" data-fc="listen-official" data-id="'+p.id+'">Listen</button>'+
+        '<button type="button" data-fc="add-official" data-id="'+p.id+'" '+(applied.has(p.id)?'disabled':'')+'>'+
+        (applied.has(p.id)?'Added':'Add')+'</button></div></div>'
+      ).join('')+
+      '<p>Choose sounds for each episode. Background music stays low and pauses for comedy beats and the intro. The presentation sound replaces the video intro audio when selected; originals stay in Drive.</p></div>';
+  };
   const audioLength = file => new Promise((resolve,reject)=>{
     const a=document.createElement('audio'),url=URL.createObjectURL(file);
     const timer=setTimeout(()=>finish(null,new Error('Audio file took too long to load')),20000);
@@ -951,14 +1062,14 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
   };
   const soundEditorHTML = () => {
     const cues=audioCues();
-    const visible=cues.filter(c=>c.anchor==='episode'||c.frameId===frameKey(currentFrame(),activeScene));
-    return '<div class="fc-sound-editor"><div class="fc-kicker">SOUND / AUDIO TRACKS</div><h3>Voices, music & effects</h3><p>Layer audio over the existing sound of your Higgsfield video. These tracks are non-destructive.</p>'+
+    const visible=cues.filter(c=>c.anchor==='episode'||c.anchor==='intro'||c.frameId===frameKey(currentFrame(),activeScene));
+    return '<div class="fc-sound-editor"><div class="fc-kicker">SOUND / AUDIO TRACKS</div><h3>Voices, music & effects</h3><p>Use the official OFF BRIEF sounds or layer your own recorded voices. Original Google Flow videos remain unchanged.</p>'+officialSoundLibraryHTML()+
       '<div class="fc-sound-add"><label>Track type<select id="fc-sound-kind"><option value="voice">Voice</option><option value="music">Background music</option><option value="sfx">Sound effect</option></select></label><label>Placement<select id="fc-sound-scope"><option value="scene">Selected scene</option><option value="episode">Entire episode</option></select></label></div>'+
       '<label class="fc-sound-upload" for="fc-sound-file">＋ Add audio file (MP3 / WAV / M4A)</label><input type="file" id="fc-sound-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" hidden>'+
       (visible.length?'<div class="fc-sound-list">'+visible.map(c=>{
         const volume=Math.round(clamp(Number(c.volume??0.7),0,1)*100);
         const limit=c.anchor==='scene'?Math.max(5,Number(currentFrame()?.plannedDuration||30)+20):300;
-        return '<div class="fc-sound-track"><div class="fc-sound-name"><b>'+escapeHtml(c.kind.toUpperCase())+' · '+escapeHtml(c.fileName)+'</b><button type="button" data-fc="remove-sound" data-id="'+escapeHtml(c.id)+'">Remove</button></div><small>'+(c.anchor==='episode'?'Full episode':'Scene '+escapeHtml(c.frameId))+' · '+seconds(c.duration)+'</small>'+
+        return '<div class="fc-sound-track"><div class="fc-sound-name"><b>'+escapeHtml(c.kind.toUpperCase())+' · '+escapeHtml(c.fileName)+'</b><button type="button" data-fc="remove-sound" data-id="'+escapeHtml(c.id)+'">Remove</button></div><small>'+(c.anchor==='episode'?'Full episode':c.anchor==='intro'?'After cold open · official 5s intro':'Scene '+escapeHtml(c.frameId))+' · '+seconds(c.duration)+'</small>'+
           '<label>Start '+Number(c.start||0).toFixed(1)+'s <input type="number" min="0" max="'+limit+'" step="0.1" data-fc-sound-setting="start" data-id="'+escapeHtml(c.id)+'" value="'+Number(c.start||0).toFixed(1)+'"></label>'+
           '<label>Volume '+volume+'% <input type="range" min="0" max="100" step="5" data-fc-sound-setting="volume" data-id="'+escapeHtml(c.id)+'" value="'+volume+'"></label></div>';
       }).join('')+'</div>':'<div class="fc-sound-empty">No added audio tracks for this scene yet. The original clip audio is kept.</div>')+
@@ -1057,6 +1168,8 @@ import { generateGoogleFlowPrompt } from './flow-production.js';
     if(action==='split-video'){await splitSelected();return;}
     if(action==='fx-type'){await updateTransition('type',b.dataset.type);return;}
     if(action==='fx-preview'){await previewTransition();return;}
+    if(action==='listen-official'){previewOfficialSound(b.dataset.id);return;}
+    if(action==='add-official'){await addOfficialSound(b.dataset.id);return;}
     if(action==='remove-sound'){await removeSound(b.dataset.id);return;}
     if(action==='split-at-playhead'){
       const player=root.querySelector('#fc-video');
