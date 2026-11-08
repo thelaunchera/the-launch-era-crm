@@ -1,0 +1,43 @@
+name: OFF BRIEF — Official Sound QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'off-brief-video-studio/src/final-cut.js'
+      - 'off-brief-video-studio/src/official-sound.css'
+      - 'off-brief-video-studio/scripts/restore-audio.mjs'
+      - 'off-brief-video-studio/scripts/official-audio-qa.mjs'
+      - '.github/workflows/off-brief-official-sound-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audio-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install app and browser test runner
+        working-directory: off-brief-video-studio
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Restore and verify originals
+        working-directory: off-brief-video-studio
+        run: npm run build
+      - name: Test original music and saved iPhone sound library
+        working-directory: off-brief-video-studio
+        run: |
+          (npx vite preview --host 127.0.0.1 --port 4173 >/tmp/offbrief-audio.log 2>&1 &)
+          sleep 4
+          node scripts/official-audio-qa.mjs
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offbrief-official-sound-qa
+          path: off-brief-video-studio/official-audio-qa/
+          if-no-files-found: warn
