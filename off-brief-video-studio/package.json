@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/restore-intro.mjs && vite",
-    "build": "node scripts/restore-intro.mjs && vite build",
+    "dev": "node scripts/restore-intro.mjs && node scripts/restore-audio.mjs && vite",
+    "build": "node scripts/restore-intro.mjs && node scripts/restore-audio.mjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
