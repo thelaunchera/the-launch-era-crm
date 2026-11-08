@@ -50,3 +50,14 @@ Do not publish unfinished episodes or assume a browser-exported video has been r
 - Original audio files are also stored in OFF BRIEF Drive. The `.b64` files preserve the complete MP3 bytes and `scripts/restore-audio.mjs` verifies SHA-256 integrity before building.
 - Open **Audio** in the editor, listen to each original, and tap **Add**. Each episode keeps separate audio settings. Other user-imported tracks and previously saved edits are preserved. No extra credits required.
 - Rights: confirm the appropriate commercial-use license before publishing the audio as part of a public YouTube video; uploading a track does not by itself establish music rights.
+
+
+## CHAPTER lettering — personalizable intro (2026-11-08)
+
+The editor has a **Text** tool (mobile) and a **CHAPTER + number** control (desktop). The operator can type the word `CHAPTER` and an independent episode number, choose an effect for each line, change color/size/start delay, and position each line on the video by dragging with a finger. Available entrance animations: Pop up, Spin, Bounce, Zoom, Slide up, Slide from side, Flip, Typewriter, Fade, Shake, and None.
+
+- On iPhone, tap **Text**, edit the two fields, tap **Preview animated intro**, then drag CHAPTER or the number directly over the video. Tap the text layers' selector if the intended one is hard to grab.
+- The text is saved per episode in the existing local Final Cut IndexedDB record (`chapterTitles`); it is not applied to every chapter until selected.
+- During final export, the same text-animation renderer is drawn into the video stream during the unchanged official five-second intro, after F01–F02, never during the cold open.
+- No existing MP4, voice, transition, or audio file is modified. This is a non-destructive overlay.
+- Source validation checked module JavaScript syntax and exercised drawing/clamping for 11 effects; a full browser export and the live Pages release are **not independently verified**.
