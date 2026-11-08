@@ -42,3 +42,11 @@ OFF BRIEF Video Studio is now stored in **the private The Launch Era repository*
 Browser IndexedDB data belongs to its original domain and device. Copying code does NOT carry existing browser-local projects, MP4s, voices, Sound tracks, split points, or transitions from AppDeploy. Keep the original AppDeploy Studio accessible until these assets are intentionally imported and QA-verified on the new domain.
 
 Do not publish unfinished episodes or assume a browser-exported video has been reviewed without a real end-to-end test.
+
+## Official soundtrack (user supplied 2026-11-08)
+
+- `OFFBRIEF_Series_Background.mp3` — original 2:33 composition, loaded as an optional gentle looping episode bed (13% default volume). It is automatically silent during the official intro and comedy pause beats.
+- `OFFBRIEF_Presentation_Sound.wav` — original 7.51-second cue, used as an optional five-second intro sound, starting **after F01–F02**. When enabled, it replaces the original intro video audio; original MP4 remains unmodified.
+- Original audio files are also stored in OFF BRIEF Drive. The `.b64` files preserve the complete MP3 bytes and `scripts/restore-audio.mjs` verifies SHA-256 integrity before building.
+- Open **Audio** in the editor, listen to each original, and tap **Add**. Each episode keeps separate audio settings. Other user-imported tracks and previously saved edits are preserved. No extra credits required.
+- Rights: confirm the appropriate commercial-use license before publishing the audio as part of a public YouTube video; uploading a track does not by itself establish music rights.
