@@ -26,6 +26,16 @@ Select episode and F01–F10 scene, press Copy Flow scene prompt, and open https
 - Video Studio: the channel link is available in the Final Cut header.
 - OFF BRIEF identity: THE CREATIVE HOUSE — "Great ideas. Terrible timing."
 
+## GitHub-hosting status — verified 2026-11-08
+
+- The complete Vite site (including the original 5-second intro) builds successfully in GitHub Actions.
+- [Most recent build / downloadable complete-site ZIP](https://github.com/thelaunchera/the-launch-era-crm/actions/runs/42473028818), artifact `off-brief-video-studio-complete-site`.
+- GitHub Pages publishing is **not active yet**. The GitHub Actions job failed at `actions/configure-pages@v5`: "Get Pages site failed … Not Found". This is a repository-level Pages setting, not a Vite build error.
+- The repository owner needs to open [Settings → Pages](https://github.com/thelaunchera/the-launch-era-crm/settings/pages), select **GitHub Actions** as the publishing source if the account plan permits Pages on private repositories, and rerun the existing workflow. Private source does not mean a public Pages site will be private.
+- The complete in-app **Media Library** links to the nine Drive previews, both season folders, cast, show assets and YouTube channel without duplicating or publicly uploading originals.
+- The new in-app **Backup & Move** tool saves browser-local storyboards, Final Cut clips, voices, split timings, transitions and generated video as a user-owned TAR download. The source AppDeploy domain must also have this same tool available before the user can export its existing saved data.
+- The existing AppDeploy app is **not deleted**. Its upgrade to enable Backup & Move is temporarily blocked by the AppDeploy daily free-tier deployment limit until 2026-11-09T00:00Z. No local browser projects have been copied between domains yet.
+
 ## GitHub location / privacy / deployment
 OFF BRIEF Video Studio is now stored in **the private The Launch Era repository**, in the `off-brief-video-studio/` folder on `main`. The existing CRM files were preserved. The public The Launch Era website repository only contains a project/channel reference under `docs/`; private scripts and original media were not published there. This is **not yet a GitHub Pages deployment**. The current production website remains the previously published Video Studio.
 
