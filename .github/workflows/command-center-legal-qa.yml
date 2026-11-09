@@ -1,0 +1,42 @@
+name: Command Center Legal Footer QA
+on:
+  pull_request:
+    paths:
+      - 'legal-footer.js'
+      - 'index.html'
+      - 'access.html'
+      - 'buyer-account-preview.html'
+      - 'lead-insights.html'
+      - 'customer-crm/index.html'
+      - '.github/workflows/command-center-legal-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  footer-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse local footer code
+        run: node --check legal-footer.js
+      - name: Verify legal links and original layout remain intact
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const script=readFileSync('legal-footer.js','utf8');
+          for(const p of ['/privacy.html','/terms.html','/refunds.html','/cookies.html','/privacy-choices.html','/es/privacy.html','/es/terms.html','/es/refunds.html','/es/cookies.html','/es/privacy-choices.html'])
+            assert.ok(script.includes(p), 'Missing policy '+p);
+          for(const path of ['index.html','access.html','buyer-account-preview.html','lead-insights.html','customer-crm/index.html']){
+            const s=readFileSync(path,'utf8');
+            assert.equal((s.match(/legal-footer\.js/g)||[]).length,1,'Exactly one footer script reference: '+path);
+            assert.ok(s.includes('</body>'),'Body remains intact: '+path);
+          }
+          assert.ok(script.includes('tle-global-legal-nav'),'Footer must be accessible');
+          assert.ok(script.includes('Powered by The Launch Era'),'Parent attribution required');
+          console.log('PASS: local footer, policy links, no duplicate script includes');
+          JS
