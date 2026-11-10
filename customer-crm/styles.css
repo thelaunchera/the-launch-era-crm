@@ -41,6 +41,10 @@ h3{font-size:15px}
 .pagehead .eyebrow{margin-bottom:8px}
 .subtitle{font-size:13px;margin-bottom:0}
 .header-actions{display:flex;gap:9px}
+.crm-history-actions{display:flex;gap:8px;margin-bottom:11px}
+.crm-history-actions .secondary{min-height:38px;padding:6px 12px}
+.crm-history-actions [hidden]{display:none!important}
+@media(max-width:640px){.crm-history-actions .secondary{min-height:44px}}
 .primary,.secondary{border-radius:12px;font-weight:750;min-height:40px;padding:9px 15px}
 .primary{border:1px solid #6d9dbe;background:linear-gradient(145deg,#619bc4,#87b8d7);color:#fff}
 .secondary{border:1px solid #cbdfea;color:#446c86;background:#fff}

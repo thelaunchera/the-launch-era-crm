@@ -14,6 +14,64 @@ const currency=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'
 const safe=(v,max=140)=>String(v??'').trim().slice(0,max);
 const iconName=s=>safe(s,2).toUpperCase()||'?';
 let db=null,user=null,workspace=null,leads=[],steps=[],selected=null,filter='',search='',view='pipeline',busy=false,toastTimer=0,loadVersion=0;
+const NAV_TTL_MS=2*60*60*1000;
+const navStack=[],navScroll={};
+const scrollContainer=()=>document.querySelector('#app .main');
+const navKey=()=>user?.id&&workspace?.id?'tle_customer_crm_nav_v1:'+user.id+':'+workspace.id:null;
+function saveNav(){
+ const key=navKey();if(!key||!VIEWS[view])return;
+ try{localStorage.setItem(key,JSON.stringify({at:Date.now(),view,stack:navStack.filter(v=>VIEWS[v]).slice(-30),scroll:navScroll[view]||0}))}catch{}
+}
+function loadNav(){
+ const key=navKey();if(!key)return null;
+ try{
+  const saved=JSON.parse(localStorage.getItem(key)||'null');
+  const age=Date.now()-Number(saved?.at||0);
+  if(!saved||age<0||age>=NAV_TTL_MS||!VIEWS[saved.view]){localStorage.removeItem(key);return null}
+  return {view:saved.view,stack:Array.isArray(saved.stack)?saved.stack.filter(v=>VIEWS[v]).slice(-30):[],scroll:Math.max(0,Number(saved.scroll)||0)};
+ }catch{return null}
+}
+function rememberNav(){
+ if(!navKey()||!VIEWS[view])return;
+ navScroll[view]=Math.max(0,Number(scrollContainer()?.scrollTop)||0);
+ saveNav();
+}
+function clearNav(){
+ const key=navKey();if(key)try{localStorage.removeItem(key)}catch{}
+ navStack.length=0;
+}
+function updateBrowserNav(next,options={}){
+ const key=navKey();if(!key)return;
+ try{
+  const current=window.history.state&&typeof window.history.state==='object'?window.history.state:{};
+  const same=current.tleCrmNavKey===key;
+  const depth=same?Math.max(0,Number(current.tleCrmNavDepth)||0):0;
+  const payload={...current,tleCrmNavKey:key,tleCrmNavView:next,tleCrmNavDepth:depth};
+  if(options.fromHistory||options.fromRestore||!same)window.history.replaceState(payload,'');
+  else if(current.tleCrmNavView!==next)window.history.pushState({...payload,tleCrmNavDepth:depth+1},'');
+ }catch{}
+}
+function backNav(){
+ if(!user||!workspace||view==='pipeline')return;
+ const key=navKey();
+ if(window.history.state?.tleCrmNavKey===key&&Number(window.history.state?.tleCrmNavDepth||0)>0){window.history.back();return}
+ const previous=navStack.pop()||'pipeline';
+ navigate(previous,{fromHistory:true});
+}
+function closeNav(){
+ navStack.length=0;
+ navigate('pipeline',{fromRestore:true});
+ try{window.history.replaceState({...window.history.state,tleCrmNavDepth:0},'')}catch{}
+}
+window.addEventListener('popstate',event=>{
+ const next=event.state?.tleCrmNavView;
+ if(!navKey()||event.state?.tleCrmNavKey!==navKey()||!VIEWS[next]||view===next)return;
+ if(navStack[navStack.length-1]===next)navStack.pop();
+ else if(VIEWS[view])navStack.push(view);
+ navigate(next,{fromHistory:true});
+});
+window.addEventListener('pagehide',rememberNav);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')rememberNav()});
 const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const status=msg=>{$('appStatus').textContent=msg};
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400)}
@@ -37,7 +95,15 @@ async function boot(){
  $('signedInEmail').textContent=safe(user.email,120);
  $('userAvatar').textContent=iconName(user.email?.split('@')[0]);
  show('auth',false);show('app',true);
- navigate(view);await refresh();
+ const saved=loadNav();
+ navStack.length=0;
+ if(saved){
+  navStack.push(...saved.stack);
+  navScroll[saved.view]=saved.scroll;
+ }
+ navigate(saved?.view||'pipeline',{fromRestore:true});
+ await refresh();
+ if(saved)requestAnimationFrame(()=>{const el=scrollContainer();if(el)el.scrollTop=saved.scroll});
 }
 function loggedOut(){user=null;workspace=null;leads=[];steps=[];selected=null;show('auth',true);show('app',false);$('loginStatus').textContent=''}
 async function refresh(){
@@ -64,14 +130,25 @@ async function saveLead(id,changes){
   render();return true;
  }finally{busy=false}
 }
-function navigate(next){
+function navigate(next,options={}){
  if(!VIEWS[next]||!workspace)return;
+ if(view!==next){
+  navScroll[view]=Math.max(0,Number(scrollContainer()?.scrollTop)||0);
+  if(!options.fromHistory&&!options.fromRestore&&navStack[navStack.length-1]!==view)navStack.push(view);
+ }
  view=next;const [eyebrow,title,desc]=VIEWS[next];
  $('viewEyebrow').textContent=eyebrow;$('viewTitle').textContent=title;$('viewDescription').textContent=desc;
  for(const screen of document.querySelectorAll('[data-screen]'))screen.classList.toggle('hidden',screen.dataset.screen!==view);
  document.querySelectorAll('#nav [data-view]').forEach(b=>{if(b.dataset.view===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  $('newLead').classList.toggle('hidden',!['pipeline','leads','contacts'].includes(view));closeSidebar();
+ if($('navBack'))$('navBack').hidden=view==='pipeline';
+ if($('navClose'))$('navClose').hidden=view==='pipeline';
  render();
+ const top=(options.fromHistory||options.fromRestore)?Math.max(0,Number(navScroll[view])||0):0;
+ navScroll[view]=top;
+ requestAnimationFrame(()=>{const el=scrollContainer();if(el)el.scrollTop=top});
+ saveNav();
+ updateBrowserNav(next,options);
 }
 function closeSidebar(){$('sidebar').classList.remove('open');show('mobileScrim',false);$('menuToggle').setAttribute('aria-expanded','false')}
 function metrics(root,items){root.replaceChildren(...items.map(([label,value])=>{const box=node('div','metric');box.append(node('strong','',value),node('span','',label));return box}))}
@@ -271,7 +348,11 @@ function attach(){
   try{const {error}=await db.auth.signInWithPassword({email:form.elements.email.value.trim(),password:form.elements.password.value});if(error)throw error;await boot()}
   catch(err){$('loginStatus').textContent='Sign in failed: '+err.message}finally{button.disabled=false}
  });
- $('logout').addEventListener('click',async()=>{await db.auth.signOut();loggedOut()});
+ $('logout').addEventListener('click',async()=>{clearNav();await db.auth.signOut();loggedOut()});
+ $('navBack')?.addEventListener('click',backNav);
+ $('navClose')?.addEventListener('click',closeNav);
+ let navScrollTimer=null;
+ scrollContainer()?.addEventListener('scroll',()=>{clearTimeout(navScrollTimer);navScrollTimer=setTimeout(rememberNav,650)},{passive:true});
  $('refresh').addEventListener('click',()=>void refresh());
  $('mobileRefresh').addEventListener('click',()=>void refresh());
  $('newLead').addEventListener('click',()=>$('leadDialog').showModal());
