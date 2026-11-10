@@ -24,6 +24,7 @@ jobs:
       - name: Check code and private-feature separation
         run: |
           node --check customer-crm/app.js
+          node --test scripts/qa-customer-crm-navigation.test.mjs
           node scripts/qa-customer-crm.mjs
       - name: Install browser testing tools
         run: |
