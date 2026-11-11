@@ -20,7 +20,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       duration:7.511,maxSeconds:5,volume:0.6,start:0 }
   ];
   const OFFICIAL_BY_ID = new Map(OFFICIAL_AUDIO.map(item=>[item.id,item]));
-  const DRIVE_PREVIEWS = 'https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m';
+  const MASTER_REFERENCES = 'https://drive.google.com/drive/folders/1XOVFoZgeb2G-15avFrDypv6mAP6gVo3e';
   const OFF_BRIEF_CHANNEL_URL = 'https://www.youtube.com/@Offbriefchannel';
   const DB_NAME = 'offbrief-finalcut-short-v1';
   const CANVASES = {
@@ -1183,10 +1183,10 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const actual=totalSeconds();
     const expected=plannedSeconds();
     const shotSeconds=partsLength(takes);
-    const canvasLink=CANVASES[selected]?'https://higgsfield.ai/canvas/'+CANVASES[selected]:'https://higgsfield.ai/';
+    const canvasLink='https://higgsfield.ai/';
     root.innerHTML = '<div class="fc-shell">' +
       '<div class="fc-header"><div class="fc-kicker">PRIVATE PRODUCTION / FINAL CUT</div><div class="fc-header-row"><div><h1>From Flow to Higgsfield to <em>YouTube.</em></h1><p>Approve each still in Flow, animate it in Higgsfield, then assemble the three clips here with sound and the existing intro.</p></div>' +
-      '<div class="fc-links"><a target="_blank" rel="noopener noreferrer" href="'+escapeHtml(canvasLink)+'">Higgsfield reference</a><a target="_blank" rel="noopener noreferrer" href="'+DRIVE_PREVIEWS+'">Drive previews</a><a target="_blank" rel="noopener noreferrer" href="'+OFF_BRIEF_CHANNEL_URL+'">OFF BRIEF YouTube</a></div></div></div>' +
+      '<div class="fc-links"><a target="_blank" rel="noopener noreferrer" href="'+escapeHtml(canvasLink)+'">Open Higgsfield</a><a target="_blank" rel="noopener noreferrer" href="'+MASTER_REFERENCES+'">Master references</a><a target="_blank" rel="noopener noreferrer" href="'+OFF_BRIEF_CHANNEL_URL+'">OFF BRIEF YouTube</a></div></div></div>' +
       '<div class="fc-layout"><aside class="fc-side"><label for="fc-episode" class="fc-label">SEASON / EPISODE</label><select id="fc-episode">'+catalog.map(m=>'<option value="'+keyFor(m)+'" '+(selected===keyFor(m)?'selected':'')+'>'+keyFor(m).replace('S','Season ').replace('E',' · Episode ')+' — '+escapeHtml(m.title)+'</option>').join('')+'</select>' +
       '<div class="fc-progress"><strong>'+count+'<span>/'+shots.length+'</span></strong><p>story shots ready · '+pieces+' video parts</p><div class="fc-meter"><span style="width:'+(shots.length?count/shots.length*100:0)+'%"></span></div><small>Saved locally on this device. No render credits are spent here.</small></div>' +
       '<div class="fc-rules"><h3>Episode order</h3><div>01 · Setup (S01)</div><div class="fc-yellow">02 · Existing OFF BRIEF intro (5 sec)</div><div>03 · Turn + payoff (S02–S03)</div><p>The existing intro is already installed; review total runtime before export.</p></div>' +
