@@ -39,11 +39,11 @@ export const SHORT_EPISODES = [
       shot('E01-S02', 'Cinematic fog', 'Locked medium-wide reaction shot',
         'Ruby switches on a small fog machine. Thick white fog spreads across the coffee table while Nia slowly turns toward Ruby.',
         'Fog expands naturally. Ruby looks delighted. Nia gives one controlled, disbelieving reaction.',
-        'MISTAKE', 6, [line('Ruby', 'You said cinematic.', 'ruby')]),
+        'MISTAKE', 5, [line('Ruby', 'You said cinematic.', 'ruby')]),
       shot('E01-S03', 'It worked', 'Locked medium shot with product foreground',
         'The fog clears enough to reveal the coffee cup perfectly illuminated. Nia checks the camera screen while Ruby waits proudly.',
         'Fog dissipates. Nia checks the screen, pauses and gives Ruby a reluctant impressed look.',
-        'PAYOFF', 7, [line('Nia', 'I hate that it worked.', 'nia')])
+        'PAYOFF', 5, [line('Nia', 'I hate that it worked.', 'nia')])
     ]
   },
   {
