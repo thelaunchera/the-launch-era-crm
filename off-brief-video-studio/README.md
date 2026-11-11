@@ -16,7 +16,7 @@ This copies the existing Vite Video Studio with original canonical scripts, edit
 Install Node.js 22 and run: npm install, then npm run dev. To build: npm run build. The build reconstructs the original intro from its verified 17 pieces. Vite base='./' supports GitHub Pages project subpaths.
 
 ## Flow workflow
-Select episode and F01–F10 scene, press Copy Flow scene prompt, and open https://flow.google.com. Use the approved original scene photo. Do not invent or alter Nia/Ruby's faces, wardrobe, speech, or actions. Name clips OFFBRIEF_S01E01_F01_A.mp4 (additional connected takes B and C), import the MP4 into that scene and edit using Split / Sound / Pauses. The approved existing intro belongs after the comedic cold open, never at 00:00. The owner may add an episode number pop-in to each intro as intended.
+Select an episode and S01–S03, copy its production prompt, and use the linked final approved still in Higgsfield. Do not invent or alter Nia/Ruby's faces, wardrobe, speech, actions or set. Name clips OFFBRIEF_S01E01_S01_A.mp4 (additional connected takes B and C), import each MP4 into its matching shot and edit using Split / Sound / Pauses. The approved existing intro belongs at the beginning, before S01. The owner may add an episode number pop-in to each intro as intended.
 
 ## OFF BRIEF YouTube Channel
 
@@ -46,7 +46,7 @@ Do not publish unfinished episodes or assume a browser-exported video has been r
 ## Official soundtrack (user supplied 2026-11-08)
 
 - `OFFBRIEF_Series_Background.mp3` — original 2:33 composition, loaded as an optional gentle looping episode bed (13% default volume). It is automatically silent during the official intro and comedy pause beats.
-- `OFFBRIEF_Presentation_Sound.wav` — original 7.51-second cue, used as an optional five-second intro sound, starting **after F01–F02**. When enabled, it replaces the original intro video audio; original MP4 remains unmodified.
+- `OFFBRIEF_Presentation_Sound.wav` — original 7.51-second cue, used as an optional five-second intro sound at the **beginning, before S01**. When enabled, it replaces the original intro video audio; original MP4 remains unmodified.
 - Original audio files are also stored in OFF BRIEF Drive. The `.b64` files preserve the complete MP3 bytes and `scripts/restore-audio.mjs` verifies SHA-256 integrity before building.
 - Open **Audio** in the editor, listen to each original, and tap **Add**. Each episode keeps separate audio settings. Other user-imported tracks and previously saved edits are preserved. No extra credits required.
 - Rights: confirm the appropriate commercial-use license before publishing the audio as part of a public YouTube video; uploading a track does not by itself establish music rights.
@@ -58,6 +58,6 @@ The editor has a **Text** tool (mobile) and a **CHAPTER + number** control (desk
 
 - On iPhone, tap **Text**, edit the two fields, tap **Preview animated intro**, then drag CHAPTER or the number directly over the video. Tap the text layers' selector if the intended one is hard to grab.
 - The text is saved per episode in the existing local Final Cut IndexedDB record (`chapterTitles`); it is not applied to every chapter until selected.
-- During final export, the same text-animation renderer is drawn into the video stream during the unchanged official five-second intro, after F01–F02, never during the cold open.
+- During final export, the same text-animation renderer is drawn into the video stream during the unchanged official five-second intro at the beginning, before S01.
 - No existing MP4, voice, transition, or audio file is modified. This is a non-destructive overlay.
 - Source validation checked module JavaScript syntax and exercised drawing/clamping for 11 effects; a full browser export and the live Pages release are **not independently verified**.
