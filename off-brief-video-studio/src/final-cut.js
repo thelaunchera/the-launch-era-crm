@@ -22,7 +22,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   const OFFICIAL_BY_ID = new Map(OFFICIAL_AUDIO.map(item=>[item.id,item]));
   const DRIVE_PREVIEWS = 'https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m';
   const OFF_BRIEF_CHANNEL_URL = 'https://www.youtube.com/@Offbriefchannel';
-  const DB_NAME = 'offbrief-finalcut-v1';
+  const DB_NAME = 'offbrief-finalcut-short-v1';
   const CANVASES = {
     'S01E01': '067b23ca-021e-41ed-9f1f-7f5459eb140e',
     'S01E02': '009905ec-685b-4650-8dac-d8844035f7a8',
@@ -235,7 +235,8 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
           const fromName = 'S'+ep[1].padStart(2,'0')+'E'+ep[2].padStart(2,'0');
           if (fromName !== selected) throw new Error('Wrong episode: '+file.name+' belongs to '+fromName+'. Existing clips were not touched.');
         }
-        const match = file.name.match(/(?:^|[^a-z0-9])(?:f|s|shot|scene)[-_ ]?0?(\d{1,2})(?:[^0-9]|$)/i);
+        const shotMatches = [...file.name.matchAll(/(?:^|[^a-z0-9])(?:f|s|shot|scene)[-_ ]?0?([1-3])(?=[^a-z0-9]|$)/ig)];
+        const match = shotMatches.at(-1) || null;
         let index = explicitSlot === null ? (match ? Number(match[1])-1 : -1) : explicitSlot;
         if (explicitSlot === null && (index < 0 || index >= scenes.length)) {
           while (cursor < scenes.length && partList(nextClips[frameKey(scenes[cursor], cursor)]).length) cursor++;
@@ -368,7 +369,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const output = [];
     let time = 0;
     frames().forEach((shot, i) => {
-      if (i === 2) {
+      if (i === 1) {
         output.push({type:'intro',label:'OFF BRIEF · Official intro',duration:5,startSeconds:time});
         time += 5;
       }
