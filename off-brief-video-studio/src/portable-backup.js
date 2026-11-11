@@ -9,6 +9,8 @@
   const SOURCES=[
     {db:'offbrief-ipad-studio-v1',store:'projects'},
     {db:'offbrief-finalcut-v1',store:'cuts'},
+    {db:'offbrief-finalcut-short-v1',store:'cuts'},
+    {db:'offbrief-production-short-v1',store:'records'},
     {db:'offbrief-generated-clips-v1',store:'clips'}
   ];
   const LOCAL_KEYS=['offbrief_google_folders','offbrief_season2_folder'];

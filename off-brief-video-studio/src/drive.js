@@ -3,11 +3,10 @@ import './drive.css';
 'use strict';
 const core=window.OBProduction;
 if(!core)return;
-const dirs={1:'1SOjQOVRq2HoFczfVANGPWNggM0FtaPMX',2:'1H9ZVmc1t3wPrR81J2l497hpkjCn8WGan',3:'1XDkFyE5RF6ryWUi1_U_juPcrpkCxTz9K',4:'1uW3IIoSLqUKoF_m-w_FIMsNMuufh3Pas',5:'1NqeHhEpQyPLUNYOhk0A4CKufywz3Z2Pz',6:'1N_TxxJn5XVk5DZqGHnj-QX9TmtbV8Kqm',7:'1nQo8EOZEFOeqLZWbbQBr0DOp5ZtG6b9f',8:'1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA',10:'1jNTiE5VonaHUQ6QlXMNQmOMqf3mzmqiQ'};
+const dirs={1:'1SOjQOVRq2HoFczfVANGPWNggM0FtaPMX',2:'1H9ZVmc1t3wPrR81J2l497hpkjCn8WGan',3:'1XDkFyE5RF6ryWUi1_U_juPcrpkCxTz9K',4:'1uW3IIoSLqUKoF_m-w_FIMsNMuufh3Pas',5:'1NqeHhEpQyPLUNYOhk0A4CKufywz3Z2Pz',6:'1N_TxxJn5XVk5DZqGHnj-QX9TmtbV8Kqm',7:'1nQo8EOZEFOeqLZWbbQBr0DOp5ZtG6b9f',8:'1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA'};
 let oauthId=localStorage.getItem('offbrief_google_web_client_id')||'';
 let customFolders={};
 try{customFolders=JSON.parse(localStorage.getItem('offbrief_google_folders')||'{}');}catch(_){}
-let season2Root=localStorage.getItem('offbrief_season2_folder')||'';
 let token='',warning='',scriptPromise=null,running=false;
 const origin=window.location.origin;
 const el=id=>document.getElementById(id);
@@ -31,12 +30,9 @@ function paint(){
  <button data-drive-action="connect" type="button" class="ob-black-button">${connected()?'Reauthorize':'Connect Google Drive'}</button>
  ${connected()?'<button data-drive-action="disconnect" type="button" class="ob-neutral">Disconnect</button>':''}
  <div class="ob-drive-help"><b>Google authorization setup (one time)</b><p>Enable Google Drive API on a Google Cloud project, create an OAuth Web client and allow <code>${escape(origin)}</code> as an Authorized JavaScript origin. If the OAuth consent app is in testing, add your email as a test user. Then paste the public Client ID above and select Connect.</p><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Open Google Cloud credentials ↗</a></div>
- <label>Episode folder: Season ${ep.season}, Episode ${ep.number} <small>Photos F01 through F10 — private folder link</small>
+ <label>Episode folder: Season 1, Episode ${ep.number} <small>Approved stills S01, S02 and S03 — private folder link</small>
   <input id="ob-drive-episode-folder" type="text" value="${escape(folderURL(folder(ep.id)))}" placeholder="https://drive.google.com/drive/folders/..."/></label>
  <button type="button" class="ob-neutral" data-drive-action="save-folder">Save folder</button>
- <label>Season 2 parent folder (optional) <small>Subfolders named Episode 01–08 will be matched automatically</small>
-  <input id="ob-drive-season2-folder" type="text" value="${escape(folderURL(season2Root))}" placeholder="Season 2 folder link"/></label>
- <button type="button" class="ob-neutral" data-drive-action="save-season2">Save Season 2 folder</button>
  <button type="button" class="ob-black-button" data-drive-action="sync" ${connected()?'':'disabled'}>Sync current episode photos ↻</button>
  <p id="ob-drive-message" aria-live="polite">${escape(warning)}</p></div>`;
 }
@@ -97,36 +93,23 @@ async function findFrames(folderId){
  const frames=new Map();
  for(const file of photos){
   if(/extra|preview|[_-]H0?[1-9]/i.test(file.name))continue;
-  const found=file.name.match(/(?:^|[_-])F(0[1-9]|10)(?:[_.-]|$)/i);
+  const found=file.name.match(/(?:^|[_-])S(0[1-3])(?:[_.-]|$)/i);
   if(!found)continue;
   const slot=Number(found[1]);if(!frames.has(slot))frames.set(slot,file);
  }
  return frames;
 }
-async function discoverSeasonTwo(){
- if(!season2Root)return;
- const nodes=await list(season2Root);
- for(const folderItem of nodes){
-  if(folderItem.mimeType!=='application/vnd.google-apps.folder')continue;
-  const match=folderItem.name.match(/(?:episode|episodio|capítulo|capitulo)\s*[-_ ]*0?([1-8])\b/i);
-  if(!match)continue;
-  const id=8+Number(match[1]);
-  if(!customFolders[id])customFolders[id]=folderItem.id;
- }
- localStorage.setItem('offbrief_google_folders',JSON.stringify(customFolders));
-}
 async function sync(epId,automatic=false){
  if(!connected()||running)return;
  const ep=core.episodes.find(x=>x.id===Number(epId));if(!ep)return;
  let dir=folder(ep.id);
- if(!dir&&ep.season===2&&season2Root){try{await discoverSeasonTwo();dir=folder(ep.id);}catch(err){setMessage(err.message);return;}}
  if(!dir){setMessage('No Drive folder found for this episode. Set a folder link first.');return;}
  running=true;setMessage('Reading private originals for '+ep.title+'…');
  try{
   const frames=await findFrames(dir);
-  if(!frames.size){setMessage('No F01–F10 photos found. Check the folder and file names.');return;}
+  if(!frames.size){setMessage('No approved S01–S03 stills found. Generate and name the three new Flow images first.');return;}
   let added=0,skipped=0,failed=0;
-  for(let frame=1;frame<=10;frame++){
+  for(let frame=1;frame<=ep.count;frame++){
    const src=frames.get(frame);if(!src)continue;
    const key=core.mediaKey(ep.id,frame,'photo');
    if(core.getAsset(key)){skipped++;continue;}
@@ -160,15 +143,7 @@ document.addEventListener('click',async event=>{
   localStorage.setItem('offbrief_google_folders',JSON.stringify(customFolders));
   setMessage('Episode folder saved privately on this iPad.');paint();
  }
- if(action==='save-season2'){
-  const input=el('ob-drive-season2-folder')?.value||'';
-  if(input&&!normalize(input)){setMessage('Paste a valid Season 2 folder link.');return;}
-  season2Root=normalize(input);
-  localStorage.setItem('offbrief_season2_folder',season2Root);
-  if(connected()&&season2Root){try{await discoverSeasonTwo();}catch(err){setMessage(err.message);}}
-  else setMessage('Season 2 parent folder saved.');
-  paint();
- }
+
 });
 window.OBDrive={paint,connected,sync};
 paint();

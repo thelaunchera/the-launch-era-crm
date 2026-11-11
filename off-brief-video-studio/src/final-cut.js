@@ -1,5 +1,5 @@
 
-import { CANON_EPISODES } from './canonical-production.js';
+import { CANON_EPISODES } from './canonical-helpers.js';
 import { generateGoogleFlowPrompt } from './flow-production.js';
 import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles } from './chapter-titles.js';
 
@@ -20,9 +20,9 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       duration:7.511,maxSeconds:5,volume:0.6,start:0 }
   ];
   const OFFICIAL_BY_ID = new Map(OFFICIAL_AUDIO.map(item=>[item.id,item]));
-  const DRIVE_PREVIEWS = 'https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m';
+  const MASTER_REFERENCES = 'https://drive.google.com/drive/folders/1XOVFoZgeb2G-15avFrDypv6mAP6gVo3e';
   const OFF_BRIEF_CHANNEL_URL = 'https://www.youtube.com/@Offbriefchannel';
-  const DB_NAME = 'offbrief-finalcut-v1';
+  const DB_NAME = 'offbrief-finalcut-short-v1';
   const CANVASES = {
     'S01E01': '067b23ca-021e-41ed-9f1f-7f5459eb140e',
     'S01E02': '009905ec-685b-4650-8dac-d8844035f7a8',
@@ -84,7 +84,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   };
   const meta = () => byKey.get(selected);
   const frames = () => (meta()?.scenes || []).slice().sort((a, b) => Number(a.scene) - Number(b.scene));
-  const frameKey = (f, i) => f.frameId || 'F' + String(i + 1).padStart(2, '0');
+  const frameKey = (f, i) => f.frameId || 'S' + String(i + 1).padStart(2, '0');
   const currentClips = () => record?.clips || {};
   // Supports older saved one-clip objects and newer arrays of scene parts.
   const partList = item => Array.isArray(item) ? item.filter(p => !!p?.blob) : item?.blob ? [item] : [];
@@ -102,7 +102,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   },5);
   const plannedSeconds = () => frames().reduce((n,f) => n + (Number(f.plannedDuration)||0), 5);
   const currentFrame = () => frames()[activeScene];
-  const canExport = () => frames().length === 10 && clipCount() === 10;
+  const canExport = () => frames().length > 0 && clipCount() === frames().length;
   const audioCues = () => Array.isArray(record?.sounds) ? record.sounds : [];
   const chapter = () => normalizeChapter(record?.chapterTitles,meta()?.episode||1);
   const savedLabel = () => record?.savedAt ? new Date(record.savedAt).toLocaleString() : 'Not saved yet';
@@ -235,13 +235,14 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
           const fromName = 'S'+ep[1].padStart(2,'0')+'E'+ep[2].padStart(2,'0');
           if (fromName !== selected) throw new Error('Wrong episode: '+file.name+' belongs to '+fromName+'. Existing clips were not touched.');
         }
-        const match = file.name.match(/(?:^|[^a-z0-9])(?:f|shot|scene)[-_ ]?0?(\d{1,2})(?:[^0-9]|$)/i);
+        const shotMatches = [...file.name.matchAll(/(?:^|[^a-z0-9])(?:f|s|shot|scene)[-_ ]?0?([1-3])(?=[^a-z0-9]|$)/ig)];
+        const match = shotMatches.at(-1) || null;
         let index = explicitSlot === null ? (match ? Number(match[1])-1 : -1) : explicitSlot;
         if (explicitSlot === null && (index < 0 || index >= scenes.length)) {
           while (cursor < scenes.length && partList(nextClips[frameKey(scenes[cursor], cursor)]).length) cursor++;
           index = cursor++;
         }
-        if (index < 0 || index >= scenes.length) throw new Error('Clip has no valid scene number F01–F10: '+file.name);
+        if (index < 0 || index >= scenes.length) throw new Error('Clip has no valid shot number S01–S03: '+file.name);
         const key = frameKey(scenes[index], index);
         const previous = partList(nextClips[key]);
         const duration = await videoLength(file);
@@ -368,7 +369,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const output = [];
     let time = 0;
     frames().forEach((shot, i) => {
-      if (i === 2) {
+      if (i === 1) {
         output.push({type:'intro',label:'OFF BRIEF · Official intro',duration:5,startSeconds:time});
         time += 5;
       }
@@ -625,7 +626,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       '<button type="button" class="fc-chapter-toggle" data-fc="chapter-enable">'+(settings.enabled?'Hide text on this intro':'Add text to this intro')+'</button>'+
       '<div class="fc-chapter-layers">'+control('label')+control('number')+'</div>'+
       '<div class="fc-chapter-actions"><button type="button" data-fc="chapter-preview">▶ Preview animated intro</button><button type="button" data-fc="chapter-reset">Reset text & positions</button></div>'+
-      '<small>Only your selected chapter is updated. Titles animate on the approved 5-second intro AFTER F01–F02. The original intro is not modified. Each chapter saves its own text and animation.</small></section>';
+      '<small>Only your selected chapter is updated. Titles animate on the approved 5-second intro AFTER S01. The original intro is not modified. Each chapter saves its own text and animation.</small></section>';
   };
   const applyChapterInput = input => {
     const field=input?.dataset?.fcTitle;
@@ -643,7 +644,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
 
   const exportCut = async () => {
     if (busy) return;
-    if (!canExport()) { inform('Final export requires all 10 rendered MP4 scene clips. Missing shots are never replaced with stills.', true); return; }
+    if (!canExport()) { inform('Final export requires all three rendered Higgsfield clips. Missing shots are never replaced with stills.', true); return; }
     if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) {
       inform('This browser cannot record a video canvas. Use a newer Safari or a desktop browser for final export.', true);
       return;
@@ -1154,7 +1155,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   const soundEditorHTML = () => {
     const cues=audioCues();
     const visible=cues.filter(c=>c.anchor==='episode'||c.anchor==='intro'||c.frameId===frameKey(currentFrame(),activeScene));
-    return '<div class="fc-sound-editor"><div class="fc-kicker">SOUND / AUDIO TRACKS</div><h3>Voices, music & effects</h3><p>Use the official OFF BRIEF sounds or layer your own recorded voices. Original Google Flow videos remain unchanged.</p>'+officialSoundLibraryHTML()+
+    return '<div class="fc-sound-editor"><div class="fc-kicker">SOUND / AUDIO TRACKS</div><h3>Voices, music & effects</h3><p>Use the official OFF BRIEF sounds or layer your own recorded voices. Original Higgsfield videos remain unchanged.</p>'+officialSoundLibraryHTML()+
       '<div class="fc-sound-add"><label>Track type<select id="fc-sound-kind"><option value="voice">Voice</option><option value="music">Background music</option><option value="sfx">Sound effect</option></select></label><label>Placement<select id="fc-sound-scope"><option value="scene">Selected scene</option><option value="episode">Entire episode</option></select></label></div>'+
       '<label class="fc-sound-upload" for="fc-sound-file">＋ Add audio file (MP3 / WAV / M4A)</label><input type="file" id="fc-sound-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" hidden>'+
       (visible.length?'<div class="fc-sound-list">'+visible.map(c=>{
@@ -1182,27 +1183,27 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
     const actual=totalSeconds();
     const expected=plannedSeconds();
     const shotSeconds=partsLength(takes);
-    const canvasLink=CANVASES[selected]?'https://higgsfield.ai/canvas/'+CANVASES[selected]:'https://higgsfield.ai/';
+    const canvasLink='https://higgsfield.ai/';
     root.innerHTML = '<div class="fc-shell">' +
-      '<div class="fc-header"><div class="fc-kicker">PRIVATE PRODUCTION / FINAL CUT</div><div class="fc-header-row"><div><h1>From Google Flow to <em>YouTube.</em></h1><p>Render original scenes in Google Flow, then edit them here with sound, split, pauses, and the approved intro.</p></div>' +
-      '<div class="fc-links"><a target="_blank" rel="noopener noreferrer" href="'+escapeHtml(canvasLink)+'">Higgsfield reference</a><a target="_blank" rel="noopener noreferrer" href="'+DRIVE_PREVIEWS+'">Drive previews</a><a target="_blank" rel="noopener noreferrer" href="'+OFF_BRIEF_CHANNEL_URL+'">OFF BRIEF YouTube</a></div></div></div>' +
+      '<div class="fc-header"><div class="fc-kicker">PRIVATE PRODUCTION / FINAL CUT</div><div class="fc-header-row"><div><h1>From Flow to Higgsfield to <em>YouTube.</em></h1><p>Approve each still in Flow, animate it in Higgsfield, then assemble the three clips here with sound and the existing intro.</p></div>' +
+      '<div class="fc-links"><a target="_blank" rel="noopener noreferrer" href="'+escapeHtml(canvasLink)+'">Open Higgsfield</a><a target="_blank" rel="noopener noreferrer" href="'+MASTER_REFERENCES+'">Master references</a><a target="_blank" rel="noopener noreferrer" href="'+OFF_BRIEF_CHANNEL_URL+'">OFF BRIEF YouTube</a></div></div></div>' +
       '<div class="fc-layout"><aside class="fc-side"><label for="fc-episode" class="fc-label">SEASON / EPISODE</label><select id="fc-episode">'+catalog.map(m=>'<option value="'+keyFor(m)+'" '+(selected===keyFor(m)?'selected':'')+'>'+keyFor(m).replace('S','Season ').replace('E',' · Episode ')+' — '+escapeHtml(m.title)+'</option>').join('')+'</select>' +
-      '<div class="fc-progress"><strong>'+count+'<span>/10</span></strong><p>story scenes ready · '+pieces+' video parts</p><div class="fc-meter"><span style="width:'+(count*10)+'%"></span></div><small>Saved locally on this device. No render credits are spent here.</small></div>' +
-      '<div class="fc-rules"><h3>Episode order</h3><div>01 · Comedic cold open (F01–F02)</div><div class="fc-yellow">02 · Official intro (5 sec)</div><div>03 · Story and payoff (F03–F10)</div><p>The official intro is already installed. Do not upload an old 6-second bumper.</p></div>' +
-      '<label class="fc-upload-all" for="fc-all-files"><b>Import Google Flow videos</b><span>MP4 / MOV with scene labels F01–F10. You can add several parts per scene.</span></label><input type="file" id="fc-all-files" accept="video/*,.mp4,.mov,.m4v,.webm" multiple hidden>' +
+      '<div class="fc-progress"><strong>'+count+'<span>/'+shots.length+'</span></strong><p>story shots ready · '+pieces+' video parts</p><div class="fc-meter"><span style="width:'+(shots.length?count/shots.length*100:0)+'%"></span></div><small>Saved locally on this device. No render credits are spent here.</small></div>' +
+      '<div class="fc-rules"><h3>Episode order</h3><div>01 · Setup (S01)</div><div class="fc-yellow">02 · Existing OFF BRIEF intro (5 sec)</div><div>03 · Turn + payoff (S02–S03)</div><p>The existing intro is already installed; review total runtime before export.</p></div>' +
+      '<label class="fc-upload-all" for="fc-all-files"><b>Import Higgsfield videos</b><span>Three MP4 / MOV clips labeled S01, S02 and S03.</span></label><input type="file" id="fc-all-files" accept="video/*,.mp4,.mov,.m4v,.webm" multiple hidden>' +
       '<div class="fc-link-note"><b>Original sources</b><a href="'+escapeHtml(ep.drive||'https://drive.google.com/drive/folders/1Ym_Tqov970lP2K_4trIBr4dpj1FhGRIh')+'" target="_blank" rel="noopener noreferrer">Open scene photo folder</a></div></aside>' +
       '<div class="fc-middle"><div class="fc-section-head"><div><span class="fc-kicker">01 / STORY ORDER</span><h2>'+escapeHtml(ep.title)+'</h2></div><span>'+seconds(actual)+' actual / '+seconds(expected)+' scripted</span></div>' +
-      '<div class="fc-runtime"><b>'+pieces+' video parts</b><span>'+(actual<90?'This cut is shorter than the original 90–120 second script. Add more Higgsfield parts to each scene.':'Check timing, action and voices against the script.')+'</span></div>' +
+      '<div class="fc-runtime"><b>'+pieces+' video parts</b><span>'+(actual>30?'This cut is longer than the short-format target. Tighten pauses or trim the intro in your publishing edit.':'Short-format target: approximately 20–30 seconds including the existing intro.')+'</span></div>' +
       '<div class="fc-shot-grid">'+shots.map((f,i)=>{
         const k=frameKey(f,i), parts=sceneParts(f,i), ok=parts.length>0;
-        const role=i<2?'COLD OPEN':(f.beat||'STORY');
-        const html='<button class="fc-shot '+(activeScene===i?'selected ':'')+(ok?'has-video':'is-missing')+'" data-fc="shot" data-index="'+i+'" type="button"><span class="fc-shot-num">'+k.replace(/^.*F/,'F')+'</span><span class="fc-shot-label"><b>'+escapeHtml(f.title||'Scene '+(i+1))+'</b><small>'+escapeHtml(role)+' · '+(ok?parts.length+' video part(s) · '+seconds(partsLength(parts)):'awaiting Higgsfield MP4')+'</small></span><span class="fc-check">'+(ok?'✓':'＋')+'</span></button>';
-        return i===2?'<div class="fc-intro-rail"><span>OFF BRIEF · OFFICIAL VIDEO INTRO</span><b>5 sec · audio included</b><button type="button" data-fc="intro">Preview intro</button></div>'+html:html;
+        const role=f.beat||'STORY';
+        const html='<button class="fc-shot '+(activeScene===i?'selected ':'')+(ok?'has-video':'is-missing')+'" data-fc="shot" data-index="'+i+'" type="button"><span class="fc-shot-num">'+k.replace(/^.*S/,'S')+'</span><span class="fc-shot-label"><b>'+escapeHtml(f.title||'Scene '+(i+1))+'</b><small>'+escapeHtml(role)+' · '+(ok?parts.length+' video part(s) · '+seconds(partsLength(parts)):'awaiting Higgsfield MP4')+'</small></span><span class="fc-check">'+(ok?'✓':'＋')+'</span></button>';
+        return i===1?'<div class="fc-intro-rail"><span>OFF BRIEF · OFFICIAL VIDEO INTRO</span><b>5 sec · audio included</b><button type="button" data-fc="intro">Preview intro</button></div>'+html:html;
       }).join('')+'</div>' +
       '<div class="fc-preview"><div class="fc-section-head"><div><span class="fc-kicker">02 / REVIEW</span><h2>Preview before export</h2></div><span>16:9 · voice + effects</span></div><div class="fc-preview-stage"><video id="fc-video" controls playsinline preload="metadata"></video><canvas id="fc-fx-preview" width="1280" height="720" aria-hidden="true"></canvas><canvas id="fc-chapter-canvas" width="1280" height="720" aria-label="Drag CHAPTER and its number to position the lettering"></canvas></div><div class="fc-preview-actions"><button type="button" data-fc="preview-shot" '+(!takes.length?'disabled':'')+'>Play selected part</button><button type="button" data-fc="play-cut" '+(!pieces?'disabled':'')+'>'+(canExport()?'Preview whole episode':'Preview assembled scenes')+'</button></div></div></div>' +
       '<aside class="fc-inspector"><div class="fc-kicker">03 / DIRECTOR NOTES</div><h2>'+escapeHtml(currentFrame()?.title||'Scene')+'</h2><p class="fc-beat">'+escapeHtml(currentFrame()?.beat||'')+'</p><div class="fc-detail"><b>Shot direction</b><p>'+escapeHtml(currentFrame()?.action||'')+'</p></div><div class="fc-detail"><b>Original dialogue</b><pre>'+escapeHtml(scriptText(currentFrame()||{}))+'</pre></div><div class="fc-detail"><b>Scene runtime</b><p>'+shotSeconds.toFixed(1)+' sec imported / '+Number(currentFrame()?.plannedDuration||0).toFixed(1)+' sec scripted</p></div>' +
-      '<div class="fc-flow-workflow"><div class="fc-kicker">GOOGLE FLOW / APPROVED SCENE</div><h3>Animate the next take</h3><p>Upload the approved still to Google Flow and paste these original script directions. Keep titles and pauses in Final Cut.</p><div class="fc-flow-actions"><a href="https://flow.google.com" target="_blank" rel="noopener noreferrer">Open Google Flow</a><button type="button" data-fc="copy-flow-prompt">Copy Flow scene prompt</button></div><textarea id="fc-flow-prompt" class="fc-flow-copy-fallback" hidden readonly aria-label="Flow prompt"></textarea><small>Use F01–F10 in filenames. Connected takes use A, B, C. Original media stays in your private Drive; this app does not auto-generate videos inside Flow.</small></div>' +
-      '<label class="fc-import-bulk" for="fc-all-files">＋ Import finished Google Flow clips</label>' +
+      '<div class="fc-flow-workflow"><div class="fc-kicker">FLOW → HIGGSFIELD</div><h3>Create this shot in two steps</h3><p>Use Flow for the approved 16:9 still. Upload that exact still to Higgsfield for motion and the exact English line.</p><div class="fc-flow-actions"><a href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener noreferrer">Open Flow</a><a href="https://higgsfield.ai/" target="_blank" rel="noopener noreferrer">Open Higgsfield</a><button type="button" data-fc="copy-flow-prompt">Copy two-step prompt</button></div><textarea id="fc-flow-prompt" class="fc-flow-copy-fallback" hidden readonly aria-label="Flow and Higgsfield prompt"></textarea><small>Name finished clips S01, S02 and S03. Keep the same six master references for every Flow still.</small></div>' +
+      '<label class="fc-import-bulk" for="fc-all-files">＋ Import finished Higgsfield clips</label>' +
       '<label class="fc-upload-single" for="fc-single-file">'+(takes.length?'Replace all parts of this scene':'Import first scene video')+'</label><input id="fc-single-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>'+
       '<label class="fc-upload-extra" for="fc-extra-file">＋ Add another part (keep existing)</label><input id="fc-extra-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>'+
       (clip&&clip.duration>0.4?'<div class="fc-split"><div class="fc-kicker">CUT / SPLIT VIDEO</div><p>Split the selected part without editing the original file or its audio.</p><label for="fc-split-point">Cut at <output id="fc-split-output">'+(clip.duration/2).toFixed(2)+'</output> seconds within this part</label><input type="range" id="fc-split-point" min="0.15" max="'+(clip.duration-0.15).toFixed(3)+'" step="0.05" value="'+(clip.duration/2).toFixed(2)+'"><div class="fc-split-actions"><button type="button" data-fc="split-at-playhead">Use playhead</button><button type="button" data-fc="split-video">Split here</button></div></div>':'')+
@@ -1211,7 +1212,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       chapterEditorHTML()+
       soundEditorHTML()+
       '<div class="fc-export"><div class="fc-kicker">04 / FINAL EXPORT</div><label for="fc-quality">Resolution</label><select id="fc-quality"><option value="1080" '+(exportQuality==='1080'?'selected':'')+'>1080p · YouTube</option><option value="720" '+(exportQuality==='720'?'selected':'')+'>720p · smaller file</option></select><button type="button" data-fc="export" '+(!canExport()||busy?'disabled':'')+'>Export completed episode</button>'+
-      '<small>Export requires footage for all 10 scenes; each may have multiple parts. Original spoken audio stays with the clips. MP4 where supported; otherwise WebM. Keep Safari open.</small>' +
+      '<small>Export requires footage for all three shots; each may have multiple parts. Original spoken audio stays with the clips. MP4 where supported; otherwise WebM. Keep Safari open.</small>' +
       (exportUrl?'<a class="fc-download" href="'+exportUrl+'" download="'+escapeHtml(exportName)+'">Download '+escapeHtml(exportName)+'</a>':'')+'</div></aside></div>' +
       '<nav class="fc-mobile-dock" aria-label="Mobile editing tools">' +
         [['clips','Clips'],['audio','Audio'],['titles','Text'],['effects','Pauses'],['flow','Flow'],['script','Script'],['export','Export']].map(([key,label])=>
@@ -1261,7 +1262,7 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
       const prompt=generateGoogleFlowPrompt(meta(),currentFrame(),selected);
       try {
         await navigator.clipboard.writeText(prompt);
-        inform('Flow prompt copied. Paste it alongside the original approved scene image.');
+        inform('Two-step prompt copied. Use Flow first, then Higgsfield with the approved still.');
       } catch(err) {
         const field=root.querySelector('#fc-flow-prompt');
         if(field){field.hidden=false;field.value=prompt;field.focus();field.select();}

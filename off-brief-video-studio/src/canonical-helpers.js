@@ -1,46 +1,40 @@
-import { CANON_EPISODES, CANON_CAST } from './canonical-production.js';
+import { SHORT_EPISODES, SHORT_CAST } from './short-production.js';
 
-export { CANON_EPISODES, CANON_CAST };
+export const CANON_EPISODES = SHORT_EPISODES;
+export const CANON_CAST = SHORT_CAST;
 
 export function canonicalShot(episode, scene) {
-  const index = Number(episode) - 1;
-  return CANON_EPISODES[index]?.scenes[Number(scene) - 1] || null;
+  const ep = CANON_EPISODES.find(item => Number(item.episode) === Number(episode));
+  return ep?.scenes[Number(scene) - 1] || null;
 }
 
 export function masterAnimationPrompt(episode, scene) {
-  const ep = CANON_EPISODES[Number(episode) - 1];
+  const ep = CANON_EPISODES.find(item => Number(item.episode) === Number(episode));
   const shot = canonicalShot(episode, scene);
   if (!ep || !shot) return '';
   const dialogue = shot.dialogue.map(line =>
     line.character.toUpperCase() + ': ' + line.text
   ).join('\n');
   return [
-    'OFF BRIEF · IMAGE-TO-VIDEO MASTER PROMPT',
-    'SEASON ' + String(ep.season).padStart(2, '0') +
-      ' / EPISODE ' + String(ep.episode).padStart(2, '0') +
+    'OFF BRIEF · FLOW TO HIGGSFIELD SHOT PROMPT',
+    'SEASON 01 / EPISODE ' + String(ep.episode).padStart(2, '0') +
       ' / SHOT ' + String(scene).padStart(2, '0'),
-    'Use the exact real approved image for ' + shot.frameId +
-      ' as the starting frame, NOT an AI substitute or newly designed character. ' +
-      (ep.season === 2
-        ? 'Season 2 stills are NOT uploaded to this separate Video Studio yet. Obtain and approve the original frame before animation.'
-        : 'Use the F' + String(scene).padStart(2, '0') + ' image from this exact episode once imported.'),
-    'STYLE LOCK: Premium original cinematic 3D adult workplace comedy. Original Nia: exact face, long dark side braid, gold hoops, controlled dry reactions. Original Ruby: exact face, copper-red curly high updo, round glasses, lively reactions. Every supporting cast member must use THEIR OWN approved character reference. Keep all episode-specific costumes and hair, face proportions, ages, skin tones, eye lines, props and environment unchanged.',
-    'ON CAMERA: ' + (shot.cast.length ? shot.cast.join(', ') : 'No visible cast. Do not add people.'),
-    'LOCATION: ' + (shot.location || 'Match the exact original approved reference image.'),
-    'ORIGINAL SHOT DESCRIPTION: ' + shot.title,
-    'CAMERA AND FRAMING: ' + shot.camera,
-    'SOURCE-SCRIPTED ACTION: ' + shot.action,
-    'MOTION DIRECTION: ' + shot.motion,
-    shot.dialogueCue ? 'PERFORMANCE CUE: ' + shot.dialogueCue : '',
-    'STORY BEAT: ' + shot.beat +
-      ' / Editing slot approximately ' + shot.plannedDuration + ' seconds.',
-    'Create multiple short 4–8-second image-to-video takes when necessary and assemble them in the editor. Do not force a long conversation into a single generation or pretend the tool automatically edits the full episode.',
-    'ORIGINAL APPROVED ENGLISH DIALOGUE FOR TIMING ONLY:\n' +
-      (dialogue || 'No spoken lines assigned to this shot. Use a silent natural reaction.'),
-    'AUDIO: The visual-generation model must generate NO speech, no invented words, no music, no fake lip-sync, no subtitles. Record the exact source dialogue separately as original authorized English character voices and attach the correct audio below each line in the scene editor.',
-    'MOTION QUALITY: natural blinks and breathing, one subtle plausible gesture, believable anatomy and fingers, consistent lighting, controlled slow push/pan or stable camera. No face morphing, new people, extra hands, duplicate actors, changed products, random props, added captions, camera spinning or distorted expressions.',
-    'OUTPUT: one 16:9 cinematic take, 1920x1080, 24 fps, H.264 MP4. Reuse the same approved image for any later portrait crop; do not regenerate characters.',
-  ].filter(Boolean).join('\n\n');
+    'FIRST FRAME: Build or approve one 16:9 still in Google Flow using the OFF BRIEF master references. Then upload that exact still to Higgsfield. Do not redesign the characters between tools.',
+    'REFERENCE LOCK: Nia must keep her exact approved face, long dark side braid, gold hoops and royal-blue blazer. Ruby must keep her exact approved face, copper-red curly updo, round glasses and green overshirt. Keep their ages, proportions, skin tones, clothing, set, props and lighting consistent.',
+    'ON CAMERA: ' + (shot.cast.length ? shot.cast.join(', ') : 'No visible cast.'),
+    'LOCATION: ' + (shot.location || 'OFF BRIEF creative studio'),
+    'SHOT: ' + shot.title,
+    'CAMERA: ' + shot.camera,
+    'ACTION: ' + shot.action,
+    'MOTION: ' + shot.motion,
+    'STORY BEAT: ' + shot.beat + ' · target ' + shot.plannedDuration + ' seconds.',
+    'EXACT ENGLISH DIALOGUE FOR HIGGSFIELD LIP SYNC:\n' +
+      (dialogue || 'No spoken line. Use a silent natural reaction.'),
+    'FLOW OUTPUT: one clean 16:9 still only. No speech, captions, logos or embedded text.',
+    'HIGGSFIELD OUTPUT: one short image-to-video take. Use restrained natural acting, clean lip sync to the exact line, believable anatomy and hands, and a stable edit-friendly ending.',
+    'AVOID: face drift, hair changes, outfit changes, extra people, duplicate characters, extra fingers, distorted products, random props, subtitles, invented words, camera spins or exaggerated expressions.',
+    'FINAL: 16:9 landscape. Keep each shot separate; assemble the three shots and the existing OFF BRIEF intro in the Studio.'
+  ].join('\n\n');
 }
 
 export function hydrateCanonicalNote(saved, episode, scene, hasAudio = () => false) {
@@ -49,7 +43,7 @@ export function hydrateCanonicalNote(saved, episode, scene, hasAudio = () => fal
   const defaults = {
     duration: shot.plannedDuration,
     motion: masterAnimationPrompt(episode, scene),
-    notes: 'ORIGINAL PRIVATE STUDIO · ' + shot.title + '\n' +
+    notes: 'SHORT EPISODE · ' + shot.title + '\n' +
       'Action: ' + shot.action + '\nCamera: ' + shot.camera,
     dialogues: shot.dialogue.map(line => ({ ...line })),
     _canonSeeded: true,
