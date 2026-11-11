@@ -16,13 +16,16 @@ import library from '../production-library.json';
     const folderLinks=Object.values(library.folders).map(f=>link(f.label,f.url));
     const epLinks=library.episodes.map(ep=>
       '<article class="ob-library-episode"><div><b>'+esc(ep.key)+'</b><span>'+esc(ep.title)+'</span></div>'+
-      '<div>'+link('Original episode folder','https://drive.google.com/drive/folders/'+ep.folder)+
+      '<div>'+link('Final 3-shot folder',ep.finalFolder)+
+      (Array.isArray(ep.shots)?ep.shots.map(shot=>link('Final '+shot.key,shot.url)).join(''):'')+
+      (ep.productionPrompt?link('Production prompt',ep.productionPrompt):'')+
+      link('Original archive','https://drive.google.com/drive/folders/'+ep.folder)+
       (ep.preview?link('Previous preview','https://drive.google.com/file/d/'+ep.preview+'/view'):'<small>Preview pending</small>')+
-      '</div><small>3 new shots required · old media kept as reference only</small></article>'
+      '</div><small>3 final approved shots · old media kept as reference only</small></article>'
     );
     dialog.innerHTML=
       '<header><div><small>THE LAUNCH ERA / PRIVATE PRODUCTION</small><h2>OFF BRIEF Library</h2></div><button type="button" id="ob-close-library" aria-label="Close media library">×</button></header>'+
-      '<p>Season 1 is active in the new short format. Use the same six master references for every Flow still, then animate each approved still in Higgsfield.</p>'+
+      '<p>Season 1 is active in the new short format. The 24 final approved stills are linked below. Animate each exact still in Higgsfield without redesigning Nia, Ruby or the set.</p>'+
       group('Quick access',folderLinks)+
       group('Official production files',[
         link(library.shortScripts.label,library.shortScripts.url),
