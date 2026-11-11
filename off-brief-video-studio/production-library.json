@@ -41,7 +41,7 @@
     "name": "OFFBRIEF_Official_Universal_Intro_5s.mp4",
     "url": "https://drive.google.com/file/d/14oZBDmHZoUQK_iYHPhirAtvpSuTL3p64/view",
     "durationSeconds": 5,
-    "position": "After cold-open F01-F02",
+    "position": "At the beginning, before S01",
     "sha256": "4472a53abb0b50bc3a18868266efad07d78ade6913178f6ee8c6cda8d10eb644"
   },
   "episodes": [
@@ -51,7 +51,14 @@
       "folder": "1SOjQOVRq2HoFczfVANGPWNggM0FtaPMX",
       "preview": "1XA7xVooJ1MLHmEH13mNcSv_1Kl2-c418",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1bVpzR_3CGdYt4t97h8W2ZJVnzLIzg8qC",
+      "productionPrompt": "https://drive.google.com/file/d/1RodNLvmKFBZGQW_YNjQBehRBMAatPRcB/view",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/15OPtet2oTJl2QofJfM1fjbe1BHsOjNd8/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1HwxVd5I2uxHiWGO84j6m0CMx1sGLC83f/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1wnco6rdFeYPrYqK0ViGAh6ELkVS28rqK/view" }
+      ]
     },
     {
       "key": "S01E02",
@@ -59,7 +66,13 @@
       "folder": "1H9ZVmc1t3wPrR81J2l497hpkjCn8WGan",
       "preview": "1aPlTGVwMli_K9Qmai7SwSjGRUQDX6XLg",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1xtxTyVsfmwgiDPr6PfX02iJn1RlINkhV",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1UIqPJvHLPxdpKFqvN6XfHeGyKxN3xkF-/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1ly4ekzKWWULtCmh4p9SdAyt-LB6EppdA/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1i1VNEN1oK1i27XCDPA31mIiif4hCUzu1/view" }
+      ]
     },
     {
       "key": "S01E03",
@@ -67,7 +80,13 @@
       "folder": "1XDkFyE5RF6ryWUi1_U_juPcrpkCxTz9K",
       "preview": "1QZ5yxEpZnAhgWPBUlS1mrix4Bv3wB_u4",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1HW1SsqK_gD9irlHs48vX-bXRhaa4Rqn7",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1azO4GnAgo4FBBA7EgnX6WtUKUHzA_VyZ/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1vPY1kC4TCBY1rH_aOcH0O0pcAWmvG-cH/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1q7nJOcXHGxXh7m8HhxF3Sc_OF6f8ZX2w/view" }
+      ]
     },
     {
       "key": "S01E04",
@@ -75,7 +94,13 @@
       "folder": "1uW3IIoSLqUKoF_m-w_FIMsNMuufh3Pas",
       "preview": "1JmJyt_wuJE85fVUfbaQrP-uGK6uAI09S",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1ZDCa69pgWUzFeV0S8Uw0tbNGuZQeP7rM",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/19eE4uHMUU-G3JhQWtJd3uPWzbImZuV0-/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1VjAZBgi6TnzaZmR-tOXBLQIsH-T3KdeC/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1Km2KhdFRU-Ig7Ti0zdls3OR_0n6o0P4F/view" }
+      ]
     },
     {
       "key": "S01E05",
@@ -83,7 +108,13 @@
       "folder": "1NqeHhEpQyPLUNYOhk0A4CKufywz3Z2Pz",
       "preview": "1TzVid98UNhYsPp07bPKoxaCj13Oh5IIs",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1UmkQI1HKLwlHEX9ACrC3Opf2EUqzkPRf",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1sZiiE1Lo2kkxOfVOtbPhg40KYsCbBBF9/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1D3BWdpiribfAfgbo6G8rbc9bBLhAIf2A/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1xITbUPwK2JRHkAMxttobQBvEeFgbt6wD/view" }
+      ]
     },
     {
       "key": "S01E06",
@@ -91,7 +122,13 @@
       "folder": "1N_TxxJn5XVk5DZqGHnj-QX9TmtbV8Kqm",
       "preview": "1gRKAwhtF8ynqsU7o5abR6qKeQHe0hbZk",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1fViBKy11v-rhpJSOc_zV7gD1hML--f3y",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1rhR2LR4t-9E-GHj8OQ4_BgQ9wdDB7yy2/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1etCpwo8boRwBtBeynJlAIww_Yiju6q4l/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1WY2GRSxhQdlSFru8hjzKwj9C9PNzmIBb/view" }
+      ]
     },
     {
       "key": "S01E07",
@@ -99,7 +136,13 @@
       "folder": "1nQo8EOZEFOeqLZWbbQBr0DOp5ZtG6b9f",
       "preview": "1DIkqM24EASykA7RysN8wKaUCDT8hi8mz",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1rmCQi40OVA3B2frU5I5_vI8XX10IqTOk",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1IejscaB85DP1zTgGCTSpImZT4OaFDhK0/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/1O-e0NxyQnzdJCemKS7XObNtw00-tvPRW/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1a3slHbZo-5wRoR7fHe3KE79ZyAAzTqiP/view" }
+      ]
     },
     {
       "key": "S01E08",
@@ -107,7 +150,13 @@
       "folder": "1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA",
       "preview": "16JgjMVGEC94cYJamYEqXjUpkAhQQtbhU",
       "status": "active",
-      "shotCount": 3
+      "shotCount": 3,
+      "finalFolder": "https://drive.google.com/drive/folders/1rWv0vAHKNiwxjeNaNBPCdBZs5rmJzdV9",
+      "shots": [
+        { "key": "S01", "url": "https://drive.google.com/file/d/1y-9aHzRu1HA64O9n-s7tSf1BbvuKwT8S/view" },
+        { "key": "S02", "url": "https://drive.google.com/file/d/13qivrX3eYR8quS0AfbtD9rIxBEqa2Vbh/view" },
+        { "key": "S03", "url": "https://drive.google.com/file/d/1gUHJZ9q-zSjm_Oqx7iXM8XT4ROV_ZMyZ/view" }
+      ]
     }
   ],
   "shortScripts": {
