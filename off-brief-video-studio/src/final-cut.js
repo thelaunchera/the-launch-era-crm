@@ -368,11 +368,9 @@ import { CHAPTER_EFFECTS, chapterDefaults, normalizeChapter, drawChapterTitles }
   const fullSequence = () => {
     const output = [];
     let time = 0;
+    output.push({type:'intro',label:'OFF BRIEF · Official intro',duration:5,startSeconds:time});
+    time += 5;
     frames().forEach((shot, i) => {
-      if (i === 1) {
-        output.push({type:'intro',label:'OFF BRIEF · Official intro',duration:5,startSeconds:time});
-        time += 5;
-      }
       const parts=sceneParts(shot,i);
       parts.forEach((clip,j)=>{
         const duration=Math.max(0,Number(clip.duration)||0);
