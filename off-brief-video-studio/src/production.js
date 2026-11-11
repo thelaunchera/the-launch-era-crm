@@ -12,10 +12,8 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
     season: original.season,
     number: original.episode,
     title: original.title,
-    count: 10,
-    source: original.season === 1
-      ? 'Original two-minute English dialogue · ten official camera references'
-      : 'Original Season 2 dialogue · original image files pending',
+    count: original.scenes.length,
+    source: 'Short format · three approved shots · Flow → Higgsfield',
   }));
   const originalSpeakers = CANON_CAST;
   const episode8DriveFrameIds = [
@@ -34,9 +32,8 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
 
 
   const videoProviders = [
-    {id:'wan',name:'Wan 2.2 · ZeroGPU',free:'5 min GPU / día para cuentas gratuitas de Hugging Face',url:'https://huggingface.co/spaces/zerogpu-aoti/wan2-2-fp8da-aoti-faster',description:'Motor que ya probaste; comparte cuota ZeroGPU con otros Spaces.'},
-    {id:'flow',name:'Google Flow',free:'50 créditos / día para cuentas sin suscripción',url:'https://labs.google/fx/tools/flow',description:'Créditos independientes; algunos modelos, horarios o regiones pueden limitar el acceso.'},
-    {id:'pixverse',name:'PixVerse',free:'30 créditos diarios para cuentas sin membresía',url:'https://app.pixverse.ai/',description:'Cuota independiente; el costo de cada clip varía por modelo y resolución.'}
+    {id:'flow',name:'1 · Google Flow',free:'Create and approve the 16:9 still',url:'https://labs.google/fx/tools/flow',description:'Use all six OFF BRIEF master references. Generate the composition only: no dialogue, motion, titles or captions.'},
+    {id:'higgsfield',name:'2 · Higgsfield',free:'Animate the approved still',url:'https://higgsfield.ai/',description:'Upload the exact Flow still, add the scene motion and use the exact English line for lip sync.'}
   ];
   const voiceProviders = [
     {id:'ttsmp3ai',name:'ttsMP3 AI Voices',free:'1,000 caracteres / día',url:'https://ttsmp3.com/ai',description:'Supports Voice Instructions for consistent character delivery. MP3 files can be used commercially; manual access only.'},
@@ -118,8 +115,9 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
     if(!state.urls[key])state.urls[key]=URL.createObjectURL(media.blob);
     return state.urls[key];
   }
-  function mediaCount(episode){let count=0;for(let s=1;s<=10;s++)if(getAsset(mediaKey(episode,s,'clip'))) count++;return count;}
-  function photoCount(episode){let count=0;for(let s=1;s<=10;s++)if(getAsset(mediaKey(episode,s,'photo'))) count++;return count;}
+  function episodeCount(episode){return episodes.find(item=>item.id===Number(episode))?.count||3;}
+  function mediaCount(episode){let count=0;for(let s=1;s<=episodeCount(episode);s++)if(getAsset(mediaKey(episode,s,'clip'))) count++;return count;}
+  function photoCount(episode){let count=0;for(let s=1;s<=episodeCount(episode);s++)if(getAsset(mediaKey(episode,s,'photo'))) count++;return count;}
   function audioCount(episode,scene) {
     return note(episode,scene).dialogues.filter(line=>getAsset(mediaKey(episode,scene,'audio',line.id))).length;
   }
@@ -128,7 +126,7 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
     const texts=n.dialogues.filter(l=>l.text.trim());
     return Boolean(getAsset(mediaKey(episode,scene,'clip'))&&texts.length&&texts.every(l=>getAsset(mediaKey(episode,scene,'audio',l.id))));
   }
-  function minutes(episode){const list=Array.from({length:10},(_,i)=>note(episode,i+1).duration).filter(v=>v!==''&&Number(v)>0);return list.length?list.reduce((a,b)=>a+Number(b),0)+'s defined · '+(10-list.length)+' pending':'Durations not yet verified';}
+  function minutes(episode){const total=episodeCount(episode);const list=Array.from({length:total},(_,i)=>note(episode,i+1).duration).filter(v=>v!==''&&Number(v)>0);return list.length?list.reduce((sum,value)=>sum+Number(value),0)+'s defined · '+(total-list.length)+' pending':'Durations not yet verified';}
   function notice(message){state.notice=message;const n=document.getElementById('ob-notice');if(n)n.textContent=message;}
   let saveTimer;
   const sceneSaveTimers = new Map();
@@ -173,20 +171,21 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
   }
   async function batchImport(files){
     const photos=Array.from(files).filter(f=>f.type.startsWith('image/')||/\.(heic|heif|png|jpe?g)$/i.test(f.name));
-    if(!photos.length){notice('Choose 1–10 original photos for this episode.');return;}
+    const total=episodeCount(state.episode);
+    if(!photos.length){notice('Choose 1–'+total+' approved stills for this episode.');return;}
     const numbered=new Map();
     const rest=[];
     for(const file of photos){
       const n=photoNumber(file.name);
-      if(n&&n<=10&&!numbered.has(n)&&!/extra|preview|[_-]h\d/i.test(file.name)) numbered.set(n,file);
+      if(n&&n<=total&&!numbered.has(n)&&!/extra|preview|[_-]h\d/i.test(file.name)) numbered.set(n,file);
       else rest.push(file);
     }
     const used=new Set(numbered.values());
     const ordered=photos.filter(f=>!used.has(f) && !/extra|preview|[_-]h\d/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
-    for(let i=1;i<=10&&ordered.length;i++)if(!numbered.has(i))numbered.set(i,ordered.shift());
+    for(let i=1;i<=total&&ordered.length;i++)if(!numbered.has(i))numbered.set(i,ordered.shift());
     let saved=0;
     for(const [slot,file] of numbered){await saveAsset(mediaKey(state.episode,slot,'photo'),file);saved++;}
-    state.scene=1;render();notice(saved+' original photo(s) placed automatically in scene order. Extras were not mixed into the 10 main scenes.');
+    state.scene=1;render();notice(saved+' approved still(s) placed automatically in the '+total+' shot slots.');
   }
   function showProduction(show){
     document.body.classList.toggle('ob-production-active',show);
@@ -203,11 +202,12 @@ return `<aside class="ob-side">
   <button data-view="library" class="${state.view==='library'?'current':''}">▤ <span>Photo library</span></button>
   <button data-view="drive" class="${state.view==='drive'?'current':''}">◈ <span>Connect Google Drive</span></button>
  </nav>
- ${[1,2].map(season=>`<section class="ob-season-group">
-  <div class="ob-menu-label">SEASON ${String(season).padStart(2,'0')} <span>${season===1?'IN PRODUCTION':'PHOTOS PENDING'}</span></div>
-  <div class="ob-episode-buttons">${episodes.filter(e=>e.season===season).map(e=>`<button data-episode="${e.id}" class="${state.view==='episodes'&&state.episode===e.id?'current':''}">
-   <span class="ob-ep-index">${String(e.number).padStart(2,'0')}</span><span class="ob-ep-name"><b>${safe(e.title)}</b><small>${photoCount(e.id)}/10 photos · ${mediaCount(e.id)}/10 AI clips</small></span></button>`).join('')}
-  </div></section>`).join('')}
+ <section class="ob-season-group">
+  <div class="ob-menu-label">SEASON 01 <span>SHORT FORMAT</span></div>
+  <div class="ob-episode-buttons">${episodes.map(e=>`<button data-episode="${e.id}" class="${state.view==='episodes'&&state.episode===e.id?'current':''}">
+   <span class="ob-ep-index">${String(e.number).padStart(2,'0')}</span><span class="ob-ep-name"><b>${safe(e.title)}</b><small>${photoCount(e.id)}/${e.count} stills · ${mediaCount(e.id)}/${e.count} videos</small></span></button>`).join('')}
+  </div></section>
+ <section class="ob-season-group ob-season-hold"><div class="ob-menu-label">SEASON 02 <span>ON HOLD</span></div><p>Continue after Season 1 is approved.</p></section>
  <div class="ob-side-bottom"><b>Private on this iPad</b><p>Original images stay in Google Drive until you authorize a read-only sync.</p></div></aside>`;
 }
   function heading(){
@@ -233,16 +233,17 @@ return `<aside class="ob-side">
     return `<span class="ob-thumb">${image?`<img src="${image}" alt="Scene ${sc} imported photo"/>`:'<span>▧</span>'}</span>`;
   }
   function sceneStrip(){
+    const total=currentEpisode().count;
     const e=state.episode;
-    return `<section class="ob-scene-strip"><div class="ob-strip-head"><div><span class="ob-eyebrow">STORYBOARD</span><h2>10 scenes <small>· tap to edit</small></h2></div><label class="ob-import-batch">＋ Import 10 photos<input type="file" data-batch accept="image/*,.heic,.heif" multiple hidden/></label></div>
-    <div class="ob-scene-scroll">${Array.from({length:10},(_,i)=>i+1).map(s=>{
+    return `<section class="ob-scene-strip"><div class="ob-strip-head"><div><span class="ob-eyebrow">STORYBOARD</span><h2>${total} shots <small>· setup / turn / payoff</small></h2></div><label class="ob-import-batch">＋ Import ${total} approved stills<input type="file" data-batch accept="image/*,.heic,.heif" multiple hidden/></label></div>
+    <div class="ob-scene-scroll">${Array.from({length:total},(_,i)=>i+1).map(s=>{
       const pic=!!getAsset(mediaKey(e,s,'photo')),clip=!!getAsset(mediaKey(e,s,'clip'));
       const review=e===10?episode2Review[s]:null;
       const photoStatus=pic?'Photo imported':review?.status==='approved'?'PNG in Drive · ready to import':review?.status==='draft'?'Draft in Drive · review':'Photo pending';
       return `<button class="ob-scene-tile ${state.scene===s?'active':''}" data-scene="${s}" type="button">
         <span class="ob-shot-number">SCENE ${String(s).padStart(2,'0')}</span>${slotPhoto(e,s)}
         <span class="ob-shot-status">${safe(photoStatus)}<b>${clip?'● AI VIDEO':'○ No video'}</b></span></button>`;
-    }).join('')}</div><p class="ob-tip">Upload the photos once in a batch. Files named F01–F10 are placed in the matching scenes automatically. Your private Drive images cannot be accessed by this public web app without an authenticated connection.</p></section>`;
+    }).join('')}</div><p class="ob-tip">Generate one approved 16:9 still per shot in Flow. Files named S01, S02 and S03 are placed automatically. Then animate each still in Higgsfield.</p></section>`;
   }
   function assetBox(kind,title,accept){
     const k=mediaKey(state.episode,state.scene,kind),file=getAsset(k),url=getUrl(k);
@@ -277,7 +278,7 @@ return `<aside class="ob-side">
   function sceneEditor(){
     const n=note();
     const original=canonicalShot(state.episode,state.scene);
-    return `<div class="ob-caveat"><strong>ORIGINAL STUDIO SCRIPT · 2-MINUTE CUT</strong><p>${safe(original?.beat||'Scene')} · ${safe(original?.frameId||'Frame pending')} · ${safe(original?.camera||'Original composition')}</p><small>Dialogue from the original Studio, separated into individual character voice tracks. Custom changes and local media are preserved.</small></div><div class="ob-two-cols"><section class="ob-sheet"><div class="ob-sheet-title"><div><span class="ob-eyebrow">SCENE ${String(state.scene).padStart(2,'0')} · VISUAL</span><h2>Image → moving video</h2></div><span class="ob-step">01</span></div>
+    return `<div class="ob-caveat"><strong>SHORT EPISODE · 3-SHOT CUT</strong><p>${safe(original?.beat||'Scene')} · ${safe(original?.frameId||'Frame pending')} · ${safe(original?.camera||'Original composition')}</p><small>Dialogue from the original Studio, separated into individual character voice tracks. Custom changes and local media are preserved.</small></div><div class="ob-two-cols"><section class="ob-sheet"><div class="ob-sheet-title"><div><span class="ob-eyebrow">SCENE ${String(state.scene).padStart(2,'0')} · VISUAL</span><h2>Image → moving video</h2></div><span class="ob-step">01</span></div>
       <div class="ob-media-pair">${assetBox('photo','Original reference','image/*,.heic,.heif')}${assetBox('clip','AI-generated motion','video/*,.mp4,.webm,.mov')}</div>
       <label class="ob-field-label">Master AI animation prompt · editable</label><textarea class="ob-notearea" data-field="motion" rows="9" placeholder="Describe the real movement you want: Nia reacts to Ruby, eyebrow raise, subtle hand gesture…">${safe(n.motion)}</textarea>
       <div class="ob-inline-actions"><button class="ob-neutral" data-action="copy-prompt">Copy edited prompt</button><button class="ob-neutral" data-action="copy-master">Copy original master</button><button class="ob-black-button" data-view="video">Choose AI video engine ↗</button></div>
@@ -290,10 +291,10 @@ return `<aside class="ob-side">
   function episodeView(){
 const e=currentEpisode();
 return `<div class="ob-ep-summary">
- <div><span>SEASON ${String(e.season).padStart(2,'0')} · EPISODE ${String(e.number).padStart(2,'0')} · 10 SCENES</span>
- <p><b>${photoCount(e.id)}/10 photos</b> · <b>${mediaCount(e.id)}/10 AI videos</b> · ${minutes(e.id)}</p>
+ <div><span>SEASON ${String(e.season).padStart(2,'0')} · EPISODE ${String(e.number).padStart(2,'0')} · ${e.count} SHOTS</span>
+ <p><b>${photoCount(e.id)}/${e.count} approved stills</b> · <b>${mediaCount(e.id)}/${e.count} Higgsfield videos</b> · ${minutes(e.id)}</p>
  <small class="ob-episode-source">${safe(e.source)}</small></div>
- <span class="ob-auth-note">${e.id===10?'10 current PNGs F01–F10 uploaded and linked in private Drive for review. Browser photo import still requires your authorization.':e.season===2?'Original English script and AI motion prompts available; Season 2 images still pending.':'Original English dialogue and shot-specific animation prompts loaded from private Studio.'}</span>
+ <span class="ob-auth-note">Exact English dialogue and shot direction are loaded. Keep the same master references in every Flow generation.</span>
  </div>
  ${e.season===2?`<div class="ob-season-title-editor"><label>Episode title (edit only if verified)</label><input type="text" data-season-title="${e.id}" value="${safe(e.title)}" maxlength="110"/></div>`:''}
  <section class="ob-caveat" aria-label="OFF BRIEF universal intro">
@@ -302,16 +303,16 @@ return `<div class="ob-ep-summary">
   <a class="ob-neutral" href="https://drive.google.com/file/d/14oZBDmHZoUQK_iYHPhirAtvpSuTL3p64/view?usp=drivesdk" target="_blank" rel="noopener noreferrer">▶ Ver y descargar intro oficial de 5 s</a>
   <p><small>Shared asset in private Drive. To include it in a final episode video, import the MP4 into that project's timeline; this link does not auto-insert it.</small></p>
 </section>
- <div class="ob-drive-quick-actions">${e.id===8?'<a class="ob-neutral" href="https://drive.google.com/drive/folders/1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA" target="_blank" rel="noopener noreferrer">10 original PNGs in Drive</a>':e.id===10?'<a class="ob-neutral" href="https://drive.google.com/drive/folders/1jNTiE5VonaHUQ6QlXMNQmOMqf3mzmqiQ" target="_blank" rel="noopener noreferrer">Episode 02 PNGs and drafts in Drive</a>':''}<button class="ob-neutral" type="button" data-action="drive-sync">↻ Sync episode photos from Drive</button><button class="ob-plain" type="button" data-view="drive">Connect Drive / folders</button></div>
+ <div class="ob-drive-quick-actions"><a class="ob-neutral" href="https://drive.google.com/drive/folders/1XOVFoZgeb2G-15avFrDypv6mAP6gVo3e" target="_blank" rel="noopener noreferrer">Open 6 master references</a><a class="ob-neutral" href="https://drive.google.com/file/d/1LBR4hfl4yZwhQf3DxBAdn3IG1eF96ITX/view" target="_blank" rel="noopener noreferrer">Open short scripts</a><button class="ob-neutral" type="button" data-action="drive-sync">↻ Sync approved stills</button><button class="ob-plain" type="button" data-view="drive">Connect Drive / folders</button></div>
  ${sceneStrip()}${sceneEditor()}`;
 }
   function providerCard(p){
     return `<article class="ob-provider"><div><span class="ob-provider-asterisk">✳</span><small>EXTERNAL PROVIDER</small></div><h3>${safe(p.name)}</h3><strong>${safe(p.free)}</strong><p>${safe(p.description)}</p><a class="ob-black-button" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open generator ↗</a></article>`;
   }
-  function videoView(){return `<div class="ob-section-intro"><span class="ob-eyebrow">REAL MOVEMENT · NOT PHOTO SLIDESHOW</span><h2>Choose a free AI engine.</h2><p>The engines create new motion from your original photo. When one service exhausts its credits, use a different provider. The app does not bypass limits or create duplicate accounts.</p></div><div class="ob-provider-grid">${videoProviders.map(providerCard).join('')}</div><div class="ob-caveat">Hugging Face ZeroGPU's free daily GPU quota is shared across its Spaces. Google Flow and PixVerse have separate provider limits. Downloads are imported into each scene manually.</div><button class="ob-neutral ob-old-generator" data-action="old">Open the original embedded Wan generator ↗</button>`;}
+  function videoView(){return `<div class="ob-section-intro"><span class="ob-eyebrow">FIXED WORKFLOW · SAME CHARACTERS</span><h2>Flow first. Higgsfield second.</h2><p>Flow creates the approved still using all six master references. Higgsfield animates that exact still and adds the exact English line. Do not regenerate the character between steps.</p></div><div class="ob-provider-grid">${videoProviders.map(providerCard).join('')}</div><div class="ob-caveat"><strong>One episode = three separate clips.</strong><p>Approve S01 before making S02. Import the three finished Higgsfield clips into the matching episode and assemble them with the existing OFF BRIEF intro.</p></div>`;}
   function voiceView(){
- const members=[...castCharacters,...guestCharacters];
- for(const name of originalSpeakers) if(!members.some(p=>p.name===name)) members.push({name,role:'Original speaking role',trait:'Use original character voice and performance',avatar:0});
+ const known=[...castCharacters,...guestCharacters];
+ const members=originalSpeakers.map(name=>known.find(person=>person.name===name)||{name,role:'OFF BRIEF lead',trait:'Use the approved character voice and performance',avatar:0});
  return `<div class="ob-section-intro"><span class="ob-eyebrow">OFF BRIEF / VOICE DIRECTION</span><h2>Give every character a voice identity.</h2>
  <p>Each original character has an editable acting brief, a recommended AI voice, and a permanent voice setting. Copy the instructions to ttsMP3 AI <strong>Add Instructions</strong>, paste one dialogue line at a time, and import the resulting MP3 underneath its scene.</p></div>
  <div class="ob-voice-explain"><b>AI Voices · 1,000 free characters/day at ttsMP3</b><span>Voice Instructions work in the <strong>AI Voices</strong> generator, not the regular Amazon Polly converter. Generated audio can be used on YouTube. External generation is manual; no secret API or credit bypass.</span><a href="https://ttsmp3.com/ai" target="_blank" rel="noopener noreferrer">Open ttsMP3 AI ↗</a></div>
@@ -333,15 +334,15 @@ return `<div class="ob-ep-summary">
 }
 
   function libraryView(){
-return `<div class="ob-section-intro"><span class="ob-eyebrow">ORIGINAL PHOTO LIBRARY · PRIVATE DRIVE</span><h2>Two seasons, one production hub</h2><p>Both seasons now have the original short-script dialogue and animation prompts for 160 production scene slots. Season 1 episodes 1–8 have original photos in private Drive, including 10 PNGs for episode 8. The PNGs appear inside the editing scene only after user-authorized Drive import. Season 2 Episode 2 now has 10 current numbered PNGs F01–F10 linked from private Drive for review; they are not yet browser-imported; other Season 2 originals remain pending.</p></div>
+return `<div class="ob-section-intro"><span class="ob-eyebrow">MASTER REFERENCES · PRIVATE DRIVE</span><h2>Season 1 short production</h2><p>Use the same six approved references for all 24 Flow stills: Nia full body and close-up, Ruby full body and close-up, the duo, and the studio. Season 2 remains on hold until Season 1 is approved.</p><p><a class="ob-black-button" href="https://drive.google.com/drive/folders/1XOVFoZgeb2G-15avFrDypv6mAP6gVo3e" target="_blank" rel="noopener noreferrer">Open master references ↗</a></p></div>
  <div class="ob-library-grid">${episodes.map(e=>`<button data-episode="${e.id}" class="ob-library-card">
-   <span>S${String(e.season).padStart(2,'0')} / E${String(e.number).padStart(2,'0')}</span>
-   <b>${safe(e.title)}</b><small>${safe(e.source)} · ${photoCount(e.id)}/10 imported</small><strong>Open episode ↗</strong></button>`).join('')}</div>`;
+   <span>S01 / E${String(e.number).padStart(2,'0')}</span>
+   <b>${safe(e.title)}</b><small>${safe(e.source)} · ${photoCount(e.id)}/${e.count} imported</small><strong>Open episode ↗</strong></button>`).join('')}</div><div class="ob-caveat"><strong>SEASON 02 · ON HOLD</strong><p>Continue only after Season 1 has been approved.</p></div>`;
 }
   function driveView(){
 return `<section class="ob-drive-panel"><div class="ob-eyebrow">GOOGLE DRIVE / AUTHORIZATION</div><h2>Import your original scenes</h2>
  <div id="ob-drive-controls">Loading connection options…</div>
- <p class="ob-drive-note">Only original F01–F10 files from the chosen private folder are imported. No image is made publicly accessible. Never paste passwords or client secrets here.</p></section>`;
+ <p class="ob-drive-note">Import only the three approved stills named S01, S02 and S03 from the chosen private episode folder. No image is made publicly accessible. Never paste passwords or client secrets here.</p></section>`;
 }
   function render(){
  if(!document.body.classList.contains('ob-production-active'))return;
@@ -361,12 +362,12 @@ return `<section class="ob-drive-panel"><div class="ob-eyebrow">GOOGLE DRIVE / A
   function copy(text){if(!text){notice('Add some text first.');return;}const finish=()=>notice('Text copied; paste it into the AI generator.');if(navigator.clipboard?.writeText)navigator.clipboard.writeText(text).then(finish,()=>notice('Use long press to select and copy the text.'));else notice('Use long press to select and copy the text.');}
   function backup(){
     const doc={
-      series:'OFF BRIEF Seasons 1 and 2',createdAt:new Date().toISOString(),episodeTitles:episodes.map(e=>e.title),
+      series:'OFF BRIEF Season 1 short format',createdAt:new Date().toISOString(),episodeTitles:episodes.map(e=>e.title),
       warning:'This is a shot-list backup, NOT a backup of image/video/audio files.',
-      scenes:episodes.map(e=>({episode:e.id,title:e.title,shots:Array.from({length:10},(_,i)=>({scene:i+1,...note(e.id,i+1)}))}))
+      scenes:episodes.map(e=>({episode:e.id,title:e.title,shots:Array.from({length:e.count},(_,i)=>({scene:i+1,...note(e.id,i+1)}))}))
     };
     const blob=new Blob([JSON.stringify(doc,null,2)],{type:'application/json'});
-    const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download='OFF_BRIEF_S1_S2_scene_plan.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+    const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download='OFF_BRIEF_S1_short_scene_plan.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
     notice('Downloaded shot list (does not include media files).');
   }
   workspace.addEventListener('click',async(event)=>{
