@@ -41,7 +41,7 @@ for (const width of [375,390,430]) {
         timeline:rect('.fc-shot-grid'),
         toolbox:rect('.fc-inspector'),
         dock:rect('.fc-mobile-dock'),
-        sceneHorizontalOverflow:Boolean(strip&&strip.scrollWidth>strip.clientWidth),
+        sceneCount:document.querySelectorAll('.fc-shot-grid .fc-shot').length,
         activePanel:document.querySelector('#offbrief-final-cut')?.dataset.mobilePanel,
         clipsVisible:visible('.fc-inspector > .fc-import-bulk'),
         flowVisible:visible('.fc-inspector > .fc-flow-workflow')
@@ -51,7 +51,7 @@ for (const width of [375,390,430]) {
     if(metrics.windowWidth!==width)failures.push(width+'px viewport mismatch');
     if(!metrics.preview||metrics.preview.y>200)failures.push(width+'px video preview not near top');
     if(!metrics.dock||metrics.dock.y<650||metrics.dock.y>812)failures.push(width+'px dock not at bottom');
-    if(!metrics.sceneHorizontalOverflow)failures.push(width+'px 10 scenes did not become horizontal swipe strip');
+    if(metrics.sceneCount!==3)failures.push(width+'px expected 3 short-format shots, found '+metrics.sceneCount);
     if(metrics.scrollHeight>1450)failures.push(width+'px excessive vertical initial scroll: '+metrics.scrollHeight);
     if(!metrics.clipsVisible||metrics.flowVisible)failures.push(width+'px Clips tab visibility incorrect');
     await page.screenshot({path:output+'/offbrief-mobile-'+width+'.png',fullPage:false});
@@ -83,5 +83,5 @@ if(failures.length) {
   console.error('OFF BRIEF MOBILE QA FAILURES:\n'+failures.join('\n'));
   process.exitCode=1;
 } else {
-  console.log('PASS: 375, 390 and 430px; video, scene timeline, compact tool panels, backup-compatible layout.');
+  console.log('PASS: 375, 390 and 430px; video, three-shot timeline, compact tool panels, backup-compatible layout.');
 }
