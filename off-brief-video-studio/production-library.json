@@ -1,7 +1,7 @@
 {
   "schema": "offbrief-production-library-v1",
-  "updated": "2026-11-08",
-  "status": "Verified locations; original media stays in Google Drive, not duplicated in GitHub.",
+  "updated": "2026-11-11",
+  "status": "Season 1 short format is active: 8 episodes, 3 shots each. Season 2 is on hold.",
   "channel": {
     "label": "OFF BRIEF YouTube",
     "url": "https://www.youtube.com/@Offbriefchannel",
@@ -31,6 +31,10 @@
     "previews": {
       "label": "9 approved animatic previews",
       "url": "https://drive.google.com/drive/folders/1kDgbf_uyAPfpZMxSXyITVL3dQMGlsU3m"
+    },
+    "masterReferences": {
+      "label": "Nia + Ruby master references · Flow + Higgsfield",
+      "url": "https://drive.google.com/drive/folders/1XOVFoZgeb2G-15avFrDypv6mAP6gVo3e"
     }
   },
   "intro": {
@@ -45,61 +49,73 @@
       "key": "S01E01",
       "title": "The Viral Emergency",
       "folder": "1SOjQOVRq2HoFczfVANGPWNggM0FtaPMX",
-      "preview": "1XA7xVooJ1MLHmEH13mNcSv_1Kl2-c418"
+      "preview": "1XA7xVooJ1MLHmEH13mNcSv_1Kl2-c418",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E02",
       "title": "The Client Said Beige",
       "folder": "1H9ZVmc1t3wPrR81J2l497hpkjCn8WGan",
-      "preview": "1aPlTGVwMli_K9Qmai7SwSjGRUQDX6XLg"
+      "preview": "1aPlTGVwMli_K9Qmai7SwSjGRUQDX6XLg",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E03",
       "title": "Influencer for a Day",
       "folder": "1XDkFyE5RF6ryWUi1_U_juPcrpkCxTz9K",
-      "preview": "1QZ5yxEpZnAhgWPBUlS1mrix4Bv3wB_u4"
+      "preview": "1QZ5yxEpZnAhgWPBUlS1mrix4Bv3wB_u4",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E04",
       "title": "The AI Intern",
       "folder": "1uW3IIoSLqUKoF_m-w_FIMsNMuufh3Pas",
-      "preview": "1JmJyt_wuJE85fVUfbaQrP-uGK6uAI09S"
+      "preview": "1JmJyt_wuJE85fVUfbaQrP-uGK6uAI09S",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E05",
       "title": "One Product, 100 Photos",
       "folder": "1NqeHhEpQyPLUNYOhk0A4CKufywz3Z2Pz",
-      "preview": "1TzVid98UNhYsPp07bPKoxaCj13Oh5IIs"
+      "preview": "1TzVid98UNhYsPp07bPKoxaCj13Oh5IIs",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E06",
       "title": "The Competitor",
       "folder": "1N_TxxJn5XVk5DZqGHnj-QX9TmtbV8Kqm",
-      "preview": "1gRKAwhtF8ynqsU7o5abR6qKeQHe0hbZk"
+      "preview": "1gRKAwhtF8ynqsU7o5abR6qKeQHe0hbZk",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E07",
       "title": "The Biggest Pitch",
       "folder": "1nQo8EOZEFOeqLZWbbQBr0DOp5ZtG6b9f",
-      "preview": "1DIkqM24EASykA7RysN8wKaUCDT8hi8mz"
+      "preview": "1DIkqM24EASykA7RysN8wKaUCDT8hi8mz",
+      "status": "active",
+      "shotCount": 3
     },
     {
       "key": "S01E08",
       "title": "We Almost Quit",
       "folder": "1SgkBevCmcO91Xpx0wtK516vi_JRV3lhA",
-      "preview": "16JgjMVGEC94cYJamYEqXjUpkAhQQtbhU"
-    },
-    {
-      "key": "S02E01",
-      "title": "We Need a Bigger Table",
-      "folder": "1tUHvRTvc1pqlKvx1kt-B8oX2cklq_g6R",
-      "preview": "1yDFsib7aHzkwJNtxf1s2Js35AKTLBu5N"
-    },
-    {
-      "key": "S02E02",
-      "title": "Ten Directors, One Shot",
-      "folder": "1In6dSiqF7NJjqjzgN1VMFHNouOuaXzsZ",
-      "preview": null
+      "preview": "16JgjMVGEC94cYJamYEqXjUpkAhQQtbhU",
+      "status": "active",
+      "shotCount": 3
     }
-  ]
+  ],
+  "shortScripts": {
+    "label": "Season 1 short scripts · production plan",
+    "url": "https://drive.google.com/file/d/1LBR4hfl4yZwhQf3DxBAdn3IG1eF96ITX/view"
+  },
+  "season2": {
+    "status": "on-hold",
+    "message": "Continue only after Season 1 is approved."
+  }
 }
