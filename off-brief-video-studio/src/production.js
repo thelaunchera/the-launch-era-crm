@@ -76,7 +76,7 @@ import {castCharacters,guestCharacters,seasonTwoTitles} from './season-two-cast.
   function db() {
     if(database) return Promise.resolve(database);
     return new Promise((resolve,reject)=>{
-      const r=indexedDB.open('offbrief-production-v1',1);
+      const r=indexedDB.open('offbrief-production-short-v1',1);
       r.onupgradeneeded=()=>r.result.createObjectStore('records',{keyPath:'id'});
       r.onsuccess=()=>{database=r.result;resolve(database);};
       r.onerror=()=>reject(r.error);
