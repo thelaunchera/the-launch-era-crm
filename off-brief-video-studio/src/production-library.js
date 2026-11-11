@@ -16,19 +16,21 @@ import library from '../production-library.json';
     const folderLinks=Object.values(library.folders).map(f=>link(f.label,f.url));
     const epLinks=library.episodes.map(ep=>
       '<article class="ob-library-episode"><div><b>'+esc(ep.key)+'</b><span>'+esc(ep.title)+'</span></div>'+
-      '<div>'+link('Scene photos','https://drive.google.com/drive/folders/'+ep.folder)+
-      (ep.preview?link('Preview MP4','https://drive.google.com/file/d/'+ep.preview+'/view'):'<small>Preview pending</small>')+
-      '</div></article>'
+      '<div>'+link('Original episode folder','https://drive.google.com/drive/folders/'+ep.folder)+
+      (ep.preview?link('Previous preview','https://drive.google.com/file/d/'+ep.preview+'/view'):'<small>Preview pending</small>')+
+      '</div><small>3 new shots required · old media kept as reference only</small></article>'
     );
     dialog.innerHTML=
       '<header><div><small>THE LAUNCH ERA / PRIVATE PRODUCTION</small><h2>OFF BRIEF Library</h2></div><button type="button" id="ob-close-library" aria-label="Close media library">×</button></header>'+
-      '<p>All approved original media stays in Google Drive. This dashboard links to it without creating duplicates. Files open under your Google permissions.</p>'+
+      '<p>Season 1 is active in the new short format. Use the same six master references for every Flow still, then animate each approved still in Higgsfield.</p>'+
       group('Quick access',folderLinks)+
-      group('Official show assets',[
-        link('Universal 5-second intro',library.intro.url),
+      group('Official production files',[
+        link(library.shortScripts.label,library.shortScripts.url),
+        link('Existing 5-second intro',library.intro.url),
         link('YouTube channel',library.channel.url)])+
-      '<section class="ob-library-group"><h3>Scenes & previews</h3><div class="ob-library-episodes">'+epLinks.join('')+'</div></section>'+
-      '<footer>Verified folder references · Nia & Ruby original identities protected · The intro follows the comedic opening.</footer>';
+      '<section class="ob-library-group"><h3>Season 1 · 3 shots per episode</h3><div class="ob-library-episodes">'+epLinks.join('')+'</div></section>'+
+      '<section class="ob-library-group"><h3>Season 2 · On hold</h3><p>'+esc(library.season2.message)+'</p></section>'+
+      '<footer>Season 1 short format active · Nia & Ruby identities locked · Powered by The Launch Era</footer>';
     document.body.appendChild(dialog);
     btn.addEventListener('click',()=>dialog.showModal());
     dialog.querySelector('#ob-close-library').addEventListener('click',()=>dialog.close());
