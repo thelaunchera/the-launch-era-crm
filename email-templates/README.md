@@ -11,7 +11,7 @@ Use `{{ .ConfirmationURL }}` exactly as written. Never substitute a demo link or
 
 ## Reusable client design-approval reminder
 
-- **Master HTML:** `email-templates/client-design-approval-reminder.html`. This is the reusable, mobile-friendly premium The Launch Era layout for all Booking Page + Command Center buyers.
+- **Master HTML:** `email-templates/client-design-approval-reminder.html`. This is the reusable, mobile-friendly premium The Launch Era layout for all Booking Page + Admin Panel buyers.
 - The active backend is `tle-client-review`; its reminder email embeds this master design, replaces the language/business/CTA fields, and sends through the official transactional sender. Keep the master and deployed HTML synchronized when editing the design.
 - English and Spanish use the same visual shell, with localized text and one `Open My Test Center / Abrir mi Centro de Pruebas` button. Do not show raw private links in the HTML. The business name is filled per buyer; never hardcode CB Depot or reuse another buyer's branding.
 - A reminder is not final delivery and must never claim the booking system is live or that an appointment has been confirmed.
